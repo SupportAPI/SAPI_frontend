@@ -1,4 +1,4 @@
-package com.ssafy.sapi;
+package com.seniorcenter.sapi;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
