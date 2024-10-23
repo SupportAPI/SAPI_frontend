@@ -6,17 +6,17 @@ spring:
     password: ${MYSQL_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
     open-in-view: false
+    show-sql: true
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
 
-auth:
-  jwt:
-    secretKey: ${JWT_SECRET_KEY}
-    accessExp: ${JWT_ACCESS_EXP}
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-expire: ${JWT_ACCESS_EXP}
