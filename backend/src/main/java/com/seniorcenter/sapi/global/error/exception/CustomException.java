@@ -1,0 +1,34 @@
+package com.seniorcenter.sapi.global.error.exception;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public enum CustomException {
+
+	/* 400 BAD_REQUEST : 잘못된 요청 */
+	WRONG_TYPE_EXCEPTION(400, "잘못된 형식의 데이터입니다."),
+	S3_UPLOAD_EXCEPTION(400, "파일 업로드를 실패했습니다."),
+
+	/* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
+	NOT_FOUND_SESSION_EXCEPTION(401, "세션이 존재하지 않습니다."),
+	EXPIRED_JWT_EXCEPTION(401, "토큰이 만료했습니다."),
+	EXPIRED_REFRESH_TOKEN_EXCEPTION(401, "리프레시 토큰이 만료했습니다."),
+	NOT_VALID_JWT_EXCEPTION(401, "토큰이 유효하지 않습니다."),
+
+	/* 403 FORBIDDEN : 리소스에 대한 접근이 금지됨 */
+	ACCESS_DENIED_EXCEPTION(403, "권한이 없습니다"),
+
+	/* 404 NOT_FOUND : 리소스를 찾을 수 없음 */
+	NOT_FOUND_USER_EXCEPTION(404, "해당하는 정보의 사용자를 찾을 수 없습니다."),
+
+	/* 409 중복된 리소스 */
+
+	/* 500 SERVER_ERROR */
+	INTERNAL_SERVER_ERROR(500,"서버 에러"),
+	IMAGE_PROCESSING(500, "이미지 처리 중 오류가 발생했습니다.");
+
+	private int status;
+	private String reason;
+}
