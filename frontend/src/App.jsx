@@ -170,51 +170,51 @@ function App() {
               </div>
               {/* 가로 바 */}
               <div className='border mt-2 mb-2 w-full'></div>
+
               {isP_TableVisible && (
                 <div>
                   {/* 여기에 진행중인 워크 스페이스 항목 넣기 */}
-                  <div className='h-72'>
+                  <div className='h-96'>
                     <table className='w-full custom-table'>
                       <thead>
                         <tr className='text-left border-b'>
                           <th className='p-2 w-[20%]'>
-                            <div className='flex flex-row items-center'>
+                            <div className='flex items-center'>
                               <div>🍳</div>
                               <input className='ml-2 border-b font-normal' type='text' placeholder='Search' />
                             </div>
                           </th>
                           <th className='p-2 w-[20%]'>
-                            <div className='flex flex-row justify-center items-center'>
-                              <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl'>Active User</p>
-                              <div className='flex flex-col'>
-                                <button className='text-xs' onClick={() => sortPTable('ActiveUser')}>
-                                  {sortPOrder.column === 'ActiveUser' && sortPOrder.direction === 'asc' ? '▲' : '▼'}
-                                </button>
-                              </div>
+                            <div className='flex justify-center items-center'>
+                              <button
+                                className='flex justify-center items-center'
+                                onClick={() => sortPTable('ActiveUser')}
+                              >
+                                <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>Active User</p>
+                                {sortPOrder.column === 'ActiveUser' && sortPOrder.direction === 'asc' ? '▲' : '▼'}
+                              </button>
                             </div>
                           </th>
                           <th className='p-2 w-[20%]'>
-                            <div className='flex flex-row justify-center items-center'>
-                              <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl'>Team ID</p>
-                              <div className='flex flex-col'>
-                                <button className='text-xs' onClick={() => sortPTable('TeamID')}>
-                                  {sortPOrder.column === 'TeamID' && sortPOrder.direction === 'asc' ? '▲' : '▼'}
-                                </button>
-                              </div>
+                            <div className='flex justify-center items-center'>
+                              <button className='flex justify-center items-center' onClick={() => sortPTable('TeamID')}>
+                                <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>Team ID</p>
+                                {sortPOrder.column === 'TeamID' && sortPOrder.direction === 'asc' ? '▲' : '▼'}
+                              </button>
                             </div>
                           </th>
                           <th className='p-2 w-[20%]'>
-                            <div className='flex flex-row justify-center items-center'>
-                              <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl'>Update Date</p>
-                              <div className='flex flex-col'>
-                                <button className='text-xs' onClick={() => sortPTable('UpdateDate')}>
-                                  {sortPOrder.column === 'UpdateDate' && sortPOrder.direction === 'asc' ? '▲' : '▼'}
-                                </button>
-                              </div>
+                            <div className='flex justify-center items-center'>
+                              <button
+                                className='flex justify-center items-center'
+                                onClick={() => sortPTable('UpdateDate')}
+                              >
+                                <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>Update Date</p>
+                                {sortPOrder.column === 'UpdateDate' && sortPOrder.direction === 'asc' ? '▲' : '▼'}
+                              </button>
                             </div>
                           </th>
                           <th className='p-2 w-[20%]'>
-                            {/* Option 열도 다른 열들과 일치하게 중앙 정렬 */}
                             <div className='flex justify-center items-center'>
                               <p className='pr-2 py-2'>Option</p>
                             </div>
@@ -222,11 +222,11 @@ function App() {
                         </tr>
                       </thead>
 
-                      <tbody className='block overflow-y-auto h-64 sidebar-scrollbar'>
+                      <tbody className='block overflow-y-auto h-80 sidebar-scrollbar'>
                         {prograssTable.map((item, index) => (
                           <tr key={index} className='border-b'>
                             <td className='p-2 w-[20%]'>
-                              <button className='flex flex-row ml-3 hover:bg-gray-50 rounded-xl'>
+                              <button className='flex ml-3 hover:bg-gray-50 rounded-xl'>
                                 {/* 아이콘 자리 */}
                                 <img src={item.imgg} alt='icon' className='w-12 h-10' />
                                 {/* 프로젝트와 설명 한 줄 표시 */}
@@ -255,11 +255,6 @@ function App() {
 
             {/* Done이 들어갈 공간 */}
             {/* Done이 들어갈 공간 */}
-            {/* Done이 들어갈 공간 */}
-            {/* Done이 들어갈 공간 */}
-            {/* Done이 들어갈 공간 */}
-
-            {/* In Progress가 들어갈 공간 */}
             <section className='relative flex flex-col border w-full rounded-3xl bg-white p-8 mt-5'>
               <div className='flex justify-between items-center mb-2'>
                 <p className=' text-2xl'>Done</p>
@@ -279,48 +274,47 @@ function App() {
               {isD_TableVisible && (
                 <div>
                   {/* 여기에 끝난 워크 스페이스 항목 넣기 */}
-                  <div className='h-72'>
+                  <div className='h-96'>
                     <table className='w-full custom-table'>
                       <thead>
                         <tr className='text-left border-b'>
                           <th className='p-2 w-[20%]'>
-                            <div className='flex flex-row items-center'>
+                            <div className='flex items-center'>
                               <div>🍳</div>
                               <input className='ml-2 border-b font-normal' type='text' placeholder='Search' />
                             </div>
                           </th>
                           <th className='p-2 w-[20%]'>
-                            <div className='flex flex-row justify-center items-center'>
-                              <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl'>User</p>
-                              <div className='flex flex-col'>
-                                <button className='text-xs' onClick={() => sortDTable('User')}>
-                                  {sortDOrder.column === 'User' && sortDOrder.direction === 'asc' ? '▲' : '▼'}
-                                </button>
-                              </div>
+                            <div className='flex justify-center items-center'>
+                              <button className='flex justify-center items-center' onClick={() => sortDTable('User')}>
+                                <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>User</p>
+                                {sortDOrder.column === 'User' && sortDOrder.direction === 'asc' ? '▲' : '▼'}
+                              </button>
                             </div>
                           </th>
                           <th className='p-2 w-[20%]'>
-                            <div className='flex flex-row justify-center items-center'>
-                              <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl'>CHARGEBEE ID</p>
-                              <div className='flex flex-col'>
-                                <button className='text-xs' onClick={() => sortDTable('ChargebeeID')}>
-                                  {sortDOrder.column === 'ChargebeeID' && sortDOrder.direction === 'asc' ? '▲' : '▼'}
-                                </button>
-                              </div>
+                            <div className='flex justify-center items-center'>
+                              <button
+                                className='flex justify-center items-center'
+                                onClick={() => sortDTable('ChargebeeID')}
+                              >
+                                <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>CHARGEBEE ID</p>
+                                {sortDOrder.column === 'ChargebeeID' && sortDOrder.direction === 'asc' ? '▲' : '▼'}
+                              </button>
                             </div>
                           </th>
                           <th className='p-2 w-[20%]'>
-                            <div className='flex flex-row justify-center items-center'>
-                              <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl'>RENEWAL DATE</p>
-                              <div className='flex flex-col'>
-                                <button className='text-xs' onClick={() => sortDTable('RenewalDate')}>
-                                  {sortDOrder.column === 'RenewalDate' && sortDOrder.direction === 'asc' ? '▲' : '▼'}
-                                </button>
-                              </div>
+                            <div className='flex justify-center items-center'>
+                              <button
+                                className='flex justify-center items-center'
+                                onClick={() => sortDTable('RenewalDate')}
+                              >
+                                <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>RENEWAL DATE</p>
+                                {sortDOrder.column === 'RenewalDate' && sortDOrder.direction === 'asc' ? '▲' : '▼'}
+                              </button>
                             </div>
                           </th>
                           <th className='p-2 w-[20%]'>
-                            {/* Option 열도 다른 열들과 일치하게 중앙 정렬 */}
                             <div className='flex justify-center items-center'>
                               <p className='pr-2 py-2'>Option</p>
                             </div>
@@ -328,11 +322,11 @@ function App() {
                         </tr>
                       </thead>
 
-                      <tbody className='block overflow-y-auto h-64 sidebar-scrollbar'>
+                      <tbody className='block overflow-y-auto h-80 sidebar-scrollbar'>
                         {doneTable.map((item, index) => (
                           <tr key={index} className='border-b'>
                             <td className='p-2 w-[20%]'>
-                              <button className='flex flex-row ml-3 hover:bg-gray-50 rounded-xl'>
+                              <button className='flex ml-3 hover:bg-gray-50 rounded-xl'>
                                 {/* 아이콘 자리 */}
                                 <img src={item.imgg} alt='icon' className='w-12 h-10' />
                                 {/* 프로젝트와 설명 한 줄 표시 */}
