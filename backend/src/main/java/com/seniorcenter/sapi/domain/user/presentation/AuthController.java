@@ -13,6 +13,7 @@ import com.seniorcenter.sapi.domain.user.presentation.dto.response.UserResponseD
 import com.seniorcenter.sapi.domain.user.service.AuthService;
 import com.seniorcenter.sapi.global.security.jwt.TokenDto;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -28,8 +29,8 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<TokenDto> login(@RequestBody LoginRequestDto loginRequest) {
-		return ResponseEntity.ok(authService.login(loginRequest));
+	public ResponseEntity<TokenDto> login(@RequestBody LoginRequestDto loginRequest, HttpServletResponse response) {
+		return ResponseEntity.ok(authService.login(loginRequest, response));
 	}
 
 	@PostMapping("/reissue")
