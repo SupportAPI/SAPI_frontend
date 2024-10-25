@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.seniorcenter.sapi.domain.user.domain.EmailVerification;
 import com.seniorcenter.sapi.domain.user.domain.User;
@@ -12,10 +13,12 @@ import com.seniorcenter.sapi.domain.user.domain.repository.EmailVerificationRepo
 import com.seniorcenter.sapi.domain.user.domain.repository.UserRepository;
 import com.seniorcenter.sapi.domain.user.presentation.dto.request.NewPasswordRequestDto;
 import com.seniorcenter.sapi.domain.user.presentation.dto.request.SendCodeRequestDto;
+import com.seniorcenter.sapi.domain.user.presentation.dto.request.UpdateUserRequestDto;
 import com.seniorcenter.sapi.domain.user.presentation.dto.request.VerifyCodeRequestDto;
 import com.seniorcenter.sapi.domain.user.presentation.dto.response.UserInfoResponseDto;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
+import com.seniorcenter.sapi.global.utils.S3UploadUtil;
 import com.seniorcenter.sapi.global.utils.user.EmailUtils;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
 
@@ -30,6 +33,7 @@ public class UserServiceImpl implements UserService {
 	private final EmailVerificationRepository emailVerificationRepository;
 	private final UserUtils userUtils;
 	private final EmailUtils emailUtils;
+	private final S3UploadUtil s3UploadUtil;
 	private final PasswordEncoder passwordEncoder;
 
 	@Override
@@ -96,5 +100,32 @@ public class UserServiceImpl implements UserService {
 		}
 
 		user.changePassword(passwordEncoder.encode(newPasswordRequestDto.password()));
+	}
+
+	@Transactional
+	@Override
+	public void updateUserInfo(Long userId, UpdateUserRequestDto requestDto, MultipartFile profileImage) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
+
+		if (!user.getId().equals(userUtils.getUserFromSecurityContext().getId())) {
+			throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
+		}
+
+		String profileImageUrl = s3UploadUtil.saveFile(profileImage);
+		user.updateInfo(requestDto.nickname(), profileImageUrl);
+	}
+
+	@Transactional
+	@Override
+	public void resignUser(Long userId) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
+
+		if (!user.getId().equals(userUtils.getUserFromSecurityContext().getId())) {
+			throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
+		}
+
+		user.resign();
 	}
 }

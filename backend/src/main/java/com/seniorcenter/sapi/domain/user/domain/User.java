@@ -40,12 +40,16 @@ public class User extends BaseTimeEntity {
 	@Column(nullable = false)
 	private String profileImage;
 
+	@Column(nullable = false)
+	private Boolean isDeleted;
+
 	@Builder
 	private User(String email, String password, String nickname, String profileImage) {
 		this.email = email;
 		this.password = password;
 		this.nickname = nickname;
 		this.profileImage = profileImage;
+		this.isDeleted = false;
 	}
 
 	public static User signUpUser(CreateUserRequestDto createUserRequestDto, String profileImage) {
@@ -55,6 +59,15 @@ public class User extends BaseTimeEntity {
 			.nickname(createUserRequestDto.nickname())
 			.profileImage(profileImage)
 			.build();
+	}
+
+	public void updateInfo(String nickname, String profileImage) {
+		this.nickname = nickname;
+		this.profileImage = profileImage;
+	}
+
+	public void resign() {
+		this.isDeleted = true;
 	}
 
 	public void changePassword(String password) {
