@@ -20,6 +20,7 @@ import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.security.jwt.TokenDto;
 import com.seniorcenter.sapi.global.security.jwt.TokenProvider;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -44,7 +45,7 @@ public class AuthService {
 	}
 
 	@Transactional
-	public TokenDto login(LoginRequestDto loginRequest) {
+	public TokenDto login(LoginRequestDto loginRequest, HttpServletResponse response) {
 
 		User user = userRepository.findByEmail(loginRequest.email())
 				.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
@@ -63,6 +64,10 @@ public class AuthService {
 
 		refreshTokenRepository.findByUserId(user.getId()).ifPresent(refreshTokenRepository::delete);
 		refreshTokenRepository.save(refreshToken);
+
+		// TODO: 추후 Cookie, Session 중 저장 방식 확정하여 로직 최적화
+		tokenProvider.setHeaderAccessToken(response, tokenDto.getAccessToken());
+		tokenProvider.setHeaderRefreshToken(response, refreshToken.getValue());
 
 		return tokenDto;
 	}
