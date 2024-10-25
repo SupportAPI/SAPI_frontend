@@ -41,7 +41,8 @@ public class SecurityConfig {
 		);
 		http.authorizeHttpRequests((auth) -> auth
 			.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-			.requestMatchers("/api/users/login").permitAll()
+			.requestMatchers("/api/users/login", "/api/users/check-email-duplicate",
+				"/api/users/send-code", "/api/users/verify-code", "/api/users/send-password").permitAll()
 			.anyRequest().authenticated()
 		);
 		http.exceptionHandling((handle) -> handle.authenticationEntryPoint(customExceptionHandler));
