@@ -29,6 +29,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -145,6 +147,24 @@ public class TokenProvider {
 			return true;
 		}
 		return false;
+	}
+
+	public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
+		Cookie accessTokenCookie = new Cookie("SAPI_TOKEN", accessToken);
+		accessTokenCookie.setMaxAge(86400);
+		accessTokenCookie.setPath("/");
+		accessTokenCookie.setHttpOnly(true);
+
+		response.addHeader("Set-Cookie", "SAPI_TOKEN=" + accessToken + "; Max-Age=86400; Path=/; HttpOnly; Secure; SameSite=None");
+	}
+
+	public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
+		Cookie refreshTokenCookie = new Cookie("SAPI_TOKEN_REFRESH", refreshToken);
+		refreshTokenCookie.setMaxAge(604800);
+		refreshTokenCookie.setPath("/");
+		refreshTokenCookie.setHttpOnly(true);
+
+		response.addHeader("Set-Cookie", "SAPI_TOKEN_REFRESH=" + refreshToken + "; Max-Age=604800; Path=/; HttpOnly; Secure; SameSite=None");
 	}
 
 	private Key getSecretKey() {
