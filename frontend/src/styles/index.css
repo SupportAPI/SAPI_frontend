@@ -27,3 +27,13 @@
   display: table;
   width: 100%;
 }
+
+.custom-table-move {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease-in-out;
+}
+
+.custom-table-move.show {
+  max-height: 500px; /* 콘텐츠가 충분히 커질 수 있도록 적절한 높이 설정 */
+}
