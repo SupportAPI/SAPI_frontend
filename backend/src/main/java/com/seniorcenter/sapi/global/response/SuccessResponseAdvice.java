@@ -11,7 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-@RestControllerAdvice(basePackages = "seniorcenter.sapi")
+@RestControllerAdvice(basePackages = "com.seniorcenter.sapi")
 public class SuccessResponseAdvice implements ResponseBodyAdvice {
 
 	@Override
