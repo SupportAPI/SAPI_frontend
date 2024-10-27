@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Pretendard-Regular';
+  src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@layer base {
+  * {
+    @apply select-none;
+  }
+}
+
 /* 스크롤바 커스터마이징 */
 .sidebar-scrollbar::-webkit-scrollbar {
   width: 8px; /* 스크롤바의 너비 */
