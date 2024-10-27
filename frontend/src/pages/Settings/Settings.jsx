@@ -22,7 +22,7 @@ const Settings = ({ onClose, children }) => {
         <header className='flex justify-between items-center w-full text-xl h-[10%] bg-blue-100'>
           <div className='text-5xl font-bold ml-10 mb-3'>Settings</div>
           <button className='' onClick={onClose}>
-            <img className='mr-4 w-6' src='/src/assets/x.png' alt='' />
+            <img className='mr-4 w-6' src='/src/assets/workspace/x.png' alt='' />
           </button>
         </header>
 

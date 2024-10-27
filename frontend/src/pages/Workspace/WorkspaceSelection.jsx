@@ -90,7 +90,7 @@ const WorkspaceSelection = () => {
       setPrograssTable([
         {
           id: workspaces[0]?.id,
-          imgg: '/src/assets/logo1.png',
+          imgg: '/src/assets/workspace/logo1.png',
           프로젝트: workspaces[0]?.name,
           description: 'SSAFY 자율 프로젝트',
           ActiveUser: '1/6',
@@ -99,7 +99,7 @@ const WorkspaceSelection = () => {
         },
         {
           id: workspaces[1]?.id,
-          imgg: '/src/assets/logo2.png',
+          imgg: '/src/assets/workspace/logo2.png',
           프로젝트: workspaces[1]?.name,
           description: 'SSAFY 자율 프로젝트',
           ActiveUser: '1/6',
@@ -108,7 +108,7 @@ const WorkspaceSelection = () => {
         },
         {
           id: workspaces[2]?.id,
-          imgg: '/src/assets/logo3.png',
+          imgg: '/src/assets/workspace/logo3.png',
           프로젝트: workspaces[2]?.name,
           description: 'SSAFY 자율 프로젝트',
           ActiveUser: '1/6',
@@ -121,7 +121,7 @@ const WorkspaceSelection = () => {
       setDoneTable([
         {
           id: workspaces[1]?.id,
-          imgg: '/src/assets/logo1.png',
+          imgg: '/src/assets/workspace/logo1.png',
           프로젝트: workspaces[1]?.name,
           description: 'SSAFY 자율 프로젝트',
           User: '1/6',
@@ -173,9 +173,9 @@ const WorkspaceSelection = () => {
                   onClick={() => setP_IsTableVisible(!isP_TableVisible)}
                 >
                   {isP_TableVisible ? (
-                    <img className='w-4' src='/src/assets/Minus.png' alt='' />
+                    <img className='w-4' src='/src/assets/workspace/Minus.png' alt='' />
                   ) : (
-                    <img className='w-4' src='/src/assets/plus.png' alt='' />
+                    <img className='w-4' src='/src/assets/workspace/plus.png' alt='' />
                   )}
                 </button>
               </div>
@@ -253,7 +253,7 @@ const WorkspaceSelection = () => {
                           <td className='p-2 w-[20%] text-center'>{item.UpdateDate}</td>
                           <td className='p-2 w-[20%] text-center'>
                             <button className='inline-block'>
-                              <img className='h-6 mx-auto' src='/src/assets/3point.png' alt='' />
+                              <img className='h-6 mx-auto' src='/src/assets/workspace/3point.png' alt='' />
                             </button>
                           </td>
                         </tr>
@@ -275,9 +275,9 @@ const WorkspaceSelection = () => {
                   onClick={() => setD_IsTableVisible(!isD_TableVisible)}
                 >
                   {isD_TableVisible ? (
-                    <img className='w-4' src='/src/assets/Minus.png' alt='' />
+                    <img className='w-4' src='/src/assets/workspace/Minus.png' alt='' />
                   ) : (
-                    <img className='w-4' src='/src/assets/plus.png' alt='' />
+                    <img className='w-4' src='/src/assets/workspace/plus.png' alt='' />
                   )}
                 </button>
               </div>
@@ -356,7 +356,7 @@ const WorkspaceSelection = () => {
                             <td className='p-2 w-[20%] text-center'>{item.RenewalDate}</td>
                             <td className='p-2 w-[20%] text-center'>
                               <button className='inline-block '>
-                                <img className='h-6 mx-auto' src='/src/assets/3point.png' alt='' />
+                                <img className='h-6 mx-auto' src='/src/assets/workspace/3point.png' alt='' />
                               </button>
                             </td>
                           </tr>
