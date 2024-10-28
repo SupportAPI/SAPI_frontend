@@ -41,7 +41,7 @@ const ApiDocsSidebar = () => {
   };
 
   const handleAllApiClick = () => {
-    handleApiClick('all', 'APIs');
+    handleApiClick('all', 'API Overview');
   };
 
   const handleAllApiDoubleClick = () => {
@@ -102,7 +102,7 @@ const ApiDocsSidebar = () => {
           onDoubleClick={handleAllApiDoubleClick}
         >
           <FaBars className='text-gray-500 mr-2' />
-          <span className='text-lg font-semibold text-[#475467]'>APIs</span>
+          <span className='text-lg font-semibold text-[#475467]'>API Overview</span>
         </div>
         <div className='flex space-x-2'>
           <BiExpandVertical
@@ -155,7 +155,9 @@ const ApiDocsSidebar = () => {
                         <div className='pl-12 pr-4 py-2 flex justify-between items-center'>
                           {api.name}
                           <BsThreeDots
-                            className='text-gray-500 hover:text-gray-700 cursor-pointer opacity-0 group-hover:opacity-100'
+                            className={`text-gray-500 hover:text-gray-700 cursor-pointer ${
+                              isDropdownActive || 'group-hover:opacity-100 opacity-0'
+                            }`}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDropdownToggle(api.id);
