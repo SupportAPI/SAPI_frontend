@@ -9,16 +9,16 @@ const CreateWorkspace = ({ onClose, children }) => {
 
   // 임시 유저 보드
   const users = [
-    { username: '푸바오가 제일 좋음', email: 'rkdtpgus@naver.com', userimg: '/src/assets/user1.png' },
-    { username: '커비1234', email: 'rlaansgml@naver.com', userimg: '/src/assets/user2.png' },
-    { username: '커비꽃', email: 'qkrcksgh@naver.com', userimg: '/src/assets/user3.png' },
-    { username: '커비먹방', email: 'qkrdydqls@naver.com', userimg: '/src/assets/user4.png' },
-    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/user5.png' },
-    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/user5.png' },
-    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/user5.png' },
-    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/user5.png' },
-    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/user5.png' },
-    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/user5.png' },
+    { username: '푸바오가 제일 좋음', email: 'rkdtpgus@naver.com', userimg: '/src/assets/workspace/user1.png' },
+    { username: '커비1234', email: 'rlaansgml@naver.com', userimg: '/src/assets/workspace/user2.png' },
+    { username: '커비꽃', email: 'qkrcksgh@naver.com', userimg: '/src/assets/workspace/user3.png' },
+    { username: '커비먹방', email: 'qkrdydqls@naver.com', userimg: '/src/assets/workspace/user4.png' },
+    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
+    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
+    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
+    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
+    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
+    { username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
   ];
   // children 은 필요하면 사용 필요 없으면 됐음
 
@@ -30,7 +30,7 @@ const CreateWorkspace = ({ onClose, children }) => {
         <header className='flex justify-between items-center w-full text-xl mb-4 h-[10%] bg-blue-100'>
           <div className='ml-4'>Create Workspace</div>
           <button className='' onClick={onClose}>
-            <img className='mr-4 w-6' src='/src/assets/x.png' alt='' />
+            <img className='mr-4 w-6' src='/src/assets/workspace/x.png' alt='' />
           </button>
         </header>
 
@@ -55,7 +55,7 @@ const CreateWorkspace = ({ onClose, children }) => {
                   </div>
                 </div>
                 <button>
-                  <img className='w-5 mr-5' src='/src/assets/x.png' alt='' />
+                  <img className='w-5 mr-5' src='/src/assets/workspace/x.png' alt='' />
                 </button>
               </div>
             ))}

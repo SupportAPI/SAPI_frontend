@@ -5,6 +5,7 @@ import Workspace from '../pages/Workspace';
 import WorkspaceSelection from '../pages/Workspace/WorkspaceSelection';
 import ApiOverview from '../pages/ApiOverview';
 import ApiDocsDetail from '../pages/ApiDocsDetail';
+import Page404 from '../pages/404page';
 
 const AppRoutes = () => {
   return (
@@ -44,6 +45,7 @@ const AppRoutes = () => {
           </Layout>
         }
       />
+      <Route path='/404page' element={<Page404 />} />
     </Routes>
   );
 };
