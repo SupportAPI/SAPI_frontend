@@ -52,8 +52,8 @@ public class UserServiceImpl implements UserService {
 		return userRepository.existsByEmail(email);
 	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public void sendEmailCode(SendCodeRequestDto sendCodeRequestDto) {
 		EmailVerification emailVerification = emailVerificationRepository
 			.findByEmail(sendCodeRequestDto.email())
@@ -74,8 +74,8 @@ public class UserServiceImpl implements UserService {
 		emailUtils.sendEmail(sendCodeRequestDto.email(), subject, template, variables);
 	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public void verifyEmailCode(VerifyCodeRequestDto verifyCodeRequestDto) {
 		EmailVerification emailVerification = emailVerificationRepository.findByEmail(verifyCodeRequestDto.email())
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_EMAIL));
@@ -89,8 +89,8 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public void updatePassword(Long userId, NewPasswordRequestDto newPasswordRequestDto) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
@@ -102,8 +102,8 @@ public class UserServiceImpl implements UserService {
 		user.changePassword(passwordEncoder.encode(newPasswordRequestDto.password()));
 	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public void updateUserInfo(Long userId, UpdateUserRequestDto requestDto, MultipartFile profileImage) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
@@ -116,8 +116,8 @@ public class UserServiceImpl implements UserService {
 		user.updateInfo(requestDto.nickname(), profileImageUrl);
 	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public void resignUser(Long userId) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
