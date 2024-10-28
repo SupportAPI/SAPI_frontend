@@ -18,7 +18,6 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@DynamicInsert
 @Getter
 @Table(name = "users")
 public class User extends BaseTimeEntity {
