@@ -25,6 +25,7 @@ public enum CustomException {
 	/* 404 NOT_FOUND : 리소스를 찾을 수 없음 */
 	NOT_FOUND_USER_EXCEPTION(404, "해당하는 정보의 사용자를 찾을 수 없습니다."),
 	NOT_FOUND_EMAIL(404, "이메일을 찾을 수 없습니다"),
+	NOT_FOUND_WORKSPACE(404, "해당하는 워크스페이스를 찾을 수 없습니다."),
 
 
 	/* 409 중복된 리소스 */
