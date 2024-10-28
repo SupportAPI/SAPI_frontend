@@ -3,13 +3,13 @@ import Login from '../pages/Login';
 import Layout from '../components/layout/Layout';
 import Workspace from '../pages/Workspace';
 import WorkspaceSelection from '../pages/Workspace/WorkspaceSelection';
-import AllApiDocs from '../pages/AllApiDocs';
+import ApiOverview from '../pages/ApiOverview';
 import ApiDocsDetail from '../pages/ApiDocsDetail';
 
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path='/' element={<div>Login a tab to get started.</div>} />
+      <Route path='/' element={<Login />} />
       <Route
         path='/asd'
         element={
@@ -32,7 +32,7 @@ const AppRoutes = () => {
         path='/workspace/:workspaceId/apidocs/all'
         element={
           <Layout>
-            <AllApiDocs />
+            <ApiOverview />
           </Layout>
         }
       />
