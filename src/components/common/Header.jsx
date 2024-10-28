@@ -3,16 +3,19 @@ import { FaBell, FaUser, FaCog } from 'react-icons/fa';
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFetchWorkspaces } from '../../api/queries/useWorkspaceQueries'; // 실제 API 훅을 사용
+import Alarm from './Alarm';
 
 const Header = () => {
   const [isWorkspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(true);
   const { workspaceId: currentWorkspaceId } = useParams(); // URL에서 workspaceId 추출
   const workspaceName = `Workspace ${currentWorkspaceId}`; // 실제로는 API에서 가져온 이름을 사용할 수 있음
 
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
+  const alarmRef = useRef(null);
 
   const { data: workspaces = [] } = useFetchWorkspaces('1');
 
@@ -26,6 +29,9 @@ const Header = () => {
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setWorkspaceDropdownOpen(false);
+    }
+    if (alarmRef.current && !alarmRef.current.contains(event.target)) {
+      setIsNotificationOpen(false);
     }
   };
 
@@ -69,10 +75,14 @@ const Header = () => {
 
       {/* 오른쪽 아이콘들 */}
       <div className='flex items-center space-x-8'>
-        <div className='relative'>
-          <FaBell className='text-2xl cursor-pointer' />
+        
+        {/* 알람 */}
+        <div className='relative' ref={alarmRef}>
+          <FaBell className='text-2xl cursor-pointer' onClick={() => setIsNotificationOpen((prev) => !prev)} />
+            {isNotificationOpen && <Alarm/>}
           {hasNotifications && <span className='absolute top-0 right-0 bg-red-500 rounded-full w-3 h-3'></span>}
         </div>
+
         <FaCog className='text-2xl cursor-pointer' />
 
         {/* 프로필 아이콘 및 드롭다운 */}
