@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const CreateWorkspace = ({ onClose, children }) => {
   // 워크스페이스 이름 상태 관리
-  const [wname, setWName] = useState('');
+  const [isworkspacename, setWorkSpaceName] = useState(true);
 
   //워크 스페이스 초대 인원 관리
   const [addUser, setAddUser] = useState('');
@@ -26,7 +26,7 @@ const CreateWorkspace = ({ onClose, children }) => {
     // 모달 화면 위치 정의
     <div className='fixed flex justify-center items-center inset-0 bg-black bg-opacity-30 z-50'>
       {/* 모달 크기 정의 */}
-      <div className='flex flex-col items-center bg-white rounded-lg w-[1000px] h-[1000px] border rounded-lg'>
+      <div className='flex flex-col items-center bg-white rounded-lg w-[800px] h-[800px] border rounded-lg'>
         <header className='flex justify-between items-center w-full text-xl mb-4 h-[10%] bg-blue-100'>
           <div className='ml-4'>Create Workspace</div>
           <button className='' onClick={onClose}>
@@ -35,14 +35,36 @@ const CreateWorkspace = ({ onClose, children }) => {
         </header>
 
         {/* 내부 컴포넌트 크기 정의 */}
-        <div className='flex flex-col w-1/2 h-[80%] mt-10'>
-          <div className='h-[35%]'>
-            <div>WorkSpaces name</div>
-            <input type='text' className='border w-full h-20 p-5 mb-10 rounded-lg' placeholder='Project name' />
+        <div className='flex flex-col w-[400px] h-[640px]'>
+          <div className='h-[35%] mb-20'>
+            <div className='flex flex-col mb-1'>
+              {/* WorkSpace 이름 입력 */}
+              <div>WorkSpaces name</div>
+              <input type='text' className='border w-full h-14 p-5 rounded-lg' placeholder='Project name' />
+              <div className={`${isworkspacename ? 'visible' : 'invisible'} text-red-500`}>
+                Project name을 입력해주세요.
+              </div>
+            </div>
 
-            <div>Invite a member to Project</div>
-            <input type='text' className='border w-full h-20 p-5 rounded-lg' placeholder='ssafy@ssafy.com' />
+            {/* Domain 주소 입력 */}
+            <div className='flex flex-col mb-1'>
+              <div>Domain Address</div>
+              <input type='text' className='border w-full h-14 p-5 rounded-lg' placeholder='k11b305.ssafy.p.io' />
+              <div className={`${isworkspacename ? 'visible' : 'invisible'} text-red-500`}>
+                Domain 주소를 입력해주세요.
+              </div>
+            </div>
+
+            {/* 초대할 사람 입력 */}
+            <div className='flex flex-col'>
+              <div>Invite a member to Project</div>
+              <div className='flex justify-between items-center'>
+                <input type='text' className='border w-full h-14 p-5 rounded-lg' placeholder='ssafy@ssafy.com' />
+                <button className='w-20 h-14 ml-3 border rounded-lg bg-green-500 hover:bg-green-600'>Invite</button>
+              </div>
+            </div>
           </div>
+
           <div className='block h-[40%] border rounded-lg overflow-y-auto h-80 sidebar-scrollbar'>
             {/* 유저 정보 테이블 칸 */}
             {users.map((item, index) => (

@@ -73,8 +73,6 @@ const Settings = ({ onClose }) => {
                 >
                   Member
                 </button>
-                {/* Setting 아직 뭐 넣어야할지 몰라서 페이지 구성 안함 */}
-                <button className='w-[100%] h-20 hover:bg-blue-100 border-none rounded-xl'>Setting</button>
                 {/* Exit 누르면 네이게이션해서 WorkSpace 화면으로 이동할 것 */}
                 <button
                   className='w-[100%] h-20 hover:bg-blue-100 border-none rounded-xl text-red-500'
