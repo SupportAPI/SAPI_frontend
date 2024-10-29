@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // 로그인 API 호출 함수
-export const login = async (username, password) => {
-  const useMock = true;
+export const login = async (email, password) => {
+  const useMock = false;
 
   if (useMock) {
     // 임시 토큰 생성
@@ -15,10 +15,11 @@ export const login = async (username, password) => {
     });
   } else {
     // 실제 API 요청
-    const response = await axios.post('/api/login', {
-      username,
+    const response = await axios.post('http://192.168.31.35:8080/api/users/login', {
+      email,
       password,
     });
-    return response;
+
+    return response.data.data;
   }
 };
