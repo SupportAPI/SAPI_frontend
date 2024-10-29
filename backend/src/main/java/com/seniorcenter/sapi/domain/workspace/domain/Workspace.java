@@ -30,7 +30,7 @@ public class Workspace extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
-	private String id;
+	private UUID id;
 
 	@Column(nullable = false)
 	private String projectName;
