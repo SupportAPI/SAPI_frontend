@@ -86,19 +86,19 @@ public class Membership extends BaseTimeEntity {
 		this.deleteAuthority = true;
 	}
 
-	public void editReadAuthority(boolean readAuthority) {
+	public void acceptInvite() {
+		this.inviteStatus = InviteStatus.ACCEPTED;
+	}
+
+	public void updateRole(Role role) {
+		this.role = role;
+	}
+
+	public void updateAuthority(boolean readAuthority, boolean updateAuthority, boolean saveAuthority,
+		boolean deleteAuthority) {
 		this.readAuthority = readAuthority;
-	}
-
-	public void editUpdateAuthority(boolean updateAuthority) {
 		this.updateAuthority = updateAuthority;
-	}
-
-	public void editSaveAuthority(boolean saveAuthority) {
 		this.saveAuthority = saveAuthority;
-	}
-
-	public void editDeleteAuthority(boolean deleteAuthority) {
 		this.deleteAuthority = deleteAuthority;
 	}
 }

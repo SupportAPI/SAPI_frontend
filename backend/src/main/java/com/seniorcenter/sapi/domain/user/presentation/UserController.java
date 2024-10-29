@@ -73,6 +73,11 @@ public class UserController {
 		return userService.getUserInfo(userId);
 	}
 
+	@GetMapping()
+	public UserInfoResponseDto getUserInfoByEmail(@RequestParam String email) {
+		return userService.getUserInfoByEmail(email);
+	}
+
 	@PostMapping("/{userId}/send-temp-password")
 	public void changePassword(@PathVariable Long userId, @RequestBody NewPasswordRequestDto newPasswordRequestDto) {
 		userService.updatePassword(userId, newPasswordRequestDto);

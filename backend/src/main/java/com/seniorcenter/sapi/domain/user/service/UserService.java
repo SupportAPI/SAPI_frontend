@@ -11,6 +11,7 @@ import com.seniorcenter.sapi.domain.user.presentation.dto.response.UserInfoRespo
 public interface UserService {
 
 	UserInfoResponseDto getUserInfo(Long userId);
+	UserInfoResponseDto getUserInfoByEmail(String email);
 	boolean checkDuplicateEmail(String email);
 	void sendEmailCode(SendCodeRequestDto sendCodeRequestDto);
 	void verifyEmailCode(VerifyCodeRequestDto verifyCodeRequestDto);
