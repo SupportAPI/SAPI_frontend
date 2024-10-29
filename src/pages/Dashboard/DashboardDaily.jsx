@@ -16,7 +16,7 @@ const DashboardDaily = () => {
 
 
     return(
-        <div className="p-8">
+        <div className="p-8 ">
             <div>
                 <p className="text-2xl font-bold">Completed API Count Progress</p>
                 <hr className="border-t mt-1 mb-5 border-black"/>

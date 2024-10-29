@@ -54,7 +54,7 @@ const DashboardCompletedProgress = () => {
     }, [data]);
 
     return (
-        <div className="h-full mb-24 bg-white border border-solid rounded-md border-black p-2">
+        <div className="w-full h-full mb-24 bg-white border border-solid rounded-md border-black p-2">
             <div className="w-full h-80">
                 <ResponsiveLine
                     data={data}
