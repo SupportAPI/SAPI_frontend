@@ -68,7 +68,7 @@ const Header = () => {
       </div>
 
       {/* 오른쪽 아이콘들 */}
-      <div className='flex items-center space-x-8'>
+      <div className='flex items-center gap-8'>
         <div className='relative'>
           <FaBell className='text-2xl cursor-pointer' />
           {hasNotifications && <span className='absolute top-0 right-0 bg-red-500 rounded-full w-3 h-3'></span>}

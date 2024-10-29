@@ -25,6 +25,16 @@ export const fetchApiDocs = async () => {
         { id: '9', name: 'Update Project Info' },
       ],
     },
+    {
+      category: 'Teams',
+      apis: [
+        { id: '10', name: 'Project List' },
+        { id: '11', name: 'Create Project' },
+        { id: '12', name: 'Delete Project' },
+        { id: '13', name: 'Get Project Details' },
+        { id: '14', name: 'Update Project Info' },
+      ],
+    },
   ];
 };
 
