@@ -1,6 +1,7 @@
 package com.seniorcenter.sapi.domain.workspace.presentation;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +34,7 @@ public class WorkspaceController {
 	}
 
 	@GetMapping("/{workspaceId}")
-	public WorkspaceInfoResponseDto getWorkspace(@PathVariable Long workspaceId) {
+	public WorkspaceInfoResponseDto getWorkspace(@PathVariable UUID workspaceId) {
 		return workspaceService.getWorkspace(workspaceId);
 	}
 
@@ -43,14 +44,14 @@ public class WorkspaceController {
 	}
 
 	@PatchMapping("/{workspaceId}")
-	public void updateWorkspace(@PathVariable Long workspaceId,
+	public void updateWorkspace(@PathVariable UUID workspaceId,
 		@RequestPart(name = "requestDto") UpdateWorkspaceRequestDto requestDto,
 		@RequestPart(name = "mainImage") MultipartFile mainImage) {
 		workspaceService.updateWorkspace(workspaceId, requestDto, mainImage);
 	}
 
 	@DeleteMapping("/{workspaceId}")
-	public void removeWorkspace(@PathVariable Long workspaceId) {
+	public void removeWorkspace(@PathVariable UUID workspaceId) {
 		workspaceService.removeWorkspace(workspaceId);
 	}
 }
