@@ -48,6 +48,14 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	public UserInfoResponseDto getUserInfoByEmail(String email) {
+		User user = userRepository.findByEmail(email)
+			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
+
+		return new UserInfoResponseDto(user.getId(), user.getEmail(), user.getNickname(), user.getProfileImage());
+	}
+
+	@Override
 	public boolean checkDuplicateEmail(String email) {
 		return userRepository.existsByEmail(email);
 	}
