@@ -1,40 +1,22 @@
 // src/pages/WorkspaceSelection.js
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useAuthStore from '../../stores/useAuthStore';
-import { useFetchWorkspaces, useCreateWorkspace, useDeleteWorkspace } from '../../api/queries/useWorkspaceQueries';
+import { useFetchWorkspaces } from '../../api/queries/useWorkspaceQueries';
 import CreateWorkspace from './CreateWorkspace';
 import Settings from './Settings';
 import Header from './Header';
 
 const WorkspaceSelection = () => {
   const navigate = useNavigate();
-  const userId = useAuthStore((state) => state.userId);
-  const { data: workspaces, isLoading } = useFetchWorkspaces(userId);
+  const { data: workspaces, isLoading } = useFetchWorkspaces();
   const [showP_DeleteButton, setShowP_DeleteButton] = useState(null);
   const [showD_DeleteButton, setShowD_DeleteButton] = useState(null);
-  // const createWorkspaceMutation = useCreateWorkspace(userId);
-  // const deleteWorkspaceMutation = useDeleteWorkspace(userId);
-  // 데이터가 로딩 중일 때는 빈 배열을 기본값으로 설정
   const [prograssTable, setPrograssTable] = useState([]);
   const [doneTable, setDoneTable] = useState([]);
-
-  // const [newWorkspaceName, setNewWorkspaceName] = useState('');
 
   const handleWorkspaceSelect = (workspaceId) => {
     navigate(`/workspace/${workspaceId}`);
   };
-
-  // // 일단 대기
-  // const handleCreateWorkspace = () => {
-  //   if (newWorkspaceName) {
-  //     createWorkspaceMutation.mutate(newWorkspaceName, {
-  //       onSuccess: () => {
-  //         setNewWorkspaceName('');
-  //       },
-  //     });
-  //   }
-  // };
 
   // 일단 대기
   const handleDeleteWorkspace = (workspaceId) => {
@@ -69,11 +51,9 @@ const WorkspaceSelection = () => {
   const [isSortPOrder, setIsSortPOrder] = useState({ column: '', direction: 'asc' });
   const [isSortDOrder, setIsSortDOrder] = useState({ column: '', direction: 'asc' });
 
-  // // 프로젝트별 Setting view 상태 관리 (일단 대기)
-  // const [isViewSetting, setisViewSetting] = useState(false);
-
   // Prograss 정렬 함수
   const sortPTable = (column) => {
+    setPrograssTable(workspaces);
     const direction = isSortPOrder.direction === 'asc' ? 'desc' : 'asc';
     const sortedData = [...prograssTable].sort((a, b) => {
       if (direction === 'asc') {
@@ -88,6 +68,7 @@ const WorkspaceSelection = () => {
 
   // Done 정렬 함수
   const sortDTable = (column) => {
+    setDoneTable(workspaces);
     const direction = isSortDOrder.direction === 'asc' ? 'desc' : 'asc';
     const sortedData = [...doneTable].sort((a, b) => {
       if (direction === 'asc') {
@@ -104,48 +85,10 @@ const WorkspaceSelection = () => {
   useEffect(() => {
     if (!isLoading && workspaces) {
       // Progress Table 설정
-      setPrograssTable([
-        {
-          id: workspaces[0]?.id,
-          imgg: '/src/assets/workspace/logo1.png',
-          프로젝트: workspaces[0]?.name,
-          description: 'SSAFY 자율 프로젝트',
-          ActiveUser: '1/6',
-          TeamID: 13,
-          UpdateDate: '6/1/22',
-        },
-        {
-          id: workspaces[1]?.id,
-          imgg: '/src/assets/workspace/logo2.png',
-          프로젝트: workspaces[1]?.name,
-          description: 'SSAFY 자율 프로젝트',
-          ActiveUser: '1/6',
-          TeamID: 13,
-          UpdateDate: '6/1/22',
-        },
-        {
-          id: workspaces[2]?.id,
-          imgg: '/src/assets/workspace/logo3.png',
-          프로젝트: workspaces[2]?.name,
-          description: 'SSAFY 자율 프로젝트',
-          ActiveUser: '1/6',
-          TeamID: 13,
-          UpdateDate: '6/1/22',
-        },
-      ]);
+      setPrograssTable(workspaces);
 
       // Done Table 설정
-      setDoneTable([
-        {
-          id: workspaces[1]?.id,
-          imgg: '/src/assets/workspace/logo1.png',
-          프로젝트: workspaces[1]?.name,
-          description: 'SSAFY 자율 프로젝트',
-          User: '1/6',
-          ChargebeeID: 1,
-          RenewalDate: '6/3/22',
-        },
-      ]);
+      setDoneTable(workspaces);
     }
   }, [isLoading, workspaces]);
 
@@ -158,11 +101,11 @@ const WorkspaceSelection = () => {
     <div className='flex flex-col items-align bg-[#F0F5F8] overflow-hidden h-screen'>
       {/* 헤더 위치 */}
       <Header onSettingsClick={handleSettingsClick} />
-      <div className='flex flex-col w-[1400px] mx-auto'>
+      <div className='flex flex-col w-[1200px] mx-auto'>
         <div className='p-8'>
           <div className='flex flex-col mx-auto'>
             {/* 제목과 워크스페이스가 들어갈 공간 */}
-            <section className='flex justify-between items-center mb-8'>
+            <section className='flex justify-between items-center mb-2'>
               <p className='text-3xl'>Workspaces</p>
               {/* 누르면 워크스페이스 추가 모달 띄우기 */}
               <button
@@ -198,11 +141,11 @@ const WorkspaceSelection = () => {
               <div className='border mt-2 mb-2 w-full'></div>
               <div className={`custom-table-move ${isP_TableVisible ? 'show' : ''}`}>
                 {/* 여기에 진행중인 워크 스페이스 항목 넣기 */}
-                <div className='h-96'>
+                <div className='h-80'>
                   <table className='w-full custom-table'>
                     <thead>
                       <tr className='text-left border-b'>
-                        <th className='p-2 w-[20%]'>
+                        <th className='p-2 w-[40%]'>
                           <div className='flex items-center'>
                             <div>🍳</div>
                             <input className='ml-2 border-b font-normal' type='text' placeholder='Search' />
@@ -227,17 +170,7 @@ const WorkspaceSelection = () => {
                             </button>
                           </div>
                         </th>
-                        <th className='p-2 w-[20%]'>
-                          <div className='flex justify-center items-center'>
-                            <button
-                              className='flex justify-center items-center'
-                              onClick={() => sortPTable('UpdateDate')}
-                            >
-                              <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>Update Date</p>
-                              {isSortPOrder.column === 'UpdateDate' && isSortPOrder.direction === 'asc' ? '▲' : '▼'}
-                            </button>
-                          </div>
-                        </th>
+
                         <th className='p-2 w-[20%]'>
                           <div className='flex justify-center items-center'>
                             <p className='pr-2 py-2'>Option</p>
@@ -249,23 +182,23 @@ const WorkspaceSelection = () => {
                     <tbody className='block overflow-y-auto h-80 sidebar-scrollbar'>
                       {prograssTable.map((item, index) => (
                         <tr key={index} className='border-b'>
-                          <td className='p-2 w-[20%]'>
+                          <td className='p-2 w-[40%]'>
                             <button
                               className='flex ml-3 hover:bg-gray-50 rounded-xl'
                               onClick={() => handleWorkspaceSelect(item.id)}
                             >
                               {/* 아이콘 자리 */}
-                              <img src={item.imgg} alt='icon' className='w-12 h-10' />
+                              <img src={item.mainImage} alt='icon' className='w-12 h-10 rounded-lg' />
                               {/* 프로젝트와 설명 한 줄 표시 */}
                               <div className='flex flex-col ml-3'>
-                                <div className='text-left'>{item.프로젝트}</div>
+                                <div className='text-left'>{item.projectName}</div>
                                 <div className='text-sm text-gray-500'>{item.description}</div>
                               </div>
                             </button>
                           </td>
-                          <td className='p-2 w-[20%] text-center'>{item.ActiveUser}</td>
-                          <td className='p-2 w-[20%] text-center'>{item.TeamID}</td>
-                          <td className='p-2 w-[20%] text-center'>{item.UpdateDate}</td>
+                          <td className='p-2 w-[20%] text-center'>item.ActiveUser</td>
+                          <td className='p-2 w-[20%] text-center'>item.TeamID</td>
+
                           <td className='p-2 w-[20%] text-center'>
                             <div className='relative inline-block'>
                               <button className='inline-block' onClick={() => toggleDeleteButton('p', index)}>
@@ -312,11 +245,11 @@ const WorkspaceSelection = () => {
               <div className={`custom-table-move ${isD_TableVisible ? 'show' : ''}`}>
                 <div>
                   {/* 여기에 끝난 워크 스페이스 항목 넣기 */}
-                  <div className='h-96'>
+                  <div className='h-80'>
                     <table className='w-full custom-table'>
                       <thead>
                         <tr className='text-left border-b'>
-                          <th className='p-2 w-[20%]'>
+                          <th className='p-2 w-[40%]'>
                             <div className='flex items-center'>
                               <div>🍳</div>
                               <input className='ml-2 border-b font-normal' type='text' placeholder='Search' />
@@ -330,17 +263,7 @@ const WorkspaceSelection = () => {
                               </button>
                             </div>
                           </th>
-                          <th className='p-2 w-[20%]'>
-                            <div className='flex justify-center items-center'>
-                              <button
-                                className='flex justify-center items-center'
-                                onClick={() => sortDTable('ChargebeeID')}
-                              >
-                                <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>CHARGEBEE ID</p>
-                                {isSortDOrder.column === 'ChargebeeID' && isSortDOrder.direction === 'asc' ? '▲' : '▼'}
-                              </button>
-                            </div>
-                          </th>
+
                           <th className='p-2 w-[20%]'>
                             <div className='flex justify-center items-center'>
                               <button
@@ -363,23 +286,22 @@ const WorkspaceSelection = () => {
                       <tbody className='block overflow-y-auto h-80 sidebar-scrollbar'>
                         {doneTable.map((item, index) => (
                           <tr key={index} className='border-b'>
-                            <td className='p-2 w-[20%]'>
+                            <td className='p-2 w-[40%]'>
                               <button
                                 className='flex ml-3 hover:bg-gray-50 rounded-xl'
                                 onClick={() => handleWorkspaceSelect(item.id)}
                               >
                                 {/* 아이콘 자리 */}
-                                <img src={item.imgg} alt='icon' className='w-12 h-10' />
+                                <img src={item.mainImage} alt='icon' className='w-12 h-10 rounded-lg' />
                                 {/* 프로젝트와 설명 한 줄 표시 */}
                                 <div className='flex flex-col ml-3'>
-                                  <div className='text-left'>{item.프로젝트}</div>
+                                  <div className='text-left'>{item.projectName}</div>
                                   <div className='text-sm text-gray-500'>{item.description}</div>
                                 </div>
                               </button>
                             </td>
-                            <td className='p-2 w-[20%] text-center'>{item.User}</td>
-                            <td className='p-2 w-[20%] text-center'>{item.ChargebeeID}</td>
-                            <td className='p-2 w-[20%] text-center'>{item.RenewalDate}</td>
+                            <td className='p-2 w-[20%] text-center'>item.User</td>
+                            <td className='p-2 w-[20%] text-center'>item.RenewalDate</td>
                             <td className='p-2 w-[20%] text-center'>
                               <div className='relative inline-block'>
                                 <button className='inline-block' onClick={() => toggleDeleteButton('d', index)}>
