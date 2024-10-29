@@ -24,7 +24,7 @@ const DashboardDaily = () => {
             <div 
                 className="grid gap-4"
                 style={{
-                    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
                 }}
             >
                 <ApiDevelopmentProgress />
