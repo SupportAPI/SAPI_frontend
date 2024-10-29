@@ -28,9 +28,9 @@ public class WorkspaceController {
 	private final WorkspaceService workspaceService;
 
 	@PostMapping
-	public void createWorkspace(@RequestPart(name = "requestDto") CreateWorkspaceRequestDto requestDto,
+	public WorkspaceInfoResponseDto createWorkspace(@RequestPart(name = "requestDto") CreateWorkspaceRequestDto requestDto,
 		@RequestPart("mainImage") MultipartFile mainImage) {
-		workspaceService.createWorkspace(requestDto, mainImage);
+		return workspaceService.createWorkspace(requestDto, mainImage);
 	}
 
 	@GetMapping("/{workspaceId}")

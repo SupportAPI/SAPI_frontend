@@ -15,7 +15,7 @@ import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepos
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.user.domain.repository.UserRepository;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
-import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkSpaceRepository;
+import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
 import com.seniorcenter.sapi.domain.workspace.presentation.dto.request.CreateWorkspaceRequestDto;
 import com.seniorcenter.sapi.domain.workspace.presentation.dto.request.UpdateWorkspaceRequestDto;
 import com.seniorcenter.sapi.domain.workspace.presentation.dto.response.WorkspaceInfoResponseDto;
@@ -32,14 +32,14 @@ import lombok.RequiredArgsConstructor;
 public class WorkspaceServiceImpl implements WorkspaceService {
 
 	private final UserRepository userRepository;
-	private final WorkSpaceRepository workSpaceRepository;
+	private final WorkspaceRepository workSpaceRepository;
 	private final MembershipRepository membershipRepository;
 	private final UserUtils userUtils;
 	private final S3UploadUtil s3UploadUtil;
 
 	@Override
 	@Transactional
-	public void createWorkspace(CreateWorkspaceRequestDto requestDto, MultipartFile mainImage) {
+	public WorkspaceInfoResponseDto createWorkspace(CreateWorkspaceRequestDto requestDto, MultipartFile mainImage) {
 		User user = userUtils.getUserFromSecurityContext();
 		String mainImageUrl = s3UploadUtil.saveFile(mainImage);
 
@@ -49,6 +49,9 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		Membership membership = Membership.createMembership(user, workspace, Role.MAINTAINER, InviteStatus.ACCEPTED);
 		membership.updateAuthorityForMaintainer();
 		membershipRepository.save(membership);
+
+		return new WorkspaceInfoResponseDto(workspace.getId(),
+			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain());
 	}
 
 	@Override
@@ -83,7 +86,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 	@Transactional
 	public void updateWorkspace(UUID workspaceId, UpdateWorkspaceRequestDto requestDto, MultipartFile mainImage) {
 		Membership membership = membershipRepository.
-			findByUserIdAndWorkspaceId(userUtils.getUserFromSecurityContext().getId(), workspaceId);
+			findByUserIdAndWorkspaceId(userUtils.getUserFromSecurityContext().getId(), workspaceId)
+			.orElseThrow(() -> new MainException(CustomException.ACCESS_DENIED_EXCEPTION));
 
 		if (!membership.getUpdateAuthority()) {
 			throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
@@ -100,7 +104,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 	@Transactional
 	public void removeWorkspace(UUID workspaceId) {
 		Membership membership = membershipRepository.
-			findByUserIdAndWorkspaceId(userUtils.getUserFromSecurityContext().getId(), workspaceId);
+			findByUserIdAndWorkspaceId(userUtils.getUserFromSecurityContext().getId(), workspaceId)
+			.orElseThrow(() -> new MainException(CustomException.ACCESS_DENIED_EXCEPTION));
 
 		if (!membership.getDeleteAuthority()) {
 			throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);

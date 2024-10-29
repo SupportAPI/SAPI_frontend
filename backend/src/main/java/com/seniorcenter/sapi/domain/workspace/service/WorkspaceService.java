@@ -11,7 +11,7 @@ import com.seniorcenter.sapi.domain.workspace.presentation.dto.response.Workspac
 
 public interface WorkspaceService {
 
-	void createWorkspace(CreateWorkspaceRequestDto requestDto, MultipartFile mainImage);
+	WorkspaceInfoResponseDto createWorkspace(CreateWorkspaceRequestDto requestDto, MultipartFile mainImage);
 	WorkspaceInfoResponseDto getWorkspace(UUID workspaceId);
 	List<WorkspaceInfoResponseDto> getWorkspaces();
 	void updateWorkspace(UUID workspaceId, UpdateWorkspaceRequestDto requestDto, MultipartFile mainImage);
