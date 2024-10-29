@@ -1,9 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FaBell, FaUser, FaCog } from 'react-icons/fa';
+import Alarm from '../../components/common/Alarm';
 // import { useNavigate } from 'react-router-dom';
 
 const Header = ({ onSettingsClick }) => {
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
+
+  // 알람에 대한 정보
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [hasNotifications, setHasNotifications] = useState(true);
+  const alarmRef = useRef(null);
+
+  const handleClickOutside = (event) => {
+    if (alarmRef.current && !alarmRef.current.contains(event.target)) {
+      setIsNotificationOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
 
   // // 알람에 대한 정보 처리하기
   // const [hasNotifications, setHasNotifications] = useState(true);
@@ -16,10 +35,10 @@ const Header = ({ onSettingsClick }) => {
 
       {/* 오른쪽 아이콘들 */}
       <div className='flex items-center space-x-8'>
-        <div className='relative'>
-          {/* 알람에 대한 정보 */}
-          <FaBell className='text-2xl cursor-pointer' />
-          {/* {hasNotifications && <span className='absolute top-0 right-0 bg-red-500 rounded-full w-3 h-3'></span>} */}
+        <div className='relative' ref={alarmRef}>
+          <FaBell className='text-2xl cursor-pointer' onClick={() => setIsNotificationOpen((prev) => !prev)} />
+          {isNotificationOpen && <Alarm />}
+          {hasNotifications && <span className='absolute top-0 right-0 bg-red-500 rounded-full w-3 h-3'></span>}
         </div>
 
         {/* 설정에 대한 아이콘 */}

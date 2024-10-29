@@ -31,7 +31,7 @@ const Settings = ({ onClose }) => {
         {/* 내부 컴포넌트 크기 정의 */}
         <div className='flex w-full h-full'>
           {/* 왼쪽에 목록 넣는 곳 */}
-          <div className='w-[30%] border-2 p-6'>
+          <div className='w-[300px] border-2 p-6'>
             {/* Account 항목 */}
             <div className='flex flex-col'>
               <p className='text-3xl font-bold ml-3 mb-3'>Account</p>
@@ -67,7 +67,7 @@ const Settings = ({ onClose }) => {
             </div>
           </div>
           {/* 오른쪽에 컴포넌트 넣을 곳 */}
-          <div className='w-[80%]'>{changeComponent}</div>
+          <div className='w-[700px]'>{changeComponent}</div>
         </div>
       </div>
     </div>
