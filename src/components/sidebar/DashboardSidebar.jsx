@@ -63,7 +63,7 @@ const DashboardSidebar = () => {
               return(
                 <li 
                   key={p.id}
-                  className={`cursor-pointer w-full relative ${
+                  className={`cursor-pointer w-full relative hover:bg-gray-200 ${
                   isActive ? 'bg-blue-100 text-blue-800 font-semibold' : ''
                 }`}
                 onClick={(e) => {
