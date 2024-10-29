@@ -1,11 +1,12 @@
 package com.seniorcenter.sapi.domain.workspace.presentation.dto.response;
 
+import java.util.UUID;
+
 public record WorkspaceInfoResponseDto(
-	Long id,
+	UUID id,
 	String projectName,
 	String description,
 	String mainImage,
-	String domain,
-	String uuid
+	String domain
 ) {
 }

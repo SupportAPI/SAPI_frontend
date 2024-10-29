@@ -29,8 +29,8 @@ import lombok.NoArgsConstructor;
 public class Workspace extends BaseTimeEntity {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private String id;
 
 	@Column(nullable = false)
 	private String projectName;
@@ -44,9 +44,6 @@ public class Workspace extends BaseTimeEntity {
 	@Column(nullable = false)
 	private String domain;
 
-	@Column(nullable = false)
-	private String uuid;
-
 	@OneToMany(mappedBy = "workspace", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Membership> memberships = new ArrayList<>();
 
@@ -56,7 +53,6 @@ public class Workspace extends BaseTimeEntity {
 		this.description = description;
 		this.mainImage = mainImage;
 		this.domain = domain;
-		this.uuid = UUID.randomUUID().toString();
 	}
 
 	public static Workspace createWorkspace(CreateWorkspaceRequestDto requestDto, String mainImageUrl) {

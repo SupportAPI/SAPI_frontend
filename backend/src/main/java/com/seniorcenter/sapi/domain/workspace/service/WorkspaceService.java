@@ -1,6 +1,7 @@
 package com.seniorcenter.sapi.domain.workspace.service;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,8 +12,8 @@ import com.seniorcenter.sapi.domain.workspace.presentation.dto.response.Workspac
 public interface WorkspaceService {
 
 	void createWorkspace(CreateWorkspaceRequestDto requestDto, MultipartFile mainImage);
-	WorkspaceInfoResponseDto getWorkspace(Long workspaceId);
+	WorkspaceInfoResponseDto getWorkspace(UUID workspaceId);
 	List<WorkspaceInfoResponseDto> getWorkspaces();
-	void updateWorkspace(Long workspaceId, UpdateWorkspaceRequestDto requestDto, MultipartFile mainImage);
-	void removeWorkspace(Long workspaceId);
+	void updateWorkspace(UUID workspaceId, UpdateWorkspaceRequestDto requestDto, MultipartFile mainImage);
+	void removeWorkspace(UUID workspaceId);
 }
