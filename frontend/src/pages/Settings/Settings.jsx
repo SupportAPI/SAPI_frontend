@@ -18,7 +18,10 @@ const Settings = ({ onClose }) => {
 
   return (
     // 모달 화면 위치 정의
-    <div className='fixed flex justify-center items-center inset-0 bg-black bg-opacity-30 z-50'>
+    <div
+      className='fixed flex justify-center items-center inset-0 bg-black bg-opacity-30 z-50 text-black'
+      onClick={onClose}
+    >
       {/* 모달 크기 정의 */}
       <div
         className='flex flex-col items-center bg-white rounded-lg w-[1000px] h-[1000px] border rounded-lg'
@@ -34,7 +37,7 @@ const Settings = ({ onClose }) => {
         {/* 내부 컴포넌트 크기 정의 */}
         <div className='flex w-full h-full'>
           {/* 왼쪽에 목록 넣는 곳 */}
-          <div className='w-[30%] border-2 p-6'>
+          <div className='w-[300px] border-2 p-6'>
             {/* Account 항목 */}
             <div className='flex flex-col'>
               <p className='text-3xl font-bold ml-3 mb-3'>Account</p>
@@ -83,7 +86,7 @@ const Settings = ({ onClose }) => {
             </div>
           </div>
           {/* 오른쪽에 컴포넌트 넣을 곳 */}
-          <div className='w-[80%]'>{changeComponent}</div>
+          <div className='w-[700px]'>{changeComponent}</div>
         </div>
       </div>
     </div>
