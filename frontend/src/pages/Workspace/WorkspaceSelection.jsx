@@ -155,7 +155,7 @@ const WorkspaceSelection = () => {
   }
 
   return (
-    <div className='flex flex-col items-align bg-blue-50 overflow-hidden h-screen'>
+    <div className='flex flex-col items-align bg-[#F0F5F8] overflow-hidden h-screen'>
       {/* 헤더 위치 */}
       <Header onSettingsClick={handleSettingsClick} />
       <div className='flex flex-col w-[1400px] mx-auto'>
