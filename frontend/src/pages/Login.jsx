@@ -7,19 +7,20 @@ import useAuthStore from '../stores/useAuthStore';
 import { setToken } from '../utils/cookies';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const setUserId = useAuthStore((state) => state.setUserId);
   const navigate = useNavigate();
 
-  const loginMutation = useMutation((loginData) => login(loginData.username, loginData.password), {
+  const loginMutation = useMutation((loginData) => login(loginData.email, loginData.password), {
     onSuccess: (response) => {
-      const token = response.data.token;
+      const token = response.accessToken;
       setToken(token);
 
       const decoded = jwtDecode(token);
-      const { userId } = decoded;
-      setUserId(userId);
+      const { sub } = decoded;
+
+      setUserId(sub);
 
       navigate('/workspaces');
     },
@@ -31,7 +32,7 @@ const Login = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    loginMutation.mutate({ username, password });
+    loginMutation.mutate({ email, password });
   };
 
   return (
@@ -42,9 +43,9 @@ const Login = () => {
           <div>
             <input
               type='text'
-              placeholder='Username'
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder='email'
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className='w-full p-2 border border-gray-300 rounded'
             />
           </div>

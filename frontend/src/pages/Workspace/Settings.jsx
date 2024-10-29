@@ -61,7 +61,6 @@ const Settings = ({ onClose }) => {
               <p className='text-3xl font-bold ml-3 mb-3'>WorkSpace</p>
               <div className='flex flex-col w-full m-auto'>
                 <button className={`w-[100%] h-20 text-gray-200 `}>Member</button>
-                <button className='w-[100%] h-20 text-gray-200'>Setting</button>
                 <button className='w-[100%] h-20 text-gray-200'>Exit</button>
               </div>
             </div>
