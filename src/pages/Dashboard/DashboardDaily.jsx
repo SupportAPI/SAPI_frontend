@@ -21,8 +21,13 @@ const DashboardDaily = () => {
                 <p className="text-2xl font-bold">Completed API Count Progress</p>
                 <hr className="border-t mt-1 mb-5 border-black"/>
             </div>
-            <div>
-                <ApiDevelopmentProgress/>
+            <div 
+                className="grid gap-4"
+                style={{
+                    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                }}
+            >
+                <ApiDevelopmentProgress />
             </div>
         </div>
     );
