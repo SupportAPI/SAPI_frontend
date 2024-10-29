@@ -1,6 +1,7 @@
 package com.seniorcenter.sapi.domain.workspace.service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -51,12 +52,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 	}
 
 	@Override
-	public WorkspaceInfoResponseDto getWorkspace(Long workspaceId) {
+	public WorkspaceInfoResponseDto getWorkspace(UUID workspaceId) {
 		Workspace workspace = workSpaceRepository.findById(workspaceId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
 		WorkspaceInfoResponseDto workspaceInfoResponseDto = new WorkspaceInfoResponseDto(workspace.getId(),
-			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
-			workspace.getUuid());
+			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain());
 		return workspaceInfoResponseDto;
 	}
 
@@ -73,8 +73,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 					workspace.getProjectName(),
 					workspace.getDescription(),
 					workspace.getMainImage(),
-					workspace.getDomain(),
-					workspace.getUuid()
+					workspace.getDomain()
 				);
 			})
 			.collect(Collectors.toList());
@@ -82,7 +81,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
 	@Override
 	@Transactional
-	public void updateWorkspace(Long workspaceId, UpdateWorkspaceRequestDto requestDto, MultipartFile mainImage) {
+	public void updateWorkspace(UUID workspaceId, UpdateWorkspaceRequestDto requestDto, MultipartFile mainImage) {
 		Membership membership = membershipRepository.
 			findByUserIdAndWorkspaceId(userUtils.getUserFromSecurityContext().getId(), workspaceId);
 
@@ -99,7 +98,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
 	@Override
 	@Transactional
-	public void removeWorkspace(Long workspaceId) {
+	public void removeWorkspace(UUID workspaceId) {
 		Membership membership = membershipRepository.
 			findByUserIdAndWorkspaceId(userUtils.getUserFromSecurityContext().getId(), workspaceId);
 
