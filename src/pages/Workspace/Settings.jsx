@@ -55,14 +55,13 @@ const Settings = ({ onClose }) => {
               </div>
             </div>
 
+            {/* Workspaces에서 아래의 버튼들은 비활성화 상태임 */}
             {/* WorkSpace 항목 */}
             <div className='flex flex-col'>
               <p className='text-3xl font-bold ml-3 mb-3'>WorkSpace</p>
               <div className='flex flex-col w-full m-auto'>
                 <button className={`w-[100%] h-20 text-gray-200 `}>Member</button>
-                {/* Setting 아직 뭐 넣어야할지 몰라서 페이지 구성 안함 */}
                 <button className='w-[100%] h-20 text-gray-200'>Setting</button>
-                {/* Exit 누르면 네이게이션해서 WorkSpace 화면으로 이동할 것 */}
                 <button className='w-[100%] h-20 text-gray-200'>Exit</button>
               </div>
             </div>
