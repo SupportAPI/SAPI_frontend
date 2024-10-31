@@ -12,6 +12,7 @@ public enum CustomException {
 	S3_UPLOAD_EXCEPTION(400, "파일 업로드를 실패했습니다."),
 	VERIFICATION_CODE_EXPIRED(400, "인증번호가 만료되었습니다"),
 	VERIFICATION_CODE_MISMATCH(400, "인증번호가 일치하지 않습니다"),
+	NOT_ALLOWED_INVITE_SELF(400, "자신을 워크스페이스에 초대할 수 없습니다."),
 
 	/* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
 	NOT_FOUND_SESSION_EXCEPTION(401, "세션이 존재하지 않습니다."),
