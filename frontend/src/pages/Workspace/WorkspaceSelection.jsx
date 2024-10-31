@@ -100,6 +100,7 @@ const WorkspaceSelection = () => {
       setPrograssTable(workspaces);
 
       // Done Table 설정
+
       setDoneTable([]);
     }
   }, [isLoading, workspaces]);

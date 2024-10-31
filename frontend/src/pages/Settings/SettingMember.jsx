@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { MdOutlineMail } from 'react-icons/md';
 import { SlOptions } from 'react-icons/sl';
 
