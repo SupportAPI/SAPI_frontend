@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
 			throw new RuntimeException("이미 가입되어 있는 유저입니다");
 		}
 
-		User user = User.signUpUser(joinRequest.encodePassword(passwordEncoder.encode(joinRequest.password())), "");
+		User user = User.signUpUser(joinRequest.encodePassword(passwordEncoder.encode(joinRequest.password())), "https://sapibucket.s3.ap-northeast-2.amazonaws.com/default_images/basic_image.png");
 		userRepository.save(user);
 		return new UserResponseDto(user.getId(), user.getEmail(), user.getNickname(), user.getProfileImage());
 	}
