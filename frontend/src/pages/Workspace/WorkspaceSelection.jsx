@@ -1,7 +1,8 @@
 // src/pages/WorkspaceSelection.js
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFetchWorkspaces } from '../../api/queries/useWorkspaceQueries';
+import { useFetchWorkspaces, useDeleteWorkspace } from '../../api/queries/useWorkspaceQueries';
+import { useQueryClient } from 'react-query';
 import CreateWorkspace from './CreateWorkspace';
 import InviteUser from './InviteUser';
 import Settings from './Settings';
@@ -15,6 +16,39 @@ const WorkspaceSelection = () => {
   const [prograssTable, setPrograssTable] = useState([]);
   const [doneTable, setDoneTable] = useState([]);
   const [newworkspaceid, setNewWorkSpaceId] = useState('');
+  const queryClient = useQueryClient();
+  const [filterWorkspaces, setFilterWorkspaces] = useState('');
+
+  // 워크스페이스 삭제
+  const workSpaceDeleteMutation = useDeleteWorkspace({
+    onSuccess: () => {
+      queryClient.invalidateQueries(['workspaces']);
+    },
+  });
+
+  // 데이터가 로딩된 후 테이블 데이터를 설정하는 로직 추가
+  useEffect(() => {
+    if (!isLoading && workspaces) {
+      // Progress Table 설정
+      setPrograssTable(workspaces);
+
+      // Done Table 설정
+      setDoneTable([]);
+    }
+  }, [isLoading, workspaces]);
+
+  // 검색 필터 적용
+  useEffect(() => {
+    if (!workspaces) return; // workspaces가 undefined일 경우 처리
+    if (filterWorkspaces.length === 0) {
+      setPrograssTable(workspaces);
+    } else {
+      const filtered = workspaces.filter((workspace) =>
+        workspace.projectName.toLowerCase().includes(filterWorkspaces.toLowerCase())
+      );
+      setPrograssTable(filtered);
+    }
+  }, [filterWorkspaces, workspaces]);
 
   const handleWorkspaceSelect = (workspaceId) => {
     navigate(`/workspace/${workspaceId}`);
@@ -22,6 +56,7 @@ const WorkspaceSelection = () => {
 
   // 일단 대기
   const handleDeleteWorkspace = (workspaceId) => {
+    workSpaceDeleteMutation.mutate(workspaceId);
     console.log(workspaceId);
     console.log('삭제요청되었습니다.');
   };
@@ -50,6 +85,7 @@ const WorkspaceSelection = () => {
     setIsOpenCreateWorkspace(false);
     setIsOpenInviteUser(true);
     setStep(2);
+    queryClient.invalidateQueries('workspaces');
   };
   const handleSettingsClick = () => {
     setIsOpenSetting(true);
@@ -92,18 +128,6 @@ const WorkspaceSelection = () => {
     setDoneTable(sortedData);
     setIsSortDOrder({ column, direction });
   };
-
-  // 데이터가 로딩된 후 테이블 데이터를 설정하는 로직 추가
-  useEffect(() => {
-    if (!isLoading && workspaces) {
-      // Progress Table 설정
-      setPrograssTable(workspaces);
-
-      // Done Table 설정
-
-      setDoneTable([]);
-    }
-  }, [isLoading, workspaces]);
 
   // 로딩 중인 경우 로딩 메시지 표시
   if (isLoading) {
@@ -169,7 +193,13 @@ const WorkspaceSelection = () => {
                         <th className='p-2 w-[35%]'>
                           <div className='flex items-center'>
                             <div>🍳</div>
-                            <input className='ml-2 border-b font-normal' type='text' placeholder='Search' />
+                            <input
+                              className='ml-2 border-b font-normal'
+                              type='text'
+                              placeholder='Search'
+                              value={filterWorkspaces}
+                              onChange={(e) => setFilterWorkspaces(e.target.value)}
+                            />
                           </div>
                         </th>
                         <th className='p-2 w-[20%]'>
