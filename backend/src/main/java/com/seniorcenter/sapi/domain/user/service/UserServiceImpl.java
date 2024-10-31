@@ -120,7 +120,9 @@ public class UserServiceImpl implements UserService {
 			throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
 		}
 
-		String profileImageUrl = s3UploadUtil.saveFile(profileImage);
+		String profileImageUrl = profileImage == null || profileImage.isEmpty()
+			? "https://sapibucket.s3.ap-northeast-2.amazonaws.com/default_images/basic_image.png"
+			: s3UploadUtil.saveFile(profileImage);
 		user.updateInfo(requestDto.nickname(), profileImageUrl);
 	}
 
