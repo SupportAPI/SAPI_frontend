@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { getToken } from '../../utils/cookies';
 
+// const base_URL = 'https://k11b305.p.ssafy.io';
 const base_URL = 'http://192.168.31.35:8080';
 
 // 1. 워크스페이스 목록 가져오기
@@ -28,6 +29,7 @@ export const createWorkspace = async ({ mainImage, projectName, domain, descript
   // FormData 객체 생성
   const formData = new FormData();
 
+  // 요청 DTO 생성 및 추가
   const requestDto = new Blob(
     [
       JSON.stringify({
@@ -76,20 +78,25 @@ export const useCreateWorkspace = (options = {}) => {
 
 // 3. 워크스페이스 삭제
 export const deleteWorkspace = async ({ workspaceId }) => {
-  // 실제 API 요청이 준비되면 아래 코드를 사용하세요.
-  // const response = await axios.delete(`/api/users/${userId}/workspaces/${workspaceId}`);
-  // return response.data;
+  const accessToken = getToken();
+  console.log('1111111111111111111111');
+  console.log(workspaceId);
+  const response = await axios.delete(`/api/workspaces/${workspaceId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
-  // 더미 데이터에서 삭제한 것처럼 처리
-  return workspaceId;
+  return response.data;
 };
 
 // React Query 훅: 워크스페이스 삭제
-export const useDeleteWorkspace = (userId) => {
+export const useDeleteWorkspace = () => {
   const queryClient = useQueryClient();
-  return useMutation((workspaceId) => deleteWorkspace({ userId, workspaceId }), {
+  return useMutation((workspaceId) => deleteWorkspace({ workspaceId }), {
     onSuccess: () => {
-      queryClient.invalidateQueries(['workspaces', userId]);
+      queryClient.invalidateQueries(['workspaces']);
     },
   });
 };

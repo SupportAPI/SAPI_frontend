@@ -10,6 +10,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
   const [domain, setDomainName] = useState('');
   const [description, setDescription] = useState('');
   const [mainImage, setMainImage] = useState('');
+  const [previewImage, setPreviewImage] = useState('');
 
   // 각 오류 메시지 상태 관리
   const [nameErrorMessage, setNameErrorMessage] = useState('프로젝트 이름을 입력해주세요.');
@@ -50,11 +51,8 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0]; // 선택된 파일 가져오기
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setMainImage(reader.result); // 파일을 읽은 결과(이미지 URL)를 상태에 저장
-      };
-      reader.readAsDataURL(file); // 파일을 Data URL로 변환
+      setMainImage(file); // 원본 File 객체를 상태에 저장
+      setPreviewImage(URL.createObjectURL(file)); // 미리보기 URL 생성 및 저장
     }
   };
 
@@ -87,8 +85,8 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
           <div className='mb-5'>
             <div className='flex flex-col justify-center items-center mb-2'>
               <img
-                src={mainImage || '/src/assets/workspace/basic_image.png'}
-                alt=''
+                src={previewImage || '/src/assets/workspace/basic_image.png'}
+                alt='preview'
                 className='border rounded-lg h-[150px] w-[200px] mb-2 object-contain'
               />
               <input
