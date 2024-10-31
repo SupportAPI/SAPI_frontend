@@ -74,6 +74,12 @@ body {
 
 .custom-table-move.show {
   max-height: 500px; /* 콘텐츠가 충분히 커질 수 있도록 적절한 높이 설정 */
+  transition: max-height 0.5s ease-in-out; /* 필요할 경우 전환 효과 유지 */
+}
+
+/* 옵션 버튼이 트랜지션과 함께 표시되도록 설정 */
+.custom-table tr:hover .option-button {
+  opacity: 1;
 }
 
 .scrollbar-gutter-stable {

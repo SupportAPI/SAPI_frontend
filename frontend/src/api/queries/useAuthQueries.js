@@ -20,7 +20,6 @@ export const login = async (email, password) => {
       password,
     });
 
-    console.log(response.data.data);
     return response.data.data;
   }
 };

@@ -18,10 +18,10 @@ const Settings = ({ onClose }) => {
     <div className='fixed flex justify-center items-center inset-0 bg-black bg-opacity-30 z-50' onClick={onClose}>
       {/* 모달 크기 정의 */}
       <div
-        className='flex flex-col items-center bg-white rounded-lg w-[1000px] h-[1000px] min-w-[1000px]'
+        className='flex flex-col items-center bg-white border rounded-2xl w-[800px] h-[900px] min-w-[800px]'
         onClick={(e) => e.stopPropagation()}
       >
-        <header className='flex justify-between items-center w-full text-xl h-[10%] bg-blue-100'>
+        <header className='flex justify-between items-center w-full h-[10%] text-xl bg-blue-100 border rounded-t-2xl'>
           <div className='text-5xl ml-10 mb-3'>Settings</div>
           <button onClick={onClose}>
             <img className='mr-4 w-6' src='/src/assets/workspace/x.png' alt='' />
@@ -29,9 +29,10 @@ const Settings = ({ onClose }) => {
         </header>
 
         {/* 내부 컴포넌트 크기 정의 */}
-        <div className='flex w-full h-full'>
+        <div className='flex w-full h-full border rounded-2xl'>
           {/* 왼쪽에 목록 넣는 곳 */}
-          <div className='w-[30%] border-2 p-6'>
+
+          <div className='w-[300px] border-2 p-6 border rounded-b-2xl'>
             {/* Account 항목 */}
             <div className='flex flex-col'>
               <p className='text-3xl font-bold ml-3 mb-3'>Account</p>
@@ -61,13 +62,12 @@ const Settings = ({ onClose }) => {
               <p className='text-3xl font-bold ml-3 mb-3'>WorkSpace</p>
               <div className='flex flex-col w-full m-auto'>
                 <button className={`w-[100%] h-20 text-gray-200 `}>Member</button>
-                <button className='w-[100%] h-20 text-gray-200'>Setting</button>
                 <button className='w-[100%] h-20 text-gray-200'>Exit</button>
               </div>
             </div>
           </div>
           {/* 오른쪽에 컴포넌트 넣을 곳 */}
-          <div className='w-[80%]'>{changeComponent}</div>
+          <div className='w-[700px]'>{changeComponent}</div>
         </div>
       </div>
     </div>
