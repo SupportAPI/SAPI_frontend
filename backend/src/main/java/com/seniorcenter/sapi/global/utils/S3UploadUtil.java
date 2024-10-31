@@ -23,7 +23,8 @@ public class S3UploadUtil {
 	private final S3Config s3Config;
 
 	public String saveFile(MultipartFile multipartFile) {
-		String originalFilename = UUID.randomUUID() + multipartFile.getOriginalFilename();
+		String folderPath = "images/";
+		String originalFilename = folderPath + UUID.randomUUID() + multipartFile.getOriginalFilename();
 
 		ObjectMetadata metadata = new ObjectMetadata();
 		metadata.setContentLength(multipartFile.getSize());

@@ -41,7 +41,9 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 	@Transactional
 	public WorkspaceInfoResponseDto createWorkspace(CreateWorkspaceRequestDto requestDto, MultipartFile mainImage) {
 		User user = userUtils.getUserFromSecurityContext();
-		String mainImageUrl = s3UploadUtil.saveFile(mainImage);
+		String mainImageUrl = mainImage == null || mainImage.isEmpty()
+			? "https://sapibucket.s3.ap-northeast-2.amazonaws.com/default_images/basic_image.png"
+			: s3UploadUtil.saveFile(mainImage);
 
 		Workspace workspace = Workspace.createWorkspace(requestDto, mainImageUrl);
 		workSpaceRepository.save(workspace);
