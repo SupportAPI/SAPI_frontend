@@ -28,8 +28,8 @@ public class WorkspaceController {
 	private final WorkspaceService workspaceService;
 
 	@PostMapping
-	public WorkspaceInfoResponseDto createWorkspace(@RequestPart(name = "requestDto") CreateWorkspaceRequestDto requestDto,
-		@RequestPart(name = "mainImage", required = false) MultipartFile mainImage) {
+	public WorkspaceInfoResponseDto createWorkspace(@RequestPart("requestDto") CreateWorkspaceRequestDto requestDto,
+		@RequestPart(value = "mainImage", required = false) MultipartFile mainImage) {
 		return workspaceService.createWorkspace(requestDto, mainImage);
 	}
 
@@ -45,8 +45,8 @@ public class WorkspaceController {
 
 	@PatchMapping("/{workspaceId}")
 	public void updateWorkspace(@PathVariable UUID workspaceId,
-		@RequestPart(name = "requestDto") UpdateWorkspaceRequestDto requestDto,
-		@RequestPart(name = "mainImage") MultipartFile mainImage) {
+		@RequestPart("requestDto") UpdateWorkspaceRequestDto requestDto,
+		@RequestPart(value = "mainImage") MultipartFile mainImage) {
 		workspaceService.updateWorkspace(workspaceId, requestDto, mainImage);
 	}
 

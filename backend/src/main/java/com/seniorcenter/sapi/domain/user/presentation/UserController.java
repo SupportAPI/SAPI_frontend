@@ -85,8 +85,8 @@ public class UserController {
 
 	@PatchMapping("/{userId}")
 	public void updateUserInfo(@PathVariable Long userId,
-		@RequestPart(name = "requestDto") @Valid UpdateUserRequestDto requestDto,
-		@RequestPart(name = "profileImage", required = false) MultipartFile profileImage) {
+		@RequestPart("requestDto") @Valid UpdateUserRequestDto requestDto,
+		@RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
 		userService.updateUserInfo(userId, requestDto, profileImage);
 	}
 

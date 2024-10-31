@@ -25,10 +25,12 @@ import com.seniorcenter.sapi.global.utils.S3UploadUtil;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Slf4j
 public class WorkspaceServiceImpl implements WorkspaceService {
 
 	private final UserRepository userRepository;
@@ -41,6 +43,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 	@Transactional
 	public WorkspaceInfoResponseDto createWorkspace(CreateWorkspaceRequestDto requestDto, MultipartFile mainImage) {
 		User user = userUtils.getUserFromSecurityContext();
+
 		String mainImageUrl = mainImage == null || mainImage.isEmpty()
 			? "https://sapibucket.s3.ap-northeast-2.amazonaws.com/default_images/basic_image.png"
 			: s3UploadUtil.saveFile(mainImage);
