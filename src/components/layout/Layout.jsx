@@ -6,6 +6,7 @@ import ApiTestSidebar from '../sidebar/ApiTestSidebar';
 import DashboardSidebar from '../sidebar/DashboardSidebar';
 import TabBar from '../common/TabBar';
 import { useNavbarStore } from '../../stores/useNavbarStore';
+import EnvironmentSidebar from '../sidebar/EnvironmentSidebar';
 
 const Layout = ({ children }) => {
   const { menu, setMenu, setApiData, apiData } = useNavbarStore();
@@ -34,11 +35,13 @@ const Layout = ({ children }) => {
     switch (menu) {
       case 'API Docs':
         return <ApiDocsSidebar data={apiData} />;
+      case 'Environment':
+        return <EnvironmentSidebar/>;
       case 'API Test':
         return <ApiTestSidebar data={apiData} />;
       case 'Dashboard':
         return <DashboardSidebar />;
-      default:
+      default: 
         return null;
     }
   };
