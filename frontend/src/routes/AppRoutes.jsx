@@ -6,6 +6,9 @@ import WorkspaceSelection from '../pages/Workspace/WorkspaceSelection';
 import ApiOverview from '../pages/ApiOverview';
 import ApiDocsDetail from '../pages/ApiDocsDetail';
 import Page404 from '../pages/404page';
+import DashboardOverview from '../pages/Dashboard/DashboardOverview';
+import DashboardDaily from '../pages/Dashboard/DashboardDaily';
+import DashboardStatus from '../pages/Dashboard/DashboardStatus';
 
 const AppRoutes = () => {
   return (
@@ -42,6 +45,30 @@ const AppRoutes = () => {
         element={
           <Layout>
             <ApiDocsDetail />
+          </Layout>
+        }
+      />
+      <Route
+        path='/workspace/:workspaceId/dashboard/all'
+        element={
+          <Layout>
+            <DashboardOverview />
+          </Layout>
+        }
+      />
+      <Route
+        path='/workspace/:workspaceId/dashboard/daily'
+        element={
+          <Layout>
+            <DashboardDaily />
+          </Layout>
+        }
+      />
+      <Route
+        path='/workspace/:workspaceId/dashboard/status'
+        element={
+          <Layout>
+            <DashboardStatus />
           </Layout>
         }
       />

@@ -4,12 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../stores/useAuthStore';
 import { useFetchWorkspaces, useCreateWorkspace, useDeleteWorkspace } from '../../api/queries/useWorkspaceQueries';
 import CreateWorkspace from './CreateWorkspace';
-import Settings from '../Settings/Settings';
+import Settings from './Settings';
+import Header from './Header';
 
 const WorkspaceSelection = () => {
   const navigate = useNavigate();
   const userId = useAuthStore((state) => state.userId);
   const { data: workspaces, isLoading } = useFetchWorkspaces(userId);
+  const [showP_DeleteButton, setShowP_DeleteButton] = useState(null);
+  const [showD_DeleteButton, setShowD_DeleteButton] = useState(null);
   // const createWorkspaceMutation = useCreateWorkspace(userId);
   // const deleteWorkspaceMutation = useDeleteWorkspace(userId);
   // 데이터가 로딩 중일 때는 빈 배열을 기본값으로 설정
@@ -33,16 +36,30 @@ const WorkspaceSelection = () => {
   //   }
   // };
 
-  // // 일단 대기
-  // const handleDeleteWorkspace = (workspaceId) => {
-  //   deleteWorkspaceMutation.mutate(workspaceId);
-  // };
+  // 일단 대기
+  const handleDeleteWorkspace = (workspaceId) => {
+    // deleteWorkspaceMutation.mutate(workspaceId);
+    console.log(workspaceId);
+    console.log('삭제요청되었습니다.');
+  };
+
+  // Delete 버튼 토글 함수
+  const toggleDeleteButton = (value, index) => {
+    if (value == 'p') {
+      setShowP_DeleteButton(showP_DeleteButton === index ? null : index);
+    } else {
+      setShowD_DeleteButton(showD_DeleteButton === index ? null : index);
+    }
+  };
 
   // CreateWorkspace 모달 관리
   const [isOpenModal, setIsOpenModal] = useState(false);
 
-  // Settings 모달 열기 (임시)
+  // Settings 모달 열기
   const [isOpenModal2, setIsOpenModal2] = useState(false);
+  const handleSettingsClick = () => {
+    setIsOpenModal2(true);
+  };
 
   // table 목록 view 상태 관리
   const [isP_TableVisible, setP_IsTableVisible] = useState(true);
@@ -138,18 +155,16 @@ const WorkspaceSelection = () => {
   }
 
   return (
-    <div className='flex flex-col items-align bg-blue-50 h-screen'>
+    <div className='flex flex-col items-align bg-[#F0F5F8] overflow-hidden h-screen'>
       {/* 헤더 위치 */}
-      <button className='h-16 bg-blue-300 text-center' onClick={() => setIsOpenModal2(true)}>
-        세팅열기
-      </button>
+      <Header onSettingsClick={handleSettingsClick} />
       <div className='flex flex-col w-[1400px] mx-auto'>
         <div className='p-8'>
           <div className='flex flex-col mx-auto'>
             {/* 제목과 워크스페이스가 들어갈 공간 */}
             <section className='flex justify-between items-center mb-8'>
               <p className='text-3xl'>Workspaces</p>
-              {/* 누르면 워크스페이스 확장 모달 띄우기 */}
+              {/* 누르면 워크스페이스 추가 모달 띄우기 */}
               <button
                 className='border p-2 rounded-xl bg-blue-600 text-white hover:bg-blue-500'
                 onClick={() => {
@@ -161,8 +176,8 @@ const WorkspaceSelection = () => {
             </section>
 
             {isOpenModal && <CreateWorkspace onClose={() => setIsOpenModal(false)}></CreateWorkspace>}
-            {/* 일단 setting 대기 */}
-            {isOpenModal2 && <Settings onClose={() => setIsOpenModal2(false)}></Settings>}
+            {/* Setting 모달 */}
+            {isOpenModal2 && <Settings onClose={() => setIsOpenModal2(false)} />}
 
             {/* In Progress가 들어갈 공간 */}
             <section className='relative flex flex-col border rounded-3xl bg-white p-8'>
@@ -252,9 +267,20 @@ const WorkspaceSelection = () => {
                           <td className='p-2 w-[20%] text-center'>{item.TeamID}</td>
                           <td className='p-2 w-[20%] text-center'>{item.UpdateDate}</td>
                           <td className='p-2 w-[20%] text-center'>
-                            <button className='inline-block'>
-                              <img className='h-6 mx-auto' src='/src/assets/workspace/3point.png' alt='' />
-                            </button>
+                            <div className='relative inline-block'>
+                              <button className='inline-block' onClick={() => toggleDeleteButton('p', index)}>
+                                <img className='h-6 mx-auto' src='/src/assets/workspace/3point.png' alt='' />
+                              </button>
+
+                              {showP_DeleteButton === index && (
+                                <button
+                                  className='absolute border bg-white hover:bg-blue-200 rounded-xl pt-5 pb-5 pr-6 pl-6'
+                                  onClick={() => handleDeleteWorkspace(item.id)}
+                                >
+                                  Delete
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -355,9 +381,20 @@ const WorkspaceSelection = () => {
                             <td className='p-2 w-[20%] text-center'>{item.ChargebeeID}</td>
                             <td className='p-2 w-[20%] text-center'>{item.RenewalDate}</td>
                             <td className='p-2 w-[20%] text-center'>
-                              <button className='inline-block '>
-                                <img className='h-6 mx-auto' src='/src/assets/workspace/3point.png' alt='' />
-                              </button>
+                              <div className='relative inline-block'>
+                                <button className='inline-block' onClick={() => toggleDeleteButton('d', index)}>
+                                  <img className='h-6 mx-auto' src='/src/assets/workspace/3point.png' alt='' />
+                                </button>
+
+                                {showD_DeleteButton === index && (
+                                  <button
+                                    className='absolute border bg-white hover:bg-blue-200 rounded-xl pt-5 pb-5 pr-6 pl-6'
+                                    onClick={() => handleDeleteWorkspace(item.id)}
+                                  >
+                                    Delete
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
