@@ -29,7 +29,7 @@ public class WorkspaceController {
 
 	@PostMapping
 	public WorkspaceInfoResponseDto createWorkspace(@RequestPart(name = "requestDto") CreateWorkspaceRequestDto requestDto,
-		@RequestPart("mainImage") MultipartFile mainImage) {
+		@RequestPart(name = "mainImage", required = false) MultipartFile mainImage) {
 		return workspaceService.createWorkspace(requestDto, mainImage);
 	}
 
