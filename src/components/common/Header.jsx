@@ -3,16 +3,22 @@ import { FaBell, FaUser, FaCog } from 'react-icons/fa';
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFetchWorkspaces } from '../../api/queries/useWorkspaceQueries'; // 실제 API 훅을 사용
+import Alarm from './Alarm';
+import Settings from '../../pages/Settings/Settings';
 
 const Header = () => {
   const [isWorkspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(true);
   const { workspaceId: currentWorkspaceId } = useParams(); // URL에서 workspaceId 추출
   const workspaceName = `Workspace ${currentWorkspaceId}`; // 실제로는 API에서 가져온 이름을 사용할 수 있음
 
+  const [isSettingModalOpen, setSettingModalOpen] = useState(false); // Setting 모달
+
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
+  const alarmRef = useRef(null);
 
   const { data: workspaces = [] } = useFetchWorkspaces('1');
 
@@ -26,6 +32,9 @@ const Header = () => {
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setWorkspaceDropdownOpen(false);
+    }
+    if (alarmRef.current && !alarmRef.current.contains(event.target)) {
+      setIsNotificationOpen(false);
     }
   };
 
@@ -69,11 +78,26 @@ const Header = () => {
 
       {/* 오른쪽 아이콘들 */}
       <div className='flex items-center gap-8'>
+<<<<<<< HEAD
         <div className='relative'>
           <FaBell className='text-2xl cursor-pointer' />
+=======
+        {/* 알람 */}
+        <div className='relative' ref={alarmRef}>
+          <FaBell className='text-2xl cursor-pointer' onClick={() => setIsNotificationOpen((prev) => !prev)} />
+          {isNotificationOpen && <Alarm />}
+>>>>>>> be71ce29f68f0e934f345a694b4fb86ba053b3be
           {hasNotifications && <span className='absolute top-0 right-0 bg-red-500 rounded-full w-3 h-3'></span>}
         </div>
-        <FaCog className='text-2xl cursor-pointer' />
+
+        {/* Setting 모달 열기 */}
+        <FaCog
+          className='text-2xl cursor-pointer'
+          onClick={() => {
+            setSettingModalOpen(true);
+          }}
+        />
+        {isSettingModalOpen && <Settings onClose={() => setSettingModalOpen(false)} />}
 
         {/* 프로필 아이콘 및 드롭다운 */}
         <div className='relative'>
