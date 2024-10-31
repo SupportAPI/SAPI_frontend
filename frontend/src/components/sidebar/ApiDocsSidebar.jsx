@@ -117,7 +117,7 @@ const ApiDocsSidebar = () => {
           />
         </div>
       </div>
-      <div className='flex-1 overflow-y-auto scrollbar'>
+      <div className='flex-1 overflow-y-auto sidebar-scrollbar'>
         <div>
           {data.map((category) => (
             <div key={category.category}>
