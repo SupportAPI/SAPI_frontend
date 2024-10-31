@@ -1,8 +1,7 @@
 import { useQuery } from 'react-query';
 
 export const fetchApiDocs = async () => {
-  // 주석을 해제하고 실제 API URL로 교체하세요.
-  // const response = await axiosInstance.get('/api/docs');
+  // const response = await axiosInstance.get('http://192.168.31.219:8080/api/docs');
   // return response.data;
 
   return [

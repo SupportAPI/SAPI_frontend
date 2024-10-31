@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom'; // useNavigate 추가
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useApiDocs } from '../api/queries/useApiDocsQueries';
 import { useNavbarStore } from '../stores/useNavbarStore';
 import { useTabStore } from '../stores/useTabStore';
@@ -9,7 +9,7 @@ const ApiOverview = () => {
   const { data = [], isLoading, error } = useApiDocs();
   const { workspaceId } = useParams();
   const location = useLocation();
-  const navigate = useNavigate(); // navigate 선언
+  const navigate = useNavigate();
   const { setMenu } = useNavbarStore();
   const { addTab, openTabs } = useTabStore();
 
@@ -63,34 +63,34 @@ const ApiOverview = () => {
   if (error) return <div className='p-4'>Failed to load data.</div>;
 
   return (
-    <div className='p-8 overflow-x-auto'>
-      <div className='flex justify-between items-center mb-2'>
+    <div className='px-8 py-8 overflow-x-auto'>
+      <div className='flex justify-between items-baseline mb-4'>
+        {/* items-baseline을 사용 */}
         <h2 className='text-2xl font-bold'>API Overview</h2>
         <div className='flex space-x-4'>
-          <button className='flex items-center h-10 space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
+          <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
             <FaPlus />
             <span>Add</span>
           </button>
-          <button className='flex items-center h-10 space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
+          <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
             <FaTrashAlt />
             <span>Delete</span>
           </button>
-          <button className='flex items-center h-10 space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
+          <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
             <FaDownload />
             <span>Export</span>
           </button>
-          <button className='flex items-center h-10 space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
+          <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
             <FaShareAlt />
             <span>Share</span>
           </button>
         </div>
       </div>
-      <hr className='border-t border-gray-300 mb-4' />
+
       <div className='overflow-x-auto mx-auto border border-gray-300 rounded-lg'>
         <table className='w-full min-w-[1200px] table-fixed' style={{ borderSpacing: 0 }}>
           <thead>
             <tr className='bg-gray-100 h-12'>
-              <th className='p-4 w-[1%]'></th>
               <th className='p-4 text-center font-medium w-[5%]'>
                 <div className='flex items-center justify-center'>
                   <input
@@ -102,13 +102,12 @@ const ApiOverview = () => {
                 </div>
               </th>
               <th className='p-4 text-left font-medium w-[15%]'>Category</th>
-              <th className='p-4 text-left font-medium w-[18%]'>API Name</th>
+              <th className='p-4 text-left font-medium w-[20%]'>API Name</th>
               <th className='p-4 text-left font-medium w-[10%]'>HTTP</th>
               <th className='p-4 text-left font-medium w-[25%]'>API Path</th>
               <th className='p-4 text-center font-medium w-[15%]'>Manager</th>
               <th className='p-4 text-center font-medium w-[5%]'>LS</th>
               <th className='p-4 text-center font-medium w-[5%]'>SS</th>
-              <th className='p-4 w-[1%]'></th>
             </tr>
           </thead>
           <tbody>
@@ -118,20 +117,19 @@ const ApiOverview = () => {
                 return (
                   <tr
                     key={api.id}
-                    onClick={() => handleRowClick(api.id)} // 행 클릭 이벤트 추가
+                    onClick={() => handleRowClick(api.id)}
                     className={`text-[14px] cursor-pointer ${
                       isSelected ? 'bg-indigo-50 hover:bg-indigo-100' : 'hover:bg-gray-50'
                     }`}
                   >
-                    <td className='p-4'></td>
                     <td className='p-4 text-center'>
                       <div className='flex items-center justify-center'>
                         <input
                           type='checkbox'
                           className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500'
                           checked={isSelected}
-                          onClick={(e) => e.stopPropagation()} // 이벤트 전파 막기
-                          onChange={() => handleCheckboxChange(api.id)} // 상태 변경 함수
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={() => handleCheckboxChange(api.id)}
                         />
                       </div>
                     </td>
@@ -146,7 +144,6 @@ const ApiOverview = () => {
                     <td className='p-4 text-center'>
                       <FaTimes className='text-red-600 mx-auto' />
                     </td>
-                    <td className='p-4' />
                   </tr>
                 );
               })
