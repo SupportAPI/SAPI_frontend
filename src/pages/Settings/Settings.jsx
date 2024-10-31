@@ -24,7 +24,7 @@ const Settings = ({ onClose }) => {
     >
       {/* 모달 크기 정의 */}
       <div
-        className='flex flex-col items-center bg-white rounded-lg w-[1000px] h-[1000px] border rounded-lg'
+        className='flex flex-col items-center bg-white rounded-lg w-[800px] h-[900px] min-w-[800px] border rounded-lg'
         onClick={(e) => e.stopPropagation()}
       >
         <header className='flex justify-between items-center w-full text-xl h-[10%] bg-blue-100'>
