@@ -2,8 +2,8 @@ import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { getToken } from '../../utils/cookies';
 
-// const base_URL = 'https://k11b305.p.ssafy.io';
-const base_URL = 'http://192.168.31.35:8080';
+const base_URL = 'https://k11b305.p.ssafy.io'; // 본 서버
+// const base_URL = 'http://192.168.31.35:8080'; // 세현 서버
 
 // 1. 워크스페이스 목록 가져오기
 export const fetchWorkspaces = async () => {
@@ -79,9 +79,7 @@ export const useCreateWorkspace = (options = {}) => {
 // 3. 워크스페이스 삭제
 export const deleteWorkspace = async ({ workspaceId }) => {
   const accessToken = getToken();
-  console.log('1111111111111111111111');
-  console.log(workspaceId);
-  const response = await axios.delete(`/api/workspaces/${workspaceId}`, {
+  const response = await axios.delete(`${base_URL}/api/workspaces/${workspaceId}`, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
@@ -94,11 +92,15 @@ export const deleteWorkspace = async ({ workspaceId }) => {
 // React Query 훅: 워크스페이스 삭제
 export const useDeleteWorkspace = () => {
   const queryClient = useQueryClient();
-  return useMutation((workspaceId) => deleteWorkspace({ workspaceId }), {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['workspaces']);
+  return useMutation(
+    (workspaceId) => deleteWorkspace({ workspaceId }),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['workspaces']);
+      },
     },
-  });
+    { retry: false, refetchOnWindowFocus: false }
+  );
 };
 
 // 4. 초대할 유저 정보 가져오기
@@ -130,9 +132,28 @@ export const useFetchInviteUser = (useremail) => {
 // 5. 유저 워크스페이스로 초대하기
 export const InviteMember = async (requestData) => {
   const accessToken = getToken();
-
   // axios 요청 설정
   const response = await axios.post(`${base_URL}/api/memberships`, requestData, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return response.data.data;
+};
+
+// React Query 훅 : 유저 초대 보내기
+export const useInviteMember = () => {
+  return useMutation((requestData) => InviteMember(requestData), {
+    refetchOnWindowFocus: false,
+  });
+};
+
+// 6. 회원 정보 조회
+export const fetchUserInfo = async (userId) => {
+  const accessToken = getToken();
+
+  const response = await axios.get(`${base_URL}/api/users/${userId}`, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
@@ -142,6 +163,10 @@ export const InviteMember = async (requestData) => {
   return response.data.data;
 };
 
-export const useInviteMember = () => {
-  return useMutation((requestData) => InviteMember(requestData));
+// React Query 훅 : 유저 정보 조회하기
+export const useUserInfo = (userId) => {
+  return useQuery(['userInfo', userId], () => fetchUserInfo(userId), {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 };

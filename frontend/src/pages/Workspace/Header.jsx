@@ -30,7 +30,7 @@ const Header = ({ onSettingsClick }) => {
   // const navigate = useNavigate();
 
   return (
-    <header className='w-full h-16 bg-[#F0F5F8]/50 text-[#666666] flex items-center px-12 justify-between relative border-b select-none'>
+    <header className='w-full h-16 bg-[#f7fafb]/50 text-[#666666] flex items-center px-12 justify-between relative border-b select-none'>
       <h1 className='text-2xl'>Support API</h1>
 
       {/* 오른쪽 아이콘들 */}
