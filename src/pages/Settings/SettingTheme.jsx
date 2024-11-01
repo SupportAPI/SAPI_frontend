@@ -10,7 +10,7 @@ const SettingThemee = () => {
   return (
     <div className='m-10'>
       <div className='flex flex-col'>
-        <div className='text-6xl mb-5'>Theme</div>
+        <div className='text-2xl font-semibold mb-5'>Theme</div>
         <div className='border'></div>
 
         <div className='flex flex-col mt-10'>
@@ -21,7 +21,7 @@ const SettingThemee = () => {
                 selectedTheme === 'White' ? 'bg-blue-500 border-blue-500' : 'border-gray-400 hover:bg-blue-300'
               }`}
             ></button>
-            <div className={`text-xl ${selectedTheme === 'White' ? 'text-blue-500' : 'text-gray-700'}`}>White</div>
+            <div className={`${selectedTheme === 'White' ? 'text-blue-500' : 'text-gray-700'}`}>White</div>
           </div>
 
           <div className='flex m-10'>
@@ -31,7 +31,7 @@ const SettingThemee = () => {
                 selectedTheme === 'Black' ? 'bg-blue-500 border-blue-500' : 'border-gray-400 hover:bg-blue-300'
               }`}
             ></button>
-            <div className={`text-xl ${selectedTheme === 'Black' ? 'text-blue-500' : 'text-gray-700'}`}>Black</div>
+            <div className={`${selectedTheme === 'Black' ? 'text-blue-500' : 'text-gray-700'}`}>Black</div>
           </div>
         </div>
       </div>
