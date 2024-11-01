@@ -1,35 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect } from 'react';
+import AppRoutes from './routes/AppRoutes';
+import useAuthStore from './stores/useAuthStore';
+import { jwtDecode } from 'jwt-decode';
+import { getToken } from './utils/cookies';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const setUserId = useAuthStore((state) => state.setUserId);
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+  useEffect(() => {
+    const accessToken = getToken();
+    if (accessToken) {
+      try {
+        const decodedToken = jwtDecode(accessToken);
+        const userId = decodedToken.sub;
+        setUserId(userId);
+      } catch (error) {
+        console.error('Failed to decode token:', error);
+      }
+    }
+  }, [setUserId]);
 
-export default App
+  return <AppRoutes />;
+};
+
+export default App;
