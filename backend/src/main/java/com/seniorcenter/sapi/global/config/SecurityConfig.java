@@ -44,6 +44,7 @@ public class SecurityConfig {
 			.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 			.requestMatchers("/api/users/login", "/api/users/check-email-duplicate",
 				"/api/users/send-code", "/api/users/verify-code", "/api/users/send-password").permitAll()
+			.requestMatchers("/ws/ws-stomp/**", "/ws/pub/**", "/ws/sub/**", "/ws/pub/specification/message").permitAll()
 			.anyRequest().authenticated()
 		);
 		http.exceptionHandling((handle) -> handle.authenticationEntryPoint(customExceptionHandler));

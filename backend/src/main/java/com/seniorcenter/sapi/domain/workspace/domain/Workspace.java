@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.seniorcenter.sapi.domain.membership.domain.Membership;
+import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.domain.workspace.presentation.dto.request.CreateWorkspaceRequestDto;
 import com.seniorcenter.sapi.domain.workspace.presentation.dto.request.UpdateWorkspaceRequestDto;
 import com.seniorcenter.sapi.global.database.BaseTimeEntity;
@@ -46,6 +47,9 @@ public class Workspace extends BaseTimeEntity {
 
 	@OneToMany(mappedBy = "workspace", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Membership> memberships = new ArrayList<>();
+
+	@OneToMany(mappedBy = "workspace", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<Specification> specifications = new ArrayList<>();
 
 	@Builder
 	private Workspace(String projectName, String description, String mainImage, String domain) {
