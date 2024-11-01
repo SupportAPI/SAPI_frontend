@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCreateWorkspace } from '../../api/queries/useWorkspaceQueries';
+import { IoClose } from 'react-icons/io5';
 
 const CreateWorkspace = ({ onComplete, onClose }) => {
   // 워크스페이스 상태 관리
@@ -10,6 +11,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
   const [domain, setDomainName] = useState('');
   const [description, setDescription] = useState('');
   const [mainImage, setMainImage] = useState('');
+  const [previewImage, setPreviewImage] = useState('');
 
   // 각 오류 메시지 상태 관리
   const [nameErrorMessage, setNameErrorMessage] = useState('프로젝트 이름을 입력해주세요.');
@@ -50,11 +52,8 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0]; // 선택된 파일 가져오기
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setMainImage(reader.result); // 파일을 읽은 결과(이미지 URL)를 상태에 저장
-      };
-      reader.readAsDataURL(file); // 파일을 Data URL로 변환
+      setMainImage(file); // 원본 File 객체를 상태에 저장
+      setPreviewImage(URL.createObjectURL(file)); // 미리보기 URL 생성 및 저장
     }
   };
 
@@ -76,33 +75,33 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
       {/* 모달 크기 정의 */}
       <div className='flex flex-col items-center bg-white w-[800px] h-[800px] border rounded-2xl'>
         <header className='flex justify-between items-center w-full text-xl mb-4 h-[80px] bg-blue-100 rounded-t-2xl'>
-          <div className='text-3xl ml-6'>Create Workspace</div>
-          <button className='' onClick={onClose}>
-            <img className='mr-4 w-6' src='/src/assets/workspace/x.png' alt='' />
+          <div className='text-3xl font-semibold ml-10'>Create Workspace</div>
+          <button className='mr-4' onClick={onClose}>
+            <IoClose className='text-3xl' />
           </button>
         </header>
 
         {/* 내부 컴포넌트 크기 정의 */}
         <div className='flex justify-center flex-col w-[400px] h-[640px]'>
-          <div className='mb-5'>
+          <div className='mb-2'>
             <div className='flex flex-col justify-center items-center mb-2'>
               <img
-                src={mainImage || '/src/assets/workspace/basic_image.png'}
-                alt=''
+                src={previewImage || '/src/assets/workspace/basic_image.png'}
+                alt='preview'
                 className='border rounded-lg h-[150px] w-[200px] mb-2 object-contain'
               />
               <input
                 type='file'
                 accept='image/*' // 이미지만 허용
                 onChange={handleImageChange} // 파일이 선택될 때마다 handleImageChange 실행
-                className='border rounded-lg w-[300px]'
+                className='border rounded-lg w-[300px] mb-3'
               />
             </div>
 
             <div className='flex flex-col mb-1'>
               {/* WorkSpace 이름 입력 */}
               <div className='flex'>
-                <div>WorkSpaces name</div>
+                <div className='text-lg font-semibold'>WorkSpaces name</div>
                 <div className='text-sm text-red-500'>*</div>
               </div>
               <input
@@ -118,7 +117,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
             {/* Domain 주소 입력 */}
             <div className='flex flex-col mb-1'>
               <div className='flex'>
-                <div>Domain Address</div>
+                <div className='text-lg font-semibold'>Domain Address</div>
                 <div className='text-sm text-red-500'>*</div>
               </div>
               <input
@@ -133,7 +132,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
 
             {/* Description 입력 */}
             <div className='flex flex-col'>
-              <div>Description</div>
+              <div className='text-lg font-semibold'>Description</div>
               <textarea
                 type='text'
                 className='border w-full h-28 p-3 rounded-lg sidebar-scrollbar resize-none'

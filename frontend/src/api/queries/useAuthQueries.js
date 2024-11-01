@@ -15,7 +15,7 @@ export const login = async (email, password) => {
     });
   } else {
     // 실제 API 요청
-    const response = await axios.post('http://192.168.31.35:8080/api/users/login', {
+    const response = await axios.post('https://k11b305.p.ssafy.io/api/users/login', {
       email,
       password,
     });
