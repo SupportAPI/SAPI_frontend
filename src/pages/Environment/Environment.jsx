@@ -54,7 +54,7 @@ const DraggableRow = ({ environment, index, moveRow, handleIsChecked, handleType
             style={{ opacity }}
             className={`relative group ${index !== lastId ? 'border-b border-black' : ''}`}
         >
-            <td className="p-4 h-[58.83px] flex items-center justify-center space-x-2 border-r border-[#D9D9D9]">
+            <td className="p-3 h-[58px] flex items-center justify-center space-x-2 border-r border-[#D9D9D9]">
                 <FaPlus
                     className="text-lg invisible group-hover:visible hover:bg-gray-300 rounded" 
                     onClick={() => handleAddRow(environment.id)}
@@ -70,7 +70,7 @@ const DraggableRow = ({ environment, index, moveRow, handleIsChecked, handleType
             </td>
 
             <td 
-                className={`p-4 bg-white transition-all duration-200 transform ${
+                className={`p-3 bg-white transition-all duration-200 transform ${
                     clickedTd === "variable" ? "scale-105" : ""
                 }`}
                 style={
@@ -105,7 +105,7 @@ const DraggableRow = ({ environment, index, moveRow, handleIsChecked, handleType
             </td>
 
             <td
-                className="p-4 border-r border-[#D9D9D9] flex items-center justify-center cursor-pointer relative"
+                className="p-3 border-r border-[#D9D9D9] flex items-center justify-center cursor-pointer relative"
                 onClick={(event) => handleType(event, environment.id)}
             >
                 {environment.isSecreted ? "Secret" : "Default"}
@@ -113,7 +113,7 @@ const DraggableRow = ({ environment, index, moveRow, handleIsChecked, handleType
             </td>
             
             <td 
-                className={`p-4 border-r border-[#D9D9D9] bg-white transition-all duration-200 transform ${
+                className={`p-3 border-r border-[#D9D9D9] bg-white transition-all duration-200 transform ${
                     clickedTd === "value" ? "scale-105" : ""
                 }`}
                 onClick={() => handleTdClick("value")}
@@ -133,7 +133,7 @@ const DraggableRow = ({ environment, index, moveRow, handleIsChecked, handleType
             </td>
 
             <td 
-                className={`p-4 border-r border-[#D9D9D9] bg-white transition-all duration-200 transform ${
+                className={`p-3 border-r border-[#D9D9D9] bg-white transition-all duration-200 transform ${
                     clickedTd === "description" ? "scale-105" : ""
                 }`}
                 onClick={() => handleTdClick("description")}
@@ -151,7 +151,7 @@ const DraggableRow = ({ environment, index, moveRow, handleIsChecked, handleType
                     <span>{environment.description}</span>
                 )}
             </td>
-            <td className="p-4 h-[58.83px] flex items-center justify-center space-x-2 border-r border-[#D9D9D9]">
+            <td className="p-3 h-[58.83px] flex items-center justify-center space-x-2 border-r border-[#D9D9D9]">
                 <FaTrashAlt 
                     className="text-lg invisible group-hover:visible hover:bg-gray-300" 
                     onClick={() => handleDeleteRow(environment.id)} // 삭제 함수 호출
@@ -204,6 +204,10 @@ const Environment = () => {
         { id: 2, variable: "Authorization", isSecreted: false, value: "werwrwsdfsdfer", description: "토큰값", isChecked: false },
     ]);
 
+    const handleDeleteCheckedRows = () => {
+        setData((prevData) => prevData.filter((item) => !item.isChecked));
+    };
+
     const handleDeleteRow = (id) => {
         setData((prevData) => {
             if (prevData.length === 1) {
@@ -253,6 +257,11 @@ const Environment = () => {
 
     const handleAddRow = (currentId) => {
         setData((prevData) => {
+
+            if(currentId==-1){
+                currentId = lastId;
+            }
+            
             const updatedData = prevData.map(item => 
                 item.id > currentId ? { ...item, id: item.id + 1 } : item
             );
@@ -288,23 +297,19 @@ const Environment = () => {
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold">Environment</h2>
                     <div className="flex space-x-4">
-                        <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-800">
+                        <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+                            onClick={() => handleAddRow(-1)}>
                             <FaPlus /><span>Add</span>
                         </button>
-                        <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-800">
+                        <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+                            onClick={handleDeleteCheckedRows}>
                             <FaTrashAlt /><span>Delete</span>
-                        </button>
-                        <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-800">
-                            <FaDownload /><span>Export</span>
-                        </button>
-                        <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-800">
-                            <FaShareAlt /><span>Share</span>
                         </button>
                     </div>
                 </div>
                 <hr className="border-t border-gray-300 mb-4" />
 
-                <div className="border border-black shadow rounded overflow-visible">
+                <div className="border border-black shadow rounded-lg overflow-hidden">
                     <table className="min-w-full table-fixed overflow-visible">
                         <colgroup>
                             <col style={{ width: "2%" }} />
@@ -316,12 +321,12 @@ const Environment = () => {
                         </colgroup>
                         <thead>
                             <tr className="bg-[#F9FEFF] border-b border-black">
-                                <th className="p-4 border-r border-[#D9D9D9] text-left"></th>
-                                <th className="p-4 border-r border-[#D9D9D9] text-left">Variable</th>
-                                <th className="p-4 border-r border-[#D9D9D9]">Type</th>
-                                <th className="p-4 border-r border-[#D9D9D9] text-left">Value</th>
-                                <th className="p-4 border-r border-[#D9D9D9] text-left">Description</th>
-                                <th className="p-4 text-left"></th>
+                                <th className="p-3 border-r border-[#D9D9D9] text-left"></th>
+                                <th className="p-3 border-r border-[#D9D9D9] text-left">Variable</th>
+                                <th className="p-3 border-r border-[#D9D9D9]">Type</th>
+                                <th className="p-3 border-r border-[#D9D9D9] text-left">Value</th>
+                                <th className="p-3 border-r border-[#D9D9D9] text-left">Description</th>
+                                <th className="p-3 text-left"></th>
                             </tr>
                         </thead>
                         <tbody>
