@@ -206,9 +206,21 @@ const Environment = () => {
     ]);
 
     const handleDeleteCheckedRows = () => {
-        setData((prevData) => prevData.filter((item) => !item.isChecked));
+        setData((prevData) => {
+            const updatedData = prevData.filter((item) => !item.isChecked);
+            return updatedData.length === 0
+                ? [{
+                    id: 1,  // 초기 ID 값 설정
+                    variable: "",
+                    isSecreted: false,
+                    value: "",
+                    description: "",
+                    isChecked: false,
+                  }]
+                : updatedData;
+        });
     };
-
+    
     const handleDeleteRow = (id) => {
         setData((prevData) => {
             if (prevData.length === 1) {
