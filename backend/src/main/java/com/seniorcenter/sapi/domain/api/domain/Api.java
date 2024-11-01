@@ -43,12 +43,12 @@ public class Api extends BaseTimeEntity {
 
     @Builder
     public Api(Specification specification) {
-        this.name = "";
+        this.name = "New API";
         this.path = "";
         this.method = HttpMethod.GET;
         this.bodyType = BodyType.NONE;
         this.authenticationType = AuthenticationType.NOAUTH;
-        this.category = "";
+        this.category = "Uncategorized";
         this.specification = specification;
     }
 
@@ -57,13 +57,13 @@ public class Api extends BaseTimeEntity {
                 .build();
     }
 
-    public void updateApi(String name, String path, String method, String bodyType, String authenticationType, String category) {
-        this.name = name;
-        this.path = path;
-        this.method = HttpMethod.valueOf(method);
-        this.bodyType = BodyType.valueOf(bodyType);
-        this.authenticationType = AuthenticationType.valueOf(authenticationType);
-        this.category = category;
+    public void updateApi(Api api) {
+        this.name = api.getName();
+        this.path = api.getPath();
+        this.method = api.getMethod();
+        this.bodyType = api.getBodyType();
+        this.authenticationType = api.getAuthenticationType();
+        this.category = api.getCategory();
     }
 
     public void updateSpecification(Specification specification) {

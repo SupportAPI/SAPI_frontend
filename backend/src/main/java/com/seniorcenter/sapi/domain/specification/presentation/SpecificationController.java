@@ -1,6 +1,7 @@
 package com.seniorcenter.sapi.domain.specification.presentation;
 
-import com.seniorcenter.sapi.domain.specification.domain.Specification;
+import com.seniorcenter.sapi.domain.api.presentation.dto.ApiResponseDto;
+import com.seniorcenter.sapi.domain.api.service.ApiService;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationCategoryResponseDto;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationResponseDto;
 import com.seniorcenter.sapi.domain.specification.service.SpecificationService;
@@ -18,25 +19,36 @@ import java.util.UUID;
 public class SpecificationController {
 
     private final SpecificationService specificationService;
+    private final ApiService apiService;
 
-    @GetMapping("/workspaces/{workspaceId}/specification")
+    @GetMapping("/workspaces/{workspaceId}/docs")
     public List<SpecificationResponseDto> getSpecifications(@PathVariable("workspaceId") UUID workspaceUUID) {
         return specificationService.getSpecificationsByWorkspaceId(workspaceUUID);
     }
 
-    @GetMapping("/workspaces/{workspaceId}/specification/nav")
+    @GetMapping("/workspaces/{workspaceId}/docs/nav")
     public List<SpecificationCategoryResponseDto> getSpecificationIdNames(@PathVariable("workspaceId") UUID workspaceUUID) {
         return specificationService.getSpecificationsIdAndNamesByWorkspaceId(workspaceUUID);
     }
 
-    @PostMapping("/workspaces/{workspaceId}/specification")
+    @PostMapping("/workspaces/{workspaceId}/docs")
     public UUID createSpecification(@PathVariable("workspaceId") UUID workspaceUUID) {
         return specificationService.createSpecificationByApi(workspaceUUID);
     }
 
-    @DeleteMapping("/specification/{specificationId}")
-    public void deleteSpecification(@PathVariable("specificationId") UUID specificationUUID) {
-        specificationService.removeSpecificationByApi(specificationUUID);
+    @DeleteMapping("/workspaces/{workspaceId}/docs/{docsId}")
+    public void deleteSpecification(@PathVariable("docsId") UUID docUUID) {
+        specificationService.removeSpecificationByApi(docUUID);
+    }
+
+    @PostMapping("/workspaces/{workspaceId}/docs/{docsId}/confirm")
+    public SpecificationResponseDto specificationConfirm(@PathVariable("docsId") UUID docUUID) {
+        return specificationService.confirmSpecificationApiId(docUUID);
+    }
+
+    @GetMapping("/workspaces/{workspaceId}/docs/{docsId}/history")
+    public List<ApiResponseDto> getHistory(@PathVariable("docsId") UUID docUUID){
+        return apiService.getApiHistoryBySpecificationId(docUUID);
     }
 
 }

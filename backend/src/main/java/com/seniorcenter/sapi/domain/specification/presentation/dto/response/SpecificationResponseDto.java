@@ -10,7 +10,8 @@ import com.seniorcenter.sapi.domain.specification.domain.TestStatus;
 import java.util.UUID;
 
 public record SpecificationResponseDto(
-        UUID id,
+        UUID docId,
+        UUID apiId,
         String category,
         String name,
         HttpMethod method,
@@ -23,6 +24,7 @@ public record SpecificationResponseDto(
 ) {
     public SpecificationResponseDto(Api api, Specification specification) {
         this(
+                specification.getId(),
                 api.getId(),
                 api.getCategory(),
                 api.getName(),

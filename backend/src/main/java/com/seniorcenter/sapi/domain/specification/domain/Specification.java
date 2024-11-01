@@ -68,7 +68,6 @@ public class Specification extends BaseTimeEntity {
     }
 
     public void updateApiUUID(UUID apiId){
-        System.out.println("왜 안나와?" + apiId);
         this.apiId = apiId;
     }
 }

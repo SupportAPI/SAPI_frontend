@@ -11,6 +11,8 @@ import com.seniorcenter.sapi.domain.specification.presentation.dto.response.Spec
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
+import com.seniorcenter.sapi.global.error.exception.CustomException;
+import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +42,8 @@ public class SpecificationService {
         Api api = Api.createApi();
         apiRepository.save(api);
         UUID workspaceId = message.workspaceUUID();
-        Workspace workspace = workspaceRepository.findById(workspaceId).orElse(null);
+        Workspace workspace = workspaceRepository.findById(workspaceId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
         Specification specification = Specification.createSpecification(tempLambdaId, api.getId(), workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
@@ -50,7 +53,8 @@ public class SpecificationService {
     @Transactional
     public void removeSpecification(SpecificationMessage message) {
         UUID specificationId = UUID.fromString(message.message());
-        Specification specification = specificationRepository.findById(specificationId);
+        Specification specification = specificationRepository.findById(specificationId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
         if (specification == null) {
             sendErrorMessageToUser("존재하지 않는 API 명세 UUID입니다.", message.workspaceUUID());
@@ -86,8 +90,8 @@ public class SpecificationService {
                         System.out.println(categoryMap.get(api.getCategory()));
                     }
                     categoryResponseDtos.get(categoryMap.get(api.getCategory()))
-                            .apis().add(new SpecificationIdNameResponseDto(api.getId(),api.getName()));
-                    return new SpecificationIdNameResponseDto(api.getId(),api.getName());
+                            .apis().add(new SpecificationIdNameResponseDto(api.getId(), specification.getId(), api.getName()));
+                    return new SpecificationIdNameResponseDto(api.getId(), specification.getId(), api.getName());
                 }).collect(Collectors.toList());
 
         return categoryResponseDtos;
@@ -113,7 +117,8 @@ public class SpecificationService {
         String tempLambdaId = "1"; // 임시 lambda ID
         Api api = Api.createApi();
         apiRepository.save(api);
-        Workspace workspace = workspaceRepository.findById(workspaceId).orElse(null);
+        Workspace workspace = workspaceRepository.findById(workspaceId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
         Specification specification = Specification.createSpecification(tempLambdaId, api.getId(), workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
@@ -122,8 +127,22 @@ public class SpecificationService {
 
     @Transactional
     public void removeSpecificationByApi(UUID specificationId) {
-        Specification specification = specificationRepository.findById(specificationId);
+        Specification specification = specificationRepository.findById(specificationId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
         specificationRepository.delete(specification);
+    }
+
+    @Transactional
+    public SpecificationResponseDto confirmSpecificationApiId(UUID specificationId) {
+        Specification specification = specificationRepository.findById(specificationId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+        Api api = apiRepository.findTopBySpecificationIdOrderByCreatedDateDesc(specificationId).orElseThrow();
+        specification.updateApiUUID(api.getId());
+        Api newApi = Api.createApi();
+        apiRepository.save(newApi);
+        newApi.updateSpecification(specification);
+        newApi.updateApi(api);
+        return new SpecificationResponseDto(api, specification);
     }
 
 }

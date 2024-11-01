@@ -6,9 +6,10 @@ import java.util.UUID;
 
 public record SpecificationIdNameResponseDto(
         UUID apiId,
+        UUID docId,
         String name
 ) {
-    public SpecificationIdNameResponseDto(Api api) {
-        this(api.getId(), api.getName());
+    public SpecificationIdNameResponseDto(Api api, UUID docId) {
+        this(api.getId(), docId, api.getName());
     }
 }

@@ -7,6 +7,8 @@ import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
 import com.seniorcenter.sapi.domain.user.domain.User;
+import com.seniorcenter.sapi.global.error.exception.CustomException;
+import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +33,8 @@ public class ApiService {
 
     @Transactional
     public void createApi(ApiMessage message) {
-        Specification specification = specificationRepository.findById(message.specificationUUID());
+        Specification specification = specificationRepository.findById(message.specificationUUID())
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
         Api api = Api.createApi();
         api.updateSpecification(specification);
         apiRepository.save(api);
@@ -77,5 +80,14 @@ public class ApiService {
 
     public void sendOriginMessageToAll(ApiMessage message) {
         messagingTemplate.convertAndSend("/ws/sub/workspace/" + message.workspaceUUID() + "/api", message);
+    }
+
+    public List<ApiResponseDto> getApiHistoryBySpecificationId(UUID specificationId) {
+        List<Api> apis = apiRepository.findBySpecificationIdOrderByCreatedDateDesc(specificationId);
+        return apis.stream()
+                .map(api->{
+                    ApiResponseDto apiResponseDto = new ApiResponseDto(api);
+                    return apiResponseDto;
+                }).collect(Collectors.toList());
     }
 }
