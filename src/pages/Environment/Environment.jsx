@@ -154,7 +154,7 @@ const DraggableRow = ({ environment, index, moveRow, handleIsChecked, handleType
             <td className="p-3 h-[58.83px] flex items-center justify-center space-x-2 border-r border-[#D9D9D9]">
                 <FaTrashAlt 
                     className="text-lg invisible group-hover:visible hover:bg-gray-300" 
-                    onClick={() => handleDeleteRow(environment.id)} // 삭제 함수 호출
+                    onClick={() => handleDeleteRow(environment.id)}
                 />
             </td>
         </tr>
@@ -197,6 +197,7 @@ const DropdownMenu = ({ onClose, position, setIsSecreted }) => {
 
 
 const Environment = () => {
+    const [checkedNum, setCheckedNum] = useState(0);
     const [activeTypeId, setActiveTypeId] = useState(null);
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
     const [data, setData] = useState([
@@ -226,12 +227,37 @@ const Environment = () => {
     };
 
     const handleIsChecked = (id) => {
-        setData(prevData =>
-            prevData.map(item =>
-                item.id === id ? { ...item, isChecked: !item.isChecked } : item
-            )
+        setData((prevData) =>
+            prevData.map((item) => {
+                if (item.id === id) {
+                    const newCheckedStatus = !item.isChecked;
+                    setCheckedNum((prevCount) => prevCount + (newCheckedStatus ? 1 : -1));
+                    return { ...item, isChecked: newCheckedStatus };
+                }
+                return item;
+            })
         );
     };
+
+    const handleIsCheckedAll = (checked) => {
+
+        if(checked){
+            setCheckedNum(0);
+            setData((prevData) =>
+                prevData.map((item) => {
+                    return { ...item, isChecked: false};
+                }
+            ))
+        }else{
+            setCheckedNum(lastId);
+            setData((prevData) =>
+                prevData.map((item) => {
+                    return { ...item, isChecked: true};
+                }
+            ))
+        }
+
+    }
 
     const handleUpdate = (id, field, value) => {
         setData(prevData =>
@@ -321,7 +347,15 @@ const Environment = () => {
                         </colgroup>
                         <thead>
                             <tr className="bg-[#F9FEFF] border-b border-black">
-                                <th className="p-3 border-r border-[#D9D9D9] text-left"></th>
+                                <th className="p-3 h-[58px] flex items-center justify-center space-x-2 border-r border-[#D9D9D9] group">
+                                    <FaPlus className="text-lg invisible rounded" />
+                                    <FaGripVertical className="text-lg invisible" />
+                                    {checkedNum === lastId ? (
+                                        <FaCheckSquare className="text-lg invisible group-hover:visible" onClick={() => handleIsCheckedAll(true)} />
+                                    ) : (
+                                        <FaSquare className="text-lg invisible group-hover:visible" onClick={() => handleIsCheckedAll(false)} />
+                                    )}
+                                </th>
                                 <th className="p-3 border-r border-[#D9D9D9] text-left">Variable</th>
                                 <th className="p-3 border-r border-[#D9D9D9]">Type</th>
                                 <th className="p-3 border-r border-[#D9D9D9] text-left">Value</th>
