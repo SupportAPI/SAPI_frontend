@@ -5,7 +5,7 @@ import { Client } from '@stomp/stompjs';
 import { useMutation } from 'react-query';
 import SockJs from 'sockjs-client';
 import { findComments, findIndex, findUsers } from '../../api/queries/useCommentsQueries';
-import User2 from '../../assets/workspace/user2.png';
+import User2 from '../../assets/workspace/basic_image.png';
 
 const Comments = () => {
   const [showOptionsDropdown, setShowOptionsDropdown] = useState(false);
@@ -224,8 +224,8 @@ const Comments = () => {
       className="w-full h-[700px] bg-[#F8FCFF] flex flex-col justify-start pt-5 overflow-y-auto box-border sidebar-scrollbar"
     >
       <div className="flex flex-col space-y-4 flex-grow pb-7">
-        {messages.slice().sort((a, b) => b.id - a.id).map((message) => (
-          <div key={message.id} className="flex flex-col">
+        {messages.slice().sort((a, b) => b.commentId - a.commentId).map((message) => (
+          <div key={message.commentId} className="flex flex-col">
             <div className={`flex ${message.mine ? 'justify-end' : 'justify-start'}`}>
               {!message.mine && (
                 <img className="w-[40px] h-[40px] rounded-full mr-3 ml-5" src={User2} alt="Profile" />
