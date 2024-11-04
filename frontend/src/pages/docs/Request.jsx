@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 
-const Request = () => {
+const Request = ({requestChange}) => {
   const [requestType, setRequestType] = useState('none');
   const [jsonData, setJsonData] = useState('{}');
   const [formData, setFormData] = useState([{ key: '', value: '' }]);
@@ -9,6 +9,14 @@ const Request = () => {
   const handleRequestTypeChange = (type) => {
     setRequestType(type);
   };
+
+  useEffect(()=>{
+    requestChange({
+      requestType,
+      jsonData,
+      formData,
+    });
+  }, [requestType, jsonData, formData])
 
   const handleJsonInputChange = (e) => {
     const { value, selectionStart } = e.target;

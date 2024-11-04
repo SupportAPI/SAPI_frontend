@@ -1,13 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiMoreVertical } from 'react-icons/fi';
 
-const Response = () => {
+const Response = ({responseChange}) => {
   const [statusCodes, setStatusCodes] = useState([]); // 추가된 상태 코드 목록
   const [responses, setResponses] = useState({}); // 각 상태 코드에 대한 JSON 응답 데이터
   const [selectedCode, setSelectedCode] = useState(null); // 현재 선택된 상태 코드
   const [showDropdown, setShowDropdown] = useState(false); // Add 버튼의 드롭다운 상태
   const [showActions, setShowActions] = useState(null); // 각 코드별 Three dot 메뉴 드롭다운 상태
   const dropdownRef = useRef(null);
+
+  useEffect(()=>{
+    responseChange({      
+      statusCodes,
+      responses,
+    });
+  },[statusCodes, responses])
 
   // 상태 코드 추가 함수
   const handleAddStatusCode = (code) => {
