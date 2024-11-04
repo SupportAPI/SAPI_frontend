@@ -1,23 +1,36 @@
 import axios from 'axios';
+import { getToken } from '../../utils/cookies';
 
-export const findIndex = async (specificationId) => {
-  const response = await axios.get(`http://localhost:8080/comments/index`, {
-    params: { specificationId: specificationId },
+// const base_URL = 'https://k11b305.p.ssafy.io'; // 본 서버
+const base_URL = 'http://192.168.31.219:8080'; // 세현 서버
+
+export const findIndex = async () => {
+  const accessToken = getToken();
+  console.log("accessToken", accessToken);
+  const response = await axios.get(`${base_URL}/api/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments/last-index`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
   });
   return response.data;
 };
 
-export const findComments = async (specificationId, id, size, userNickname) => {
+export const findComments = async (id, size) => {
   try {
     console.log(
-      `Requesting: /comments?specificationId=${specificationId}&id=${id}&size=${size}&userNickname=${userNickname}`
+      `Requesting: /comments?targetcommentid=${id}&size=${size}`
     );
-    const response = await axios.get(`http://localhost:8080/comments`, {
+    const accessToken = getToken();
+    console.log("accessToken", accessToken);
+    const response = await axios.get(`${base_URL}/api/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
       params: {
-        specificationId: specificationId,
-        id: id,
+        targetcommentid: id,
         size: size,
-        userNickname: userNickname,
       },
     });
     return response.data;
@@ -30,7 +43,12 @@ export const findComments = async (specificationId, id, size, userNickname) => {
 export const findUsers = async (nickname) => {
   try {
     console.log(nickname);
-    const response = await axios.get(`http://localhost:8080/users`, {
+    const accessToken = getToken();
+    const response = await axios.get(`${base_URL}/users`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
       params : {nickname}
     });
     return response.data;

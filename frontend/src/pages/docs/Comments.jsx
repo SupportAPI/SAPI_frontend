@@ -26,10 +26,37 @@ const Comments = () => {
   // 수정, 삭제 드롭다운 열기
   const handleIconClick = (e) => {
     e.stopPropagation();
-    const { top, left, height } = e.currentTarget.getBoundingClientRect();
-    setOptionsDropdownPosition({ top: top + height + window.scrollY, left: left + window.scrollX - 50 });
+  
+    const iconRect = e.currentTarget.getBoundingClientRect();
+    const containerRect = scrollContainerRef.current.getBoundingClientRect();
+
+    console.log(iconRect.top);
+    
+    // 아이콘의 위치를 현재 컨테이너 기준으로 계산
+    const calculatedTop = iconRect.top - containerRect.top + 70;
+    const calculatedLeft = iconRect.left - containerRect.left;
+    
+    console.log(calculatedTop);
+
+    const dropdownHeight = 30; // 드롭다운 예상 높이
+    const dropdownWidth = 100; // 드롭다운 예상 너비
+  
+    // 화면 바깥으로 벗어나지 않도록 조정
+    let adjustedTop = calculatedTop;
+    let adjustedLeft = calculatedLeft;
+  
+    if (adjustedTop + dropdownHeight > scrollContainerRef.current.clientHeight) {
+      adjustedTop = calculatedTop - dropdownHeight - e.currentTarget.offsetHeight - 5;
+    }
+  
+    if (adjustedLeft + dropdownWidth > scrollContainerRef.current.clientWidth) {
+      adjustedLeft = scrollContainerRef.current.clientWidth - dropdownWidth - 10;
+    }
+  
+    setOptionsDropdownPosition({ top: adjustedTop, left: adjustedLeft });
     setShowOptionsDropdown(!showOptionsDropdown);
   };
+  
 
   // 드롭다운 바깥 선택 시 꺼짐
   const handleClickOutside = (event) => {
@@ -38,35 +65,37 @@ const Comments = () => {
     }
   };
 
-  // 드롭다운 열렸을 떄 스크롤 방지
+  // 드롭다운 열렸을 때 스크롤 방지 (레이아웃 변경 방지)
   const preventScroll = () => {
-    if(scrollContainerRef.current){
-      scrollContainerRef.current.style.overflow = "hidden";
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.overflowY = "hidden"; // 스크롤 바만 숨기기
+      scrollContainerRef.current.style.paddingRight = "8px"; // 스크롤 바 너비만큼 오른쪽 여백 추가
     }
   };
 
   const allowScroll = () => {
-    if(scrollContainerRef.current){
-      scrollContainerRef.current.style.overflow = "auto";
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.overflowY = "auto"; // 스크롤 다시 활성화
+      scrollContainerRef.current.style.paddingRight = "0"; // 오른쪽 여백 제거
     }
   };
 
-  useEffect(()=> {
-    if(showOptionsDropdown){
+  useEffect(() => {
+    if (showOptionsDropdown) {
       preventScroll();
-    }else{
+    } else {
       allowScroll();
-    };
+    }
   }, [showOptionsDropdown]);
 
-  const indexMutation = useMutation(() => findIndex('1'), {
+  const indexMutation = useMutation(() => findIndex(), {
     onSuccess: (response) => {
       if (response !== undefined) setInitIndex(response + 1);
     },
     onError: (error) => console.error('Index fetch error:', error),
   });
 
-  const findInitMutation = useMutation(() => findComments('1', initIndex, 5, '커비'), {
+  const findInitMutation = useMutation(() => findComments(initIndex, 5), {
     onSuccess: (response) => {
       setMessages((prevMessages) => [...prevMessages, ...response.content]);
       setIndex(Math.min(...response.content.map((message) => message.id)));
@@ -92,12 +121,12 @@ const Comments = () => {
   });
 
   const connect = () => {
-    const socket = new SockJs('http://localhost:8080/ws');
+    const socket = new SockJs('http://192.168.31.219:8080/ws/ws-stomp');
     stompClient.current = new Client({
       webSocketFactory: () => socket,
       debug: (str) => console.log(str),
       onConnect: () => {
-        stompClient.current.subscribe(`/apiComment/sub/save/1`, (message) => {
+        stompClient.current.subscribe(`/ws/sub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, (message) => {
           const receivedMessage = JSON.parse(message.body);
           setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
         });
@@ -180,7 +209,7 @@ const Comments = () => {
   const sendMessage = () => {
     if (stompClient.current && stompClient.current.connected) {
       stompClient.current.publish({
-        destination: '/apiComment/save/1',
+        destination: '/ws/pub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments',
         body: JSON.stringify({ writerNickname: '커비', content: sendContent }),
       });
       setSendContent('');
@@ -188,30 +217,52 @@ const Comments = () => {
     }
   };
 
+
   return (
     <div
       ref={scrollContainerRef}
-      className="w-full h-[650px] bg-[#F8FCFF] flex flex-col justify-start pt-5 overflow-y-auto box-border sidebar-scrollbar"
+      className="w-full h-[700px] bg-[#F8FCFF] flex flex-col justify-start pt-5 overflow-y-auto box-border sidebar-scrollbar"
     >
-      <div className="flex flex-col space-y-4 flex-grow">
+      <div className="flex flex-col space-y-4 flex-grow pb-7">
         {messages.slice().sort((a, b) => b.id - a.id).map((message) => (
           <div key={message.id} className="flex flex-col">
-            <div className={`flex ${message.isMine ? 'justify-end' : 'justify-start'}`}>
-              {!message.isMine && (
+            <div className={`flex ${message.mine ? 'justify-end' : 'justify-start'}`}>
+              {!message.mine && (
                 <img className="w-[40px] h-[40px] rounded-full mr-3 ml-5" src={User2} alt="Profile" />
               )}
-              <div className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#D7E9F4]`}>
-                <div className='flex flex-row justify-between'>
-                  <p className={`text-xl font-bold my-1 mx-2 ${message.isMine ? 'text-right' : 'text-left'}`}>{message.writerNickname}</p>
-                  <FaEllipsisH className='mt-1 mr-2 cursor-pointer' onClick={handleIconClick}/>
-                </div>
-                <p className={`text-xl my-1 mx-2 ${message.isMine ? 'text-right' : 'text-left'}`}>{message.content}</p>
-              </div>
-              {message.isMine && (
+            <div className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#D7E9F4] ${message.mine ? 'ml-auto text-right' : 'text-left'}`}>
+              <div className={`flex ${message.mine ? 'justify-between' : 'justify-between'} items-center`}>
+                {message.mine ? (
+                  <>
+                    <FaEllipsisH 
+                      className="mt-1 ml-2 cursor-pointer" 
+                      onClick={handleIconClick}
+                    />
+                    <p className="text-xl font-bold my-1 mx-2">
+                      {message.writerNickname}
+                    </p>
+                  </>
+              ) : (
+                <>
+                  <p className="text-xl font-bold my-1 mx-2">
+                    {message.writerNickname}
+                  </p>
+                  <FaEllipsisH 
+                    className="mt-1 mr-2 cursor-pointer" 
+                    onClick={handleIconClick}
+                  />
+                </>
+              )}
+            </div>
+            <p className="text-xl my-1 mx-2">
+              {message.content}
+            </p>
+          </div>
+              {message.mine && (
                 <img className="w-[40px] h-[40px] rounded-full mr-5 ml-3" src={User2} alt="Profile" />
               )}
             </div>
-            <div className={`flex ${message.isMine ? 'justify-end mr-[72px]' : 'justify-start ml-[72px]'}`}>
+            <div className={`flex ${message.mine ? 'justify-end mr-[72px]' : 'justify-start ml-[72px]'}`}>
               <p className="text-sm">{message.date}</p>
             </div>
           </div>
@@ -231,24 +282,24 @@ const Comments = () => {
           </div>
         </div>
       </div>
-       {showOptionsDropdown && (
-          <ul
-            style={{
-              top: `${optionsDropdownPosition.top}px`,
-              left: `${optionsDropdownPosition.left}px`,
-            }}
-            ref={setRef}
-            className="absolute bg-[#EDF7FF] border border-gray-300 w-20 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg"
-          >
-            <li className="p-2 hover:bg-[#D7E9F4] cursor-pointer text-center">수정</li>
-            <li className="p-2 hover:bg-[#D7E9F4] cursor-pointer text-center">삭제</li>
-          </ul>
-        )}
+      {showOptionsDropdown && (
+        <ul
+          style={{
+            top: `${optionsDropdownPosition.top}px`,
+            left: `${optionsDropdownPosition.left}px`,
+          }}
+          ref={setRef}
+          className="absolute bg-[#EDF7FF] border border-gray-300 w-20 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg"
+        >
+          <li className="p-2 hover:bg-[#D7E9F4] cursor-pointer text-center">수정</li>
+          <li className="p-2 hover:bg-[#D7E9F4] cursor-pointer text-center">삭제</li>
+        </ul>
+      )}
       {showDropdown && (
         <ul
           style={{
             bottom: `calc(100% - ${dropdownPosition.top - 3}px)`,
-            left:`calc(100% - ${dropdownPosition.left + 25}px)`,
+            left: `calc(100% - ${dropdownPosition.left + 25}px)`,
           }}
           className="absolute bg-[#EDF7FF] border border-gray-300 w-56 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10"
         >
