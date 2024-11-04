@@ -78,15 +78,11 @@ const Header = () => {
 
       {/* 오른쪽 아이콘들 */}
       <div className='flex items-center gap-8'>
-<<<<<<< HEAD
-        <div className='relative'>
-          <FaBell className='text-2xl cursor-pointer' />
-=======
         {/* 알람 */}
         <div className='relative' ref={alarmRef}>
           <FaBell className='text-2xl cursor-pointer' onClick={() => setIsNotificationOpen((prev) => !prev)} />
           {isNotificationOpen && <Alarm />}
->>>>>>> be71ce29f68f0e934f345a694b4fb86ba053b3be
+
           {hasNotifications && <span className='absolute top-0 right-0 bg-red-500 rounded-full w-3 h-3'></span>}
         </div>
 
