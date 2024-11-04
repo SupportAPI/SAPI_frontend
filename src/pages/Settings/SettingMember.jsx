@@ -1,71 +1,227 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { MdOutlineMail } from 'react-icons/md';
 import { SlOptions } from 'react-icons/sl';
+import { useParams } from 'react-router-dom';
+import { useCallback } from 'react';
+import useAuthStore from '../../stores/useAuthStore';
+import {
+  useFetchInviteUser,
+  useInviteMember,
+  fetchUserInWorkspace,
+  useUserInfo,
+} from '../../api/queries/useWorkspaceQueries';
 
 const SettingMember = () => {
-  const users = [
-    { id: 1, username: '푸바오가 제일 좋음', email: 'rkdtpgus@naver.com', userimg: '/src/assets/workspace/user1.png' },
-    { id: 2, username: '커비1234', email: 'rlaansgml@naver.com', userimg: '/src/assets/workspace/user2.png' },
-    { id: 3, username: '커비꽃', email: 'qkrcksgh@naver.com', userimg: '/src/assets/workspace/user3.png' },
-    { id: 4, username: '커비먹방', email: 'qkrdydqls@naver.com', userimg: '/src/assets/workspace/user4.png' },
-    { id: 5, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 6, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 7, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 8, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 9, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-    { id: 10, username: '고래상어잡으러가자', email: 'whtjdqls@naver.com', userimg: '/src/assets/workspace/user5.png' },
-  ];
+  const userId = useAuthStore((state) => state.userId); // 자기 자신 id
+  const [DevelopAuthId, setDevelopAuthId] = useState(null);
+  const [useremail, setUseremail] = useState('');
+  const [isemailvalid, setEmailValid] = useState(true);
+  const [emailErrormessage, setEmailErrorMessage] = useState('이메일 양식이 잘못되었습니다.');
+  const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 }); // 모달 위치 상태
+  const modalRef = useRef();
+  const buttonRef = useRef(null);
+  const { workspaceId: currentWorkspaceId } = useParams(); // URL에서 workspaceId 추출
+  const { data: userInfo } = useUserInfo(userId);
+  const [userList, setUserList] = useState([]);
+  const { refetch } = useFetchInviteUser(useremail);
+  const inviteMemberMutation = useInviteMember();
+
+  const userListInWorkspace = useCallback(async () => {
+    if (currentWorkspaceId) {
+      const userList = await fetchUserInWorkspace(currentWorkspaceId);
+      setUserList(userList);
+    }
+  }, [currentWorkspaceId]);
+
+  useEffect(() => {
+    userListInWorkspace();
+  }, [userListInWorkspace]); // userListInWorkspace를 의존성 배열에 추가
+
+  // Delete 버튼 토글 함수
+  const toggleDevelopAuth = (index, e) => {
+    if (DevelopAuthId === index) {
+      setDevelopAuthId(null);
+    } else {
+      setDevelopAuthId(index);
+      buttonRef.current = e.target; // 클릭한 버튼 요소를 참조로 저장
+      updateModalPosition(); // 위치 초기 설정
+    }
+  };
+
+  // 스크롤 및 리사이즈에 따라 모달 위치 업데이트 함수
+  const updateModalPosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setModalPosition({
+        top: rect.top + window.scrollY + 30,
+        left: rect.left + window.scrollX + 5,
+      });
+    }
+  };
+
+  // 유저 권한 수정 요청
+  const ChangeDevelopAuth = (userId) => {
+    console.log(userId);
+    console.log('권한 수정을 요청했습니다.');
+  };
+
+  // 유저 삭제 요청
+  const DeleteUser = (userId) => {
+    console.log(`${userId}를 삭제 요청하셨습니다.`);
+  };
+
+  // 메뉴 외부 클릭 시 닫기
+  const handleClickOutside = () => {
+    setDevelopAuthId(null);
+  };
+
+  // 사용자 이메일(양식-정상판단) API 조회
+  const CheckUserEmail = async () => {
+    // 자기자신이면 추가 불가
+    if (useremail === userInfo.email) {
+      setEmailErrorMessage('자신은 추가할 수 없습니다.');
+      setEmailValid(false);
+      return;
+    }
+
+    // 이미 리스트에 있는 유저인지 확인
+    if (userList.some((user) => user.email === useremail)) {
+      setEmailErrorMessage('이미 추가된 유저입니다.');
+      setEmailValid(false);
+      return;
+    }
+
+    const result = await refetch();
+    if (result.data) {
+      sendInvitation(result.data.userId);
+      setUseremail(''); // 입력 필드 초기화
+    } else if (result.status === 'error') {
+      setEmailErrorMessage('존재하지 않는 유저 정보 입니다.');
+      setEmailValid(false);
+    }
+  };
+
+  // 사용자 이메일 양식 정상여부확인 먼저
+  const ValidUserEmail = () => {
+    // 이메일 미 입력 시
+    if (useremail === '') {
+      setEmailErrorMessage('이메일을 입력해주세요.');
+      setEmailValid(false);
+      return;
+    }
+
+    const email_regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i;
+    if (email_regex.test(useremail)) {
+      setEmailValid(true);
+      CheckUserEmail(useremail);
+    } else {
+      setEmailValid(false);
+      setEmailErrorMessage('이메일 양식이 잘못되었습니다.');
+    }
+  };
+
+  // 유저 초대 함수 (개인 초대)
+  const sendInvitation = (userId) => {
+    const requestData = {
+      userIds: [userId],
+      workspaceId: currentWorkspaceId,
+    };
+
+    inviteMemberMutation.mutate(requestData);
+
+    setUseremail(''); // 입력 필드 초기화
+    setEmailValid(false); // 버튼 비활성화
+    alert('초대가 완료되었습니다.');
+  };
+
+  useEffect(() => {
+    setEmailValid(true);
+  }, [useremail, userList]);
 
   return (
-    <div className='m-10'>
+    <div className='m-10' onClick={handleClickOutside}>
       <div className='flex flex-col'>
-        <div className='text-6xl mb-5'>Member</div>
+        <div className='text-2xl font-semibold mb-5'>Member</div>
         <div className='border'></div>
-        <div className='flex flex-col mt-8 m-10'>
-          {/* 이메일 추가 기능 */}
+        <div className='flex flex-col mt-8 m-4'>
+          {/* 유저 추가 기능 */}
           <div className='flex items-center mb-2'>
-            <MdOutlineMail className='mr-2 text-3xl' />
-            <div className='text-3xl'> Email Address</div>
+            <MdOutlineMail className='mr-2 text-xl' />
+            <div className='text-2xl'> Email Address</div>
           </div>
           <div className='flex justify-between items-center'>
             <input
               type='text'
               placeholder='Invite a member to Project'
-              className='border rounded-lg h-16 text-xl p-5 mr-5 w-full'
+              className='border rounded-lg h-16 p-5 mr-5 w-full'
+              value={useremail}
+              onChange={(e) => setUseremail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  ValidUserEmail();
+                }
+              }}
             />
             {/* Invite 버튼 나중에 추가로 기능 삽입하기 (form 형식 구현할 것) */}
-            <button className='border rounded-lg p-5 bg-green-500 hover:bg-green-600 text-white w-[150px]'>
+            <button
+              onClick={() => ValidUserEmail()}
+              className={`w-20 h-14 ml-3 border rounded-lg bg-green-500 hover:bg-green-600`}
+            >
               Invite
             </button>
           </div>
+          <div className={`${!isemailvalid ? 'visible' : 'invisible'} text-red-500`}>{emailErrormessage}</div>
           <div className='border mt-5'></div>
-          {/* 아래 멤버 화면 구성 Invite 를 하고 상대방이 수락한다면 아래에 추가해야됨
-          만약에 아직 받지 않는 상태라면 메세지 보냈다는 별도의 내용이 필요할듯????? */}
-          <div className='mt-5 h-[500px] overflow-y-auto sidebar-scrollbar'>
-            <table className='min-w-full bg-white'>
+          <div className='mt-5 max-h-[400px] overflow-y-auto sidebar-scrollbar'>
+            <table className='min-w-full bg-white custom-table'>
               <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className='hover:bg-blue-100'>
-                    <td className='py-2 border-b'>
-                      <img src={user.userimg} alt={user.username} className='w-10 h-10 rounded-full' />
+                {userList.map((user, index) => (
+                  <tr key={user.userId} className='hover:bg-blue-100 h-[80px]'>
+                    <td className='border-b'>
+                      <img
+                        src={user.profileImage}
+                        alt={user.nickname}
+                        className='border w-12 h-12 rounded-full object-contain'
+                      />
                     </td>
-                    <td className='py-2 border-b'>{user.username}</td>
-                    <td className='py-2 border-b'>{user.email}</td>
-                    <td className='py-2 border-b'>
-                      <button>
-                        <SlOptions />
-                      </button>
+                    <td className='border-b truncate min-w-[100px] max-w-[100px]'>{user.nickname}</td>
+                    <td className='border-b truncate min-w-[120px] max-w-[120px] pr-3'>{user.email}</td>
+                    <td className='border-b pr-3' onMouseLeave={() => setDevelopAuthId(null)}>
+                      <div className='option-button opacity-0 transition-opacity duration-200'>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDevelopAuth(index, e);
+                          }}
+                        >
+                          <SlOptions />
+                        </button>
+                      </div>
+                      {DevelopAuthId === index && (
+                        <div
+                          ref={modalRef}
+                          style={{
+                            position: 'absolute',
+                            top: modalPosition.top,
+                            left: modalPosition.left,
+                          }}
+                          className='border-2 bg-white rounded-lg shadow-lg z-10 w-40'
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            className='w-full text-left px-4 py-2 hover:bg-blue-100'
+                            onClick={() => ChangeDevelopAuth(user.userId)}
+                          >
+                            권한 수정
+                          </button>
+                          <button
+                            className='w-full text-left px-4 py-2 hover:bg-red-100 text-red-500'
+                            onClick={() => DeleteUser(user.userId)}
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

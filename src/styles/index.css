@@ -34,6 +34,31 @@
   border-radius: 4px; /* 트랙의 둥근 모서리 */
 }
 
+.thead-scroll-fix::after {
+  content: '';
+  display: block;
+  width: 16px; /* 일반적인 스크롤바 너비 */
+  height: 1px; /* 높이는 1px로 투명한 여백만 추가 */
+  background: transparent;
+}
+
+/* 커스텀 스크롤바 스타일 */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-thumb-gray-400::-webkit-scrollbar-thumb {
+  background-color: #9ca3af;
+  border-radius: 4px;
+}
+
+body {
+  /* 익스플로러 스크롤바 옵션 */
+  -ms-overflow-style: none;
+  /* 파이어폭스 스크롤바 옵션 */
+  scrollbar-width: none;
+}
+
 /* 워크스페이스 커스터마이징 */
 .custom-table thead,
 .custom-table tbody tr {
@@ -49,4 +74,14 @@
 
 .custom-table-move.show {
   max-height: 500px; /* 콘텐츠가 충분히 커질 수 있도록 적절한 높이 설정 */
+  transition: max-height 0.5s ease-in-out; /* 필요할 경우 전환 효과 유지 */
+}
+
+/* 옵션 버튼이 트랜지션과 함께 표시되도록 설정 */
+.custom-table tr:hover .option-button {
+  opacity: 1;
+}
+
+.scrollbar-gutter-stable {
+  scrollbar-gutter: stable;
 }

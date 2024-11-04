@@ -82,6 +82,7 @@ const Header = () => {
         <div className='relative' ref={alarmRef}>
           <FaBell className='text-2xl cursor-pointer' onClick={() => setIsNotificationOpen((prev) => !prev)} />
           {isNotificationOpen && <Alarm />}
+
           {hasNotifications && <span className='absolute top-0 right-0 bg-red-500 rounded-full w-3 h-3'></span>}
         </div>
 
