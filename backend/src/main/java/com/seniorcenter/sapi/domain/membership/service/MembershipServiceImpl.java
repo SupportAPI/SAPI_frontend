@@ -52,6 +52,9 @@ public class MembershipServiceImpl implements MembershipService {
 
 		List<Membership> memberships = new ArrayList<>();
 		for (Long userId : requestDto.userIds()) {
+			if (user.getId().equals(userId)) {
+				throw new MainException(CustomException.NOT_ALLOWED_INVITE_SELF);
+			}
 			Optional<Membership> existingMembership = membershipRepository.findByUserIdAndWorkspaceId(userId,
 				requestDto.workspaceId());
 			if (existingMembership.isEmpty()) {
