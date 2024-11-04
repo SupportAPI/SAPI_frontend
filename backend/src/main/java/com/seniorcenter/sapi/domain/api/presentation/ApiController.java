@@ -21,9 +21,4 @@ public class ApiController {
     public List<ApiResponseDto> getApis(@PathVariable("workspaceId") UUID workspaceUUID) {
         return apiService.getApisByWorkspaceId(workspaceUUID);
     }
-
-//    @PutMapping("/workspaces/{workspaceId}/apis/{apiId}")
-//    public ApiResponseDto updateApis(@PathVariable("workspaceId") UUID workspaceUUID) {
-//
-//    }
 }

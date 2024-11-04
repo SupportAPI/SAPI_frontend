@@ -1,6 +1,7 @@
 package com.seniorcenter.sapi.domain.specification.domain;
 
 import com.seniorcenter.sapi.domain.api.domain.Api;
+import com.seniorcenter.sapi.domain.comment.domain.Comment;
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.global.database.BaseTimeEntity;
@@ -43,8 +44,11 @@ public class Specification extends BaseTimeEntity {
     @JoinColumn(name = "manager_id")
     private User manager;
 
-    @OneToMany(mappedBy = "specification", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "specification", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Api> apis = new ArrayList<>();
+
+    @OneToMany(mappedBy = "specification", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 
     @Builder
     public Specification(String lambdaId, UUID apiId, Workspace workspace) {
