@@ -12,6 +12,7 @@ public enum CustomException {
 	S3_UPLOAD_EXCEPTION(400, "파일 업로드를 실패했습니다."),
 	VERIFICATION_CODE_EXPIRED(400, "인증번호가 만료되었습니다"),
 	VERIFICATION_CODE_MISMATCH(400, "인증번호가 일치하지 않습니다"),
+	INVALID_FORMAT(400,"입력 형태가 올바르지 않습니다."),
 
 	/* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
 	NOT_FOUND_SESSION_EXCEPTION(401, "세션이 존재하지 않습니다."),
@@ -28,6 +29,7 @@ public enum CustomException {
 	NOT_FOUND_WORKSPACE(404, "해당하는 워크스페이스를 찾을 수 없습니다."),
 	NOT_FOUND_MEMBERSHIP(404, "해당하는 워크스페이스 관련 유저 정보를 찾을 수 없습니다."),
 	NOT_FOUND_DOCS(404,"해당하는 API 문서를 찾을 수 없습니다."),
+	NOT_FOUND_COMMENT(404,"해당하는 댓글을 찾을 수 없습니다."),
 
 	/* 409 중복된 리소스 */
 	EMAIL_ALREADY_VERIFIED(409, "이 이메일은 이미 인증되었습니다"),

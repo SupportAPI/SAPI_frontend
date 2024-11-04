@@ -37,30 +37,29 @@ public class SpecificationService {
     private final UserUtils userUtils;
 
     @Transactional
-    public void createSpecification(SpecificationMessage message) {
+    public void createSpecification(SpecificationMessage message, UUID worksapceId) {
         String tempLambdaId = "1"; // 임시 lambda ID
         Api api = Api.createApi();
         apiRepository.save(api);
-        UUID workspaceId = message.workspaceUUID();
-        Workspace workspace = workspaceRepository.findById(workspaceId)
+        Workspace workspace = workspaceRepository.findById(worksapceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
         Specification specification = Specification.createSpecification(tempLambdaId, api.getId(), workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
-        sendOriginMessageToAll(message);
+        sendOriginMessageToAll(message, worksapceId);
     }
 
     @Transactional
-    public void removeSpecification(SpecificationMessage message) {
+    public void removeSpecification(SpecificationMessage message, UUID worksapceId) {
         UUID specificationId = UUID.fromString(message.message());
         Specification specification = specificationRepository.findById(specificationId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
         if (specification == null) {
-            sendErrorMessageToUser("존재하지 않는 API 명세 UUID입니다.", message.workspaceUUID());
+            sendErrorMessageToUser("존재하지 않는 API 명세 UUID입니다.", worksapceId);
         } else {
             specificationRepository.delete(specification);
-            sendOriginMessageToAll(message);
+            sendOriginMessageToAll(message, worksapceId);
         }
     }
 
@@ -70,7 +69,7 @@ public class SpecificationService {
         return specifications.stream()
                 .map(specification -> {
                     Api api = apiRepository.findById(specification.getApiId());
-                    return new SpecificationResponseDto(api,specification);
+                    return new SpecificationResponseDto(api, specification);
                 }).collect(Collectors.toList());
     }
 
@@ -78,14 +77,14 @@ public class SpecificationService {
     public List<SpecificationCategoryResponseDto> getSpecificationsIdAndNamesByWorkspaceId(UUID workspaceId) {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
 
-        Map<String,Integer> categoryMap = new HashMap<>();
+        Map<String, Integer> categoryMap = new HashMap<>();
         AtomicInteger categoryIndex = new AtomicInteger();
         List<SpecificationCategoryResponseDto> categoryResponseDtos = new ArrayList<>();
         specifications.stream()
                 .map(specification -> {
                     Api api = apiRepository.findById(specification.getApiId());
-                    if(!categoryMap.containsKey(api.getCategory())) {
-                        categoryMap.put(api.getCategory(), categoryIndex.incrementAndGet()-1);
+                    if (!categoryMap.containsKey(api.getCategory())) {
+                        categoryMap.put(api.getCategory(), categoryIndex.incrementAndGet() - 1);
                         categoryResponseDtos.add(new SpecificationCategoryResponseDto(api.getCategory(), new ArrayList<>()));
                         System.out.println(categoryMap.get(api.getCategory()));
                     }
@@ -108,8 +107,8 @@ public class SpecificationService {
         }
     }
 
-    public void sendOriginMessageToAll(SpecificationMessage message) {
-        messagingTemplate.convertAndSend("/ws/sub/specification/workspace/" + message.workspaceUUID(), message);
+    public void sendOriginMessageToAll(SpecificationMessage message, UUID worksapceUUId) {
+        messagingTemplate.convertAndSend("/ws/sub/specification/workspace/" + worksapceUUId, message);
     }
 
     @Transactional
