@@ -133,7 +133,9 @@ public class CommentService {
         if(comment.getWriterId()==user.getId()){
             isHost=true;
         }
-        CommentResponseDto commentResponseDto = new CommentResponseDto(comment.getId(), new ArrayList<>(),comment.getCreatedDate(),isHost);
+        User writer = userRepository.findById(comment.getWriterId())
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
+        CommentResponseDto commentResponseDto = new CommentResponseDto(comment.getId(), writer.getNickname(), new ArrayList<>(),comment.getCreatedDate(),isHost);
         String text = comment.getComment();
         String[] split = text.split(Pattern.quote(splitText));
         for(String str:split){
