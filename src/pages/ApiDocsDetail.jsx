@@ -10,6 +10,7 @@ import { FaDownload, FaSave, FaShareAlt, FaTrashAlt } from 'react-icons/fa';
 import Parameters from './docs/Parameters';
 import Request from './docs/Request';
 import Response from './docs/Response';
+import Summary from './docs/Summary';
 
 const ApiDocsDetail = () => {
   const { workspaceId, apiId } = useParams();
@@ -27,6 +28,10 @@ const ApiDocsDetail = () => {
   const [activeLeftTab, setActiveLeftTab] = useState('parameters');
   const [activeRightTab, setActiveRightTab] = useState(null);
   const dropdownRef = useRef(null);
+
+  const [params, setParams] = useState({});
+  const [request, setRequest] = useState({});
+  const [response, setResponse] = useState({});
 
   const methodStyles = {
     GET: 'text-blue-500',
@@ -78,6 +83,18 @@ const ApiDocsDetail = () => {
   const toggleRightTab = (tab) => {
     setActiveRightTab(activeRightTab === tab ? null : tab);
   };
+
+  const handleParamsChange = (data) => {
+    setParams(data);
+  }
+
+  const handleRequestChange = (data) => {
+    setRequest(data);
+  }
+
+  const handleResponseChange = (data) => {
+    setResponse(data);
+  }
 
   return (
     <div className='flex h-[calc(100vh -104px)]'>
@@ -178,9 +195,12 @@ const ApiDocsDetail = () => {
 
         {/* Left Section Tab Content */}
         <div>
-          {activeLeftTab === 'parameters' && <Parameters contentType={contentType} />}
-          {activeLeftTab === 'request' && <Request setContentType={setContentType} />}
-          {activeLeftTab === 'response' && <Response />}
+          {activeLeftTab === 'parameters' && <Parameters contentType={contentType} 
+          paramsChange={handleParamsChange} />}
+          {activeLeftTab === 'request' && <Request setContentType={setContentType}
+          requestChange={handleRequestChange} />}
+          {activeLeftTab === 'response' && <Response 
+          responseChange={handleResponseChange}/>}
         </div>
       </div>
 
@@ -188,7 +208,9 @@ const ApiDocsDetail = () => {
       <div
         className={`transition-width duration-300 p-8 mr-[50px] relative ${
           activeRightTab ? 'w-[500px] min-w-[500px] max-w-[500px]' : 'w-[350px] min-w-[350px] max-w-[350px]'
-        } ${activeRightTab ? 'border-l' : ''}`}
+        } ${activeRightTab ? 'border-l' : ''}
+        overflow-y-scroll sidebar-scrollbar h-[775px] pb-5
+        `}
       >
         {activeRightTab && (
           <button
@@ -200,7 +222,7 @@ const ApiDocsDetail = () => {
         )}
         {activeRightTab === 'summary' && (
           <div>
-            <h3 className='text-lg font-bold'>Summary</h3>
+            {/* <h3 className='text-lg font-bold'>Summary</h3>
             <p className='font-semibold'>{apiDetail.name || 'Enter API name'}</p>
             <p
               className={`my-2 ${methodStyles[method]}`}
@@ -209,7 +231,17 @@ const ApiDocsDetail = () => {
               {method}
             </p>
             <p className='my-2'>URL: {apiUrl || 'No URL provided'}</p>
-            <p>Description: {description || 'No description available'}</p>
+            <p>Description: {description || 'No description available'}</p> */}
+            <Summary
+              apiDetail={apiDetail.name}
+              method={method}
+              methodStyles={methodStyles}
+              apiUrl={apiUrl}
+              description={description}
+              params={params}
+              request={request}
+              response={response}
+            />
           </div>
         )}
         {activeRightTab === 'comment' && (
