@@ -12,14 +12,14 @@ const InviteUser = ({ workspaceId, onClose }) => {
   const userId = useAuthStore((state) => state.userId); // 자기 자신 id
 
   // React Query
-  const { data: CheckInviteUser, isLoading, refetch } = useFetchInviteUser(inviteUsername);
+  const { refetch } = useFetchInviteUser(inviteUsername);
   const inviteMemberMutation = useInviteMember();
-  const { data: userInfo, isLoading: isUserInfoLoading } = useUserInfo(userId);
+  const { data: userInfo } = useUserInfo(userId);
 
   // 유저 임시 목록
   const [userList, setUserList] = useState([]);
 
-  // 사용자 이메일을 확인하는 함수
+  // 사용자 이메일(양식-정상판단) API 조회
   const CheckUserEmail = async () => {
     // 이미 리스트에 있는 유저인지 확인
     if (userList.some((user) => user.email === inviteUsername)) {
@@ -29,11 +29,11 @@ const InviteUser = ({ workspaceId, onClose }) => {
     }
 
     // 자기자신이면 추가 불가
-    // if (inviteUsername === userInfo.email) {
-    //   setEmailErrorMessage('본인은 추가할 수 없습니다.');
-    //   setEmailValid(false);
-    //   return;
-    // }
+    if (inviteUsername === userInfo.email) {
+      setEmailErrorMessage('자신은 추가할 수 없습니다.');
+      setEmailValid(false);
+      return;
+    }
 
     const result = await refetch();
     if (result.data) {
@@ -45,7 +45,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
     }
   };
 
-  // 사용자 이메일을 확인하는 함수
+  // 사용자 이메일 양식 정상여부확인 먼저
   const ValidUserEmail = () => {
     // 이메일 미 입력 시
     if (inviteUsername === '') {
@@ -64,13 +64,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
     }
   };
 
-  // 유저 목록에서 유저를 삭제하는 함수
-  const removeUser = (email) => {
-    if (Array.isArray(userList)) {
-      setUserList(userList.filter((user) => user.email !== email));
-    }
-  };
-
+  // 유저 초대 함수 (단체초대)
   const sendInvitation = () => {
     const userIds = userList.map((user) => user.userId);
 
@@ -81,12 +75,20 @@ const InviteUser = ({ workspaceId, onClose }) => {
 
     inviteMemberMutation.mutate(requestData);
     onClose();
+    alert('초대가 완료되었습니다.');
   };
 
   useEffect(() => {
     setEmailValid(true);
     setActiveSend(userList.length > 0);
   }, [inviteUsername, userList]);
+
+  // 유저 목록에서 유저를 삭제하는 함수
+  const removeUser = (email) => {
+    if (Array.isArray(userList)) {
+      setUserList(userList.filter((user) => user.email !== email));
+    }
+  };
 
   return (
     // 모달 화면 위치 정의
@@ -137,7 +139,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
               <div key={index} className='flex justify-between hover:bg-blue-300 border border-none rounded-lg'>
                 <div className='flex items-center p-2'>
                   <img
-                    className='border rounded-full w-14 h-14 mr-4 object-cover'
+                    className='border rounded-full w-14 h-14 mr-4 object-contain'
                     src={item.profileImage}
                     alt='프로필'
                   />

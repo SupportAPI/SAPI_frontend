@@ -122,7 +122,7 @@ export const useFetchInviteUser = (useremail) => {
     enabled: false,
     onError: (error) => {
       if (error.response && error.response.status === 404) {
-        throw new Error('404'); // 404 에러 발생 시 커스텀 에러 메시지 설정
+        console.log('존재하지 않는 유저 정보 입니다.');
       }
     },
     retry: false, // 여러 번 재시도 방지
@@ -132,7 +132,7 @@ export const useFetchInviteUser = (useremail) => {
 // 5. 유저 워크스페이스로 초대하기
 export const InviteMember = async (requestData) => {
   const accessToken = getToken();
-  // axios 요청 설정
+  console.log(requestData);
   const response = await axios.post(`${base_URL}/api/memberships`, requestData, {
     headers: {
       'Content-Type': 'application/json',
@@ -166,6 +166,29 @@ export const fetchUserInfo = async (userId) => {
 // React Query 훅 : 유저 정보 조회하기
 export const useUserInfo = (userId) => {
   return useQuery(['userInfo', userId], () => fetchUserInfo(userId), {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+};
+
+// 7. 워크스페이스 내 유저 목록 조회
+export const fetchUserInWorkspace = async (workspaceId) => {
+  const accessToken = getToken();
+
+  const response = await axios.get(`${base_URL}/api/memberships?workspaceId=${workspaceId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return response.data.data;
+};
+
+// React Query 훅 : 워크스페이스 내 유저 정보 조회
+
+export const useUserInWorkspace = (workspaceId) => {
+  return useQuery(['workspaceId', workspaceId], () => fetchUserInWorkspace(workspaceId), {
     retry: false,
     refetchOnWindowFocus: false,
   });
