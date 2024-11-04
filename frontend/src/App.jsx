@@ -52,7 +52,7 @@ const App = () => {
 
   return (
     <>
-      <button onClick={notify}>Show Toast</button>
+      <button style={{display:"none"}} onClick={notify}>Show Toast</button>
       <AppRoutes />
       <ToastContainer
                 position="bottom-right"
