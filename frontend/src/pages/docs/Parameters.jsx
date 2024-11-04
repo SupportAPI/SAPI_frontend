@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 
-const Parameters = () => {
+const Parameters = ({paramsChange}) => {
   const [headers, setHeaders] = useState([]); // 추가된 헤더들
   const [authType, setAuthType] = useState('None');
   const [authorization, setAuthorization] = useState('');
   const [queryParams, setQueryParams] = useState([]);
   const [cookies, setCookies] = useState([]);
+
+  useEffect(()=> {
+    paramsChange({
+      headers,
+      authType,
+      authorization,
+      queryParams,
+      cookies,
+    });
+  }, [headers, authType, authorization, queryParams, cookies]);
 
   const handleAuthTypeChange = (type) => {
     setAuthType(type);
@@ -93,7 +103,8 @@ const Parameters = () => {
         <div className='flex justify-between items-center'>
           <h3 className='font-semibold text-[18px] h-8'>Headers</h3>
           <button
-            className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
+            className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 
+            hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
             onClick={handleAddHeader}
           >
             <FaPlus />
