@@ -9,6 +9,7 @@ import Page404 from '../pages/404page';
 import DashboardOverview from '../pages/Dashboard/DashboardOverview';
 import DashboardDaily from '../pages/Dashboard/DashboardDaily';
 import DashboardStatus from '../pages/Dashboard/DashboardStatus';
+import Environment from '../pages/Environment/Environment';
 
 const AppRoutes = () => {
   return (
@@ -69,6 +70,14 @@ const AppRoutes = () => {
         element={
           <Layout>
             <DashboardStatus />
+          </Layout>
+        }
+      />
+      <Route
+        path='/workspace/:workspaceId/environment/global'
+        element={
+          <Layout>
+            <Environment />
           </Layout>
         }
       />

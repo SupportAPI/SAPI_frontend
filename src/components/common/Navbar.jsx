@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaBook, FaFlask, FaTachometerAlt } from 'react-icons/fa';
+import { FaBook, FaListAlt, FaFlask, FaTachometerAlt } from 'react-icons/fa';
 
 const Navbar = ({ onMenuClick }) => {
   const [selectedMenu, setSelectedMenu] = useState(null);
@@ -27,6 +27,18 @@ const Navbar = ({ onMenuClick }) => {
           >
             <FaBook className='text-2xl mb-2 text-[#475467]' />
             <span className='text-[10px]'>API Docs</span>
+          </div>
+          <div className='w-14 border-b border-gray-300 mt-2'></div>
+        </li>
+        <li className='flex flex-col items-center mb-4'>
+          <div
+            className={`flex cursor-pointer flex-col items-center justify-center w-16 h-16 p-2 rounded-lg text-[#475467] ${
+              selectedMenu === 'Environment' ? 'bg-gray-300' : 'hover:bg-gray-200'
+            }`}
+            onClick={() => handleMenuClick('Environment')}
+          >
+            <FaListAlt className='text-2xl mb-2 text-[#475467]' />
+            <span className='text-[10px]'>Environment</span>
           </div>
           <div className='w-14 border-b border-gray-300 mt-2'></div>
         </li>
