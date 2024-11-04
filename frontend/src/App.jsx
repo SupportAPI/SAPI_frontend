@@ -13,6 +13,8 @@ const fadeOut = cssTransition({
   exit: "animate__animated animate__fadeOut"
 });
 
+import { getToken } from './utils/cookies';
+
 const App = () => {
   const setUserId = useAuthStore((state) => state.setUserId);
 
@@ -37,12 +39,11 @@ const App = () => {
   );
 
   useEffect(() => {
-    const accessToken = Cookies.get('accessToken');
-
+    const accessToken = getToken();
     if (accessToken) {
       try {
         const decodedToken = jwtDecode(accessToken);
-        const userId = decodedToken.userId;
+        const userId = decodedToken.sub;
         setUserId(userId);
       } catch (error) {
         console.error('Failed to decode token:', error);
