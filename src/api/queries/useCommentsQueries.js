@@ -7,23 +7,23 @@ const base_URL = 'http://192.168.31.219:8080'; // 세현 서버
 export const findIndex = async () => {
   const accessToken = getToken();
   console.log("accessToken", accessToken);
-  const response = await axios.get(`${base_URL}/api/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments/last-index`, {
+  const response = await axios.get(`${base_URL}/api/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments/last-index`, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
   });
-  return response.data;
+  return response.data.data;
 };
 
 export const findComments = async (id, size) => {
   try {
     console.log(
       `Requesting: /comments?targetcommentid=${id}&size=${size}`
-    );
+    ); 
     const accessToken = getToken();
     console.log("accessToken", accessToken);
-    const response = await axios.get(`${base_URL}/api/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, {
+    const response = await axios.get(`${base_URL}/api/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
@@ -33,7 +33,7 @@ export const findComments = async (id, size) => {
         size: size,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error('Find comments error:', error);
     throw error;
@@ -51,7 +51,7 @@ export const findUsers = async (nickname) => {
       },
       params : {nickname}
     });
-    return response.data;
+    return response.data.data;
   }catch (error) {
     console.error('Find comments error:', error);
     throw error;

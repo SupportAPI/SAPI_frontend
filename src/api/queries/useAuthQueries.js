@@ -1,5 +1,9 @@
 import axios from 'axios';
 
+// const base_URL = 'https://k11b305.p.ssafy.io'; // 본 서버
+const base_URL = 'http://192.168.31.219:8080'; // 세현 서버
+
+
 // 로그인 API 호출 함수
 export const login = async (email, password) => {
   const useMock = false;
@@ -15,7 +19,7 @@ export const login = async (email, password) => {
     });
   } else {
     // 실제 API 요청
-    const response = await axios.post('https://k11b305.p.ssafy.io/api/users/login', {
+    const response = await axios.post(`${base_URL}/api/users/login`, {
       email,
       password,
     });
