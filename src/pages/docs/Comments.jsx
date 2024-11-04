@@ -23,10 +23,12 @@ const Comments = () => {
   const scrollContainerRef = useRef(null);
   const textareaRef = useRef(null);
   const setRef = useRef(null);
+  const deleteRef = useRef(null);
 
   const [editingMessageId, setEditingMessageId] = useState(null); // 수정 중인 메시지 ID
   const [editContent, setEditContent] = useState(''); // 수정 중인 콘텐츠
   const [selectedMessageId, setSelectedMessageId] = useState(null); // 드롭다운에서 선택된 메시지 ID
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleIconClick = (e, messageId) => {
     e.stopPropagation();
@@ -54,6 +56,27 @@ const Comments = () => {
     setEditingMessageId(null);
     setEditContent('');
     setEditParsedMessage([]); // 수정 중 파싱된 메시지 초기화
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+  };
+
+  // 삭제 버튼 클릭 핸들러
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    setShowDeleteModal(true);
+    setShowOptionsDropdown(false);
+  };
+
+  const deleteComment = (e) => {
+    e.stopPropagation();
+    const deleteTargetId = messages.find((msg) => msg.commentId === selectedMessageId);
+    if (deleteTargetId) {
+      const updatedMessages = messages.filter((msg) => msg.commentId !== selectedMessageId);
+      setMessages(updatedMessages);
+    }
+    setShowDeleteModal(false);
   };
 
   // 수정 버튼 클릭 핸들러
@@ -108,6 +131,9 @@ const Comments = () => {
   const handleClickOutside = (event) => {
     if (setRef.current && !setRef.current.contains(event.target)) {
       setShowOptionsDropdown(false);
+    }
+    if (deleteRef.current && !deleteRef.current.contains(event.target)) {
+      setShowDeleteModal(false);
     }
   };
 
@@ -337,7 +363,7 @@ const Comments = () => {
                       </button>
                     </div>
                   ) : (
-                    <div className='text-xl my-1 mx-2' style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    <div className='text-lg my-1 mx-2' style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
                       {message.comment.map((part, index) =>
                         part.type === 'TEXT' ? (
                           <span key={index} style={{ display: 'inline' }}>
@@ -392,7 +418,27 @@ const Comments = () => {
           <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleEditClick}>
             수정
           </li>
-          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center'>삭제</li>
+          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleDeleteClick}>
+            삭제
+          </li>
+        </ul>
+      )}
+      {showDeleteModal && (
+        <ul
+          style={{
+            top: `${optionsDropdownPosition.top}px`,
+            left: `${optionsDropdownPosition.left}px`,
+          }}
+          ref={deleteRef}
+          className='absolute bg-[#EDF7FF] border border-gray-300 w-60 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
+        >
+          <li className='p-2 text-center'>정말 삭제하시겠습니까?</li>
+          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={deleteComment}>
+            삭제
+          </li>
+          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleCancelDelete}>
+            취소
+          </li>
         </ul>
       )}
       {showDropdown && (
