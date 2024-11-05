@@ -10,6 +10,7 @@ public enum CustomException {
 	/* 400 BAD_REQUEST : 잘못된 요청 */
 	WRONG_TYPE_EXCEPTION(400, "잘못된 형식의 데이터입니다."),
 	S3_UPLOAD_EXCEPTION(400, "파일 업로드를 실패했습니다."),
+    FILE_PROCESSING_EXCEPTION(400, "파일 처리 중 오류가 발생했습니다."),
 	VERIFICATION_CODE_EXPIRED(400, "인증번호가 만료되었습니다"),
 	VERIFICATION_CODE_MISMATCH(400, "인증번호가 일치하지 않습니다"),
 	INVALID_FORMAT(400,"입력 형태가 올바르지 않습니다."),
