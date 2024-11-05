@@ -44,3 +44,9 @@ cloud:
       auto: false
     stack:
       auto: false
+    lambda:
+      access-key: ${AWS_LAMBDA_ACCESS_KEY}
+      secret-key: ${AWS_LAMBDA_SECRET_KEY}
+      region: ap-northeast-2
+      account-id: ${AWS_LAMBDA_ACCOUNT_ID}
+      role: ${AWS_LAMBDA_ROLE}
