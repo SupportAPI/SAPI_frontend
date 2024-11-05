@@ -36,7 +36,7 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
     }
     // 자동 줄바꿈 및 들여쓰기 유지
     else if (lastChar === '\n') {
-      const previousIndentation = (value.slice(0, selectionStart).match(/(  )*$/) || [''])[0];
+      const previousIndentation = (value.slice(0, selectionStart).match(/( {2})*$/) || [''])[0];
       const indentation = previousIndentation + '  '; // 기본 들여쓰기 2칸
 
       const newValue = value.slice(0, selectionStart) + indentation + value.slice(selectionStart);

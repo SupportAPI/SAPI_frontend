@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { FaBell, FaUser, FaCog } from 'react-icons/fa';
 import Alarm from '../../components/common/Alarm';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../../stores/useAuthStore';
 
 const Header = ({ onSettingsClick }) => {
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -10,6 +11,15 @@ const Header = ({ onSettingsClick }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(true);
   const alarmRef = useRef(null);
+
+  // 로그아웃
+  const logout = useAuthStore((state) => state.logout); // logout 함수 가져오기
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const handleClickOutside = (event) => {
     if (alarmRef.current && !alarmRef.current.contains(event.target)) {
@@ -51,7 +61,9 @@ const Header = ({ onSettingsClick }) => {
             <div className='absolute right-0 mt-2 w-32 bg-white text-black rounded shadow-lg'>
               <ul>
                 <li className='px-4 py-2 hover:bg-gray-200 cursor-pointer'>Profile</li>
-                <li className='px-4 py-2 hover:bg-gray-200 cursor-pointer'>Logout</li>
+                <li className='px-4 py-2 hover:bg-gray-200 cursor-pointer' onClick={handleLogout}>
+                  Logout
+                </li>
               </ul>
             </div>
           )}
