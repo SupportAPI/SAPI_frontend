@@ -25,19 +25,16 @@ public class ApiQueryParameter extends BaseTimeEntity {
     private String description;
 
     @Builder
-    public ApiQueryParameter(Api api, String paramKey, String paramValue, String description) {
+    public ApiQueryParameter(Api api) {
         this.api = api;
-        this.paramKey = paramKey;
-        this.paramValue = paramValue;
-        this.description = description;
+        this.paramKey = "";
+        this.paramValue = "";
+        this.description = "";
     }
 
-    public static ApiQueryParameter createApiQueryParameter(Api api, String paramKey, String paramValue, String description) {
+    public static ApiQueryParameter createApiQueryParameter(Api api) {
         return ApiQueryParameter.builder()
                 .api(api)
-                .paramKey(paramKey)
-                .paramValue(paramValue)
-                .description(description)
                 .build();
     }
 }

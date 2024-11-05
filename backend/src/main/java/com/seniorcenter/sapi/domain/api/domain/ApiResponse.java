@@ -30,21 +30,18 @@ public class ApiResponse extends BaseTimeEntity {
     private String bodyData;
 
     @Builder
-    public ApiResponse(Api api, int code, String description, BodyType bodyType, String bodyData) {
+    public ApiResponse(Api api, int code) {
         this.api = api;
         this.code = code;
-        this.description = description;
-        this.bodyType = bodyType;
-        this.bodyData = bodyData;
+        this.description = "";
+        this.bodyType = BodyType.JSON;
+        this.bodyData = "";
     }
 
-    public static ApiResponse createApiResponse(Api api, int code, String description, BodyType bodyType, String bodyData) {
+    public static ApiResponse createApiResponse(Api api, int code) {
         return ApiResponse.builder()
                 .api(api)
                 .code(code)
-                .description(description)
-                .bodyType(bodyType)
-                .bodyData(bodyData)
                 .build();
     }
 }

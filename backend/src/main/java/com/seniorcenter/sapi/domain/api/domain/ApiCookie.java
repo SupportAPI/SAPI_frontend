@@ -25,19 +25,13 @@ public class ApiCookie extends BaseTimeEntity {
     private String description;
 
     @Builder
-    public ApiCookie(Api api, String cookieKey, String cookieValue, String description) {
+    public ApiCookie(Api api) {
         this.api = api;
-        this.cookieKey = cookieKey;
-        this.cookieValue = cookieValue;
-        this.description = description;
     }
 
-    public static ApiCookie createApiCookie(Api api, String cookieKey, String cookieValue, String description) {
+    public static ApiCookie createApiCookie(Api api) {
         return ApiCookie.builder()
                 .api(api)
-                .cookieKey(cookieKey)
-                .cookieValue(cookieValue)
-                .description(description)
                 .build();
     }
 }
