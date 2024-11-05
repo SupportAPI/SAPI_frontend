@@ -20,6 +20,7 @@ import static lombok.AccessLevel.PROTECTED;
 @Entity
 @Getter
 @NoArgsConstructor(access = PROTECTED)
+@Table(name = "specifications")
 public class Specification extends BaseTimeEntity {
 
     @Id
@@ -32,9 +33,9 @@ public class Specification extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private TestStatus serverStatus;
 
-    private String lambdaId;
+    private UUID confirmedApiId;
 
-    private UUID apiId;
+    private String apiGatewayId;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "workspace_id")
@@ -51,27 +52,29 @@ public class Specification extends BaseTimeEntity {
     private List<Comment> comments = new ArrayList<>();
 
     @Builder
-    public Specification(String lambdaId, UUID apiId, Workspace workspace) {
+    public Specification(UUID confirmedApiId, Workspace workspace) {
         this.localStatus = TestStatus.PENDING;
         this.serverStatus = TestStatus.PENDING;
-        this.lambdaId = lambdaId;
-        this.apiId = apiId;
+        this.confirmedApiId = confirmedApiId;
         this.workspace = workspace;
     }
 
-    public static Specification createSpecification(String lambdaId, UUID apiId, Workspace workspace) {
+    public static Specification createSpecification(UUID confirmedApiId, Workspace workspace) {
         return builder()
-                .lambdaId(lambdaId)
-                .apiId(apiId)
+                .confirmedApiId(confirmedApiId)
                 .workspace(workspace)
                 .build();
     }
 
-    public void updateManager(User manager){
+    public void updateManager(User manager) {
         this.manager = manager;
     }
 
-    public void updateApiUUID(UUID apiId){
-        this.apiId = apiId;
+    public void updateConfirmedApiId(UUID confirmedApiId) {
+        this.confirmedApiId = confirmedApiId;
+    }
+
+    public void updateApiGatewayId(String apiGatewayId) {
+        this.apiGatewayId = apiGatewayId;
     }
 }
