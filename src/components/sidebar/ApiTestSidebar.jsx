@@ -1,6 +1,36 @@
 import { FaChevronDown, FaPlus, FaSearch } from 'react-icons/fa';
+import { useTabStore } from '../../stores/useTabStore';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
-const ApiTestSidebar = ({ data }) => {
+const ApiTestSidebar = () => {
+  const { addTab, confirmTab } = useTabStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { workspaceId } = useParams();
+
+  const paths = [{ id: 1, name: 'API Test', path: `/workspace/${workspaceId}/api-test` }];
+
+  const handleApiTestClick = (id) => {
+    if (!workspaceId) return;
+
+    const selectedPath = paths.find((item) => item.id === id);
+
+    if (selectedPath) {
+      addTab({
+        id: selectedPath.id,
+        name: selectedPath.name,
+        path: selectedPath.path,
+      });
+
+      navigate(selectedPath.path);
+    }
+  };
+
+  const handleApiTestDoubleClick = (id) => {
+    confirmTab(id);
+  };
+
   return (
     <div className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm'>
       <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 z-10'>
@@ -19,11 +49,26 @@ const ApiTestSidebar = ({ data }) => {
             API Test
           </div>
           <ul className='pl-4'>
-            {data.map((item) => (
-              <li key={item.id} className='p-2 hover:bg-gray-200 cursor-pointer'>
-                {item.testName}
-              </li>
-            ))}
+            {paths.map((p) => {
+              const isActive = location.pathname === p.path;
+              return (
+                <li
+                  key={p.id}
+                  className={`cursor-pointer w-full relative ${
+                    isActive ? 'bg-blue-100 text-blue-800 font-semibold' : ''
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleApiTestClick(p.id);
+                  }}
+                  onDoubleClick={() => {
+                    handleApiTestDoubleClick(p.id);
+                  }}
+                >
+                  <div className='pl-12 pr-4 py-2 flex justify-between items-center'>{p.name}</div>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>

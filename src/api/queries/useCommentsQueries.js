@@ -1,12 +1,12 @@
 import axios from 'axios';
 import { getToken } from '../../utils/cookies';
 
-// const base_URL = 'https://k11b305.p.ssafy.io'; // 본 서버
-const base_URL = 'http://192.168.31.219:8080'; // 세현 서버
+const base_URL = 'https://k11b305.p.ssafy.io'; // 본 서버
+// const base_URL = 'http://192.168.31.219:8080'; // 세현 서버
 
 export const findIndex = async () => {
   const accessToken = getToken();
-  console.log("accessToken", accessToken);
+  console.log('accessToken', accessToken);
   const response = await axios.get(`${base_URL}/api/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments/last-index`, {
     headers: {
       'Content-Type': 'application/json',
@@ -18,11 +18,9 @@ export const findIndex = async () => {
 
 export const findComments = async (id, size) => {
   try {
-    console.log(
-      `Requesting: /comments?targetcommentid=${id}&size=${size}`
-    );
+    console.log(`Requesting: /comments?targetcommentid=${id}&size=${size}`);
     const accessToken = getToken();
-    console.log("accessToken", accessToken);
+    console.log('accessToken', accessToken);
     const response = await axios.get(`${base_URL}/api/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, {
       headers: {
         'Content-Type': 'application/json',
@@ -49,11 +47,11 @@ export const findUsers = async (nickname) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
       },
-      params : {nickname}
+      params: { nickname },
     });
     return response.data;
-  }catch (error) {
+  } catch (error) {
     console.error('Find comments error:', error);
     throw error;
   }
-}
+};
