@@ -10,6 +10,7 @@ import DashboardOverview from '../pages/Dashboard/DashboardOverview';
 import DashboardDaily from '../pages/Dashboard/DashboardDaily';
 import DashboardStatus from '../pages/Dashboard/DashboardStatus';
 import useAuthStore from '../stores/useAuthStore';
+import Environment from '../pages/Environment/Environment';
 
 const AppRoutes = () => {
   const userId = useAuthStore((state) => state.userId);
@@ -64,6 +65,14 @@ const AppRoutes = () => {
         element={
           <Layout>
             <DashboardStatus />
+          </Layout>
+        }
+      />
+      <Route
+        path='/workspace/:workspaceId/environment/global'
+        element={
+          <Layout>
+            <Environment />
           </Layout>
         }
       />
