@@ -11,6 +11,7 @@ import com.seniorcenter.sapi.domain.specification.presentation.dto.response.Spec
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
+import com.seniorcenter.sapi.global.aws.ApiLambdaService;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
@@ -35,15 +36,15 @@ public class SpecificationService {
     private final WorkspaceRepository workspaceRepository;
     private final ApiRepository apiRepository;
     private final UserUtils userUtils;
+    private final ApiLambdaService apiLambdaService;
 
     @Transactional
     public void createSpecification(SpecificationMessage message, UUID worksapceId) {
-        String tempLambdaId = "1"; // 임시 lambda ID
         Api api = Api.createApi();
         apiRepository.save(api);
         Workspace workspace = workspaceRepository.findById(worksapceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
-        Specification specification = Specification.createSpecification(tempLambdaId, api.getId(), workspace);
+        Specification specification = Specification.createSpecification(api.getId(), workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
         sendOriginMessageToAll(message, worksapceId);
@@ -68,7 +69,7 @@ public class SpecificationService {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         return specifications.stream()
                 .map(specification -> {
-                    Api api = apiRepository.findById(specification.getApiId());
+                    Api api = apiRepository.findById(specification.getConfirmedApiId());
                     return new SpecificationResponseDto(api, specification);
                 }).collect(Collectors.toList());
     }
@@ -82,7 +83,7 @@ public class SpecificationService {
         List<SpecificationCategoryResponseDto> categoryResponseDtos = new ArrayList<>();
         specifications.stream()
                 .map(specification -> {
-                    Api api = apiRepository.findById(specification.getApiId());
+                    Api api = apiRepository.findById(specification.getConfirmedApiId());
                     if (!categoryMap.containsKey(api.getCategory())) {
                         categoryMap.put(api.getCategory(), categoryIndex.incrementAndGet() - 1);
                         categoryResponseDtos.add(new SpecificationCategoryResponseDto(api.getCategory(), new ArrayList<>()));
@@ -113,12 +114,11 @@ public class SpecificationService {
 
     @Transactional
     public UUID createSpecificationByApi(UUID workspaceId) {
-        String tempLambdaId = "1"; // 임시 lambda ID
         Api api = Api.createApi();
         apiRepository.save(api);
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
-        Specification specification = Specification.createSpecification(tempLambdaId, api.getId(), workspace);
+        Specification specification = Specification.createSpecification(api.getId(), workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
         return specification.getId();
@@ -136,11 +136,13 @@ public class SpecificationService {
         Specification specification = specificationRepository.findById(specificationId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
         Api api = apiRepository.findTopBySpecificationIdOrderByCreatedDateDesc(specificationId).orElseThrow();
-        specification.updateApiUUID(api.getId());
+        specification.updateConfirmedApiId(api.getId());
         Api newApi = Api.createApi();
         apiRepository.save(newApi);
         newApi.updateSpecification(specification);
         newApi.updateApi(api);
+
+        apiLambdaService.createLambda(specificationId);
         return new SpecificationResponseDto(api, specification);
     }
 

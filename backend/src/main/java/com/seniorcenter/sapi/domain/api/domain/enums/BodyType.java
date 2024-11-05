@@ -1,4 +1,4 @@
-package com.seniorcenter.sapi.domain.api.domain;
+package com.seniorcenter.sapi.domain.api.domain.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,6 +8,7 @@ import lombok.Getter;
 public enum BodyType {
     NONE("NONE"),
     FORM_DATA("FORM_DATA"),
+    JSON("JSON"),
     RAW("RAW");
 
     private String value;

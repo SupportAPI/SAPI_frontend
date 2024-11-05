@@ -1,0 +1,147 @@
+exports.handler = async (event) => {
+    // Header Verification
+    <th:block th:if="${headers}">
+        <th:block th:each="header : ${headers}">
+            if (!event.headers || !event.headers['[[${header.headerKey.toLowerCase()}]]']) {
+                return {
+                    statusCode: 400,
+                    body: JSON.stringify({ message: "[[${header.headerKey}]] 헤더가 필요합니다." }),
+                    headers: { "Content-Type": "application/json" }
+                };
+            }
+            <th:block th:if="${header.headerKey.toLowerCase() == 'content-type'}">
+                if (event.headers['[[${header.headerKey.toLowerCase()}]]']?.split(';')[0] != '[[${header.headerValue.split(';')[0]}]]') {
+                    return {
+                        statusCode: 415,
+                        body: JSON.stringify({ message: "Unsupported Content-Type" }),
+                        headers: { "Content-Type": "application/json" }
+                    };
+                }
+            </th:block>
+        </th:block>
+    </th:block>
+
+
+    <th:block th:if="${cookies}">
+        <th:block th:each="cookie : ${cookies}">
+            var cookies = event.headers['cookies'].split(",");
+            if (!cookies.includes('[[${cookie.cookieKey.toLowerCase()}]]')) {
+                return {
+                    statusCode: 400,
+                    body: JSON.stringify({ message: "[[${cookie.cookieKey}]] 쿠키가 필요합니다." }),
+                    headers: { "Content-Type": "application/json" }
+                };
+            }
+        </th:block>
+    </th:block>
+
+    // Query Parameter Verification
+    <th:block th:if="${queryParams}">
+        <th:block th:each="field : ${queryParams}">
+            if (!event.queryStringParameters || !event.queryStringParameters['[[${field.paramKey}]]']) {
+                return {
+                    statusCode: 400,
+                    body: JSON.stringify({ message: "[[${field.paramKey}]]이(가) 입력되지 않았습니다." }),
+                    headers: { "Content-Type": "application/json" }
+                };
+            }
+        </th:block>
+    </th:block>
+
+    // Body Verification
+    <th:block th:if="${headers}">
+        // // [[${headers}]]
+        <th:block th:each="header : ${headers}">
+            // [[${header}]]
+            <th:block th:with="contentType=${header.headerValue}" th:if="${header.headerKey.toLowerCase() == 'content-type'}">
+                // [[${contentType}]]
+                <th:block th:if="${contentType} == 'application/json'">
+                    <script th:inline="javascript">
+                        const json = JSON.parse([[${formData[0].bodyValue}]]);
+                    </script>
+                    let jsonBody;
+                    try {
+                        jsonBody = JSON.parse(event.body);
+                    } catch (error) {
+                        return {
+                            statusCode: 400,
+                            body: JSON.stringify({ message: "body 값이 유효하지 않은 JSON 형식입니다." }),
+                            headers: { "Content-Type": "application/json" }
+                        };
+                    }
+                    findStructureDifferences(jsonBody, json);
+
+                    function findStructureDifferences(currentObj, actualObj, path = '') {
+                        const differences = [];
+
+                        if ((currentObj === null || currentObj === undefined) && (actualObj === null || actualObj === undefined)) {
+                            return differences;
+                        }
+
+                        if (currentObj === null || currentObj === undefined) {
+                            differences.push(`필수 필드 '${path}'가 null 또는 undefined 입니다.`);
+                            return differences;
+                        }
+                        if (actualObj === null || actualObj === undefined) {
+                            differences.push(`입력받은 필드 '${path}'가 null 또는 undefined 입니다.`);
+                            return differences;
+                        }
+
+                        const currentKeys = Object.keys(currentObj);
+                        const actaulKeys = Object.keys(actualObj);
+                        for (const key of actaulKeys) {
+                            const currentObjPath = path ? `${path}.${key}` : key;
+                            if (!(key in currentObj)) {
+                                differences.push(`필수 필드 '${currentObjPath}'가 누락되었습니다.`);
+                                continue;
+                            }
+                            if (typeof currentObj[key] === 'object' && typeof actualObj[key] === 'object') {
+                                differences.push(...findStructureDifferences(currentObj[key], actualObj[key], currentObjPath));
+                            } else if (typeof currentObj[key] !== typeof actualObj[key]) {
+                                differences.push(`'${currentObjPath}' 필드는 ${typeof actualObj[key]} 타입이어야 하지만, ${typeof currentObj[key]} 타입이 입력되었습니다.`);
+                            }
+                        }
+                        for (const key of currentKeys) {
+                            const currentObjPath = path ? `${path}.${key}` : key;
+                            if (!(key in actualObj)) {
+                                differences.push(`허용되지 않는 추가 필드 '${currentObjPath}'가 있습니다.`);
+                            }
+                        }
+                        return differences;
+                    }
+                </th:block>
+
+                <th:block th:if="${#strings.substringBefore(contentType, ';')} == 'multipart/form-data'">
+                    <th:block th:if="${formData}">
+                        const decodedBody = Buffer.from(event.body, 'base64').toString('utf-8');
+                        <th:block th:each="field : ${formData}">
+                            if (!decodedBody.includes(`name="[[${field.bodyKey}]]"`)) {
+                                return {
+                                    statusCode: 400,
+                                    body: JSON.stringify({ message: "[[${field.bodyKey}]] 필드가 필요합니다." }),
+                                    headers: { "Content-Type": "application/json" }
+                                };
+                            }
+                        </th:block>
+                    </th:block>
+                </th:block>
+            </th:block>
+        </th:block>
+    </th:block>
+
+    // 응답 데이터 생성
+    return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json" },
+        body:
+            <th:block th:if="${responseData != null}">
+                JSON.stringify(
+                    <th:block th:utext="${responseData}">
+                    </th:block>
+                )
+            </th:block>
+            <th:block th:if="${responseData == null}">
+                null
+            </th:block>
+    };
+};

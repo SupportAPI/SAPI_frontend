@@ -1,5 +1,6 @@
 package com.seniorcenter.sapi.domain.api.presentation;
 
+import com.seniorcenter.sapi.domain.api.presentation.dto.ApiDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.service.ApiService;
 import lombok.RequiredArgsConstructor;
@@ -20,5 +21,10 @@ public class ApiController {
     @GetMapping("/workspaces/{workspaceId}/apis")
     public List<ApiResponseDto> getApis(@PathVariable("workspaceId") UUID workspaceUUID) {
         return apiService.getApisByWorkspaceId(workspaceUUID);
+    }
+
+    @GetMapping("/workspaces/{workspaceId}/apis/{apiId}")
+    public ApiDetailResponseDto getApi(@PathVariable("workspaceId") UUID workspaceId, @PathVariable("apiId") UUID apiId) {
+        return apiService.getApiByApiId(workspaceId, apiId);
     }
 }
