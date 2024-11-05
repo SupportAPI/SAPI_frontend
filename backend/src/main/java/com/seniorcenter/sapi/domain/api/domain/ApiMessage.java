@@ -1,5 +1,7 @@
 package com.seniorcenter.sapi.domain.api.domain;
 
+import com.seniorcenter.sapi.domain.api.domain.enums.ApiMessageType;
+
 import java.util.UUID;
 
 public record ApiMessage(
