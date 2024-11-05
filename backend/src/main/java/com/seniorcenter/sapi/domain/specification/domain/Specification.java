@@ -56,6 +56,7 @@ public class Specification extends BaseTimeEntity {
         this.localStatus = TestStatus.PENDING;
         this.serverStatus = TestStatus.PENDING;
         this.confirmedApiId = confirmedApiId;
+        this.apiGatewayId = "";
         this.workspace = workspace;
     }
 
