@@ -27,6 +27,8 @@ const ApiDocsDetail = () => {
   const [activeRightTab, setActiveRightTab] = useState(null);
   const dropdownRef = useRef(null);
 
+  console.log('details', apiDetail);
+
   const methodStyles = {
     GET: 'text-blue-500',
     POST: 'text-green-500',
@@ -52,9 +54,9 @@ const ApiDocsDetail = () => {
     }
   }, [apiData, apiId, expandCategory, addTab, setMenu, expandedCategories, openTabs, location.pathname, workspaceId]);
 
-  useEffect(() => {
-    console.log('apiDetail updated:', apiDetail); // apiDetail이 변경될 때마다 출력
-  }, [apiDetail]);
+  // useEffect(() => {
+  //   console.log('apiDetail updated:', apiDetail); // apiDetail이 변경될 때마다 출력
+  // }, [apiDetail]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -90,13 +92,20 @@ const ApiDocsDetail = () => {
 
   // paramsChange 함수 정의
   const handleParamsChange = (newParams) => {
-    console.log('Updated Parameters:', newParams);
-    // 필요한 경우 상태로 저장하거나 다른 로직 추가
+    setApiDetail((prevDetail) => ({
+      ...prevDetail,
+      parameters: newParams,
+    }));
+    console.log('updated', apiDetail.parameters);
+    // console.log('Updated Parameters:', newParams);
   };
 
   const handleRequestChange = (newRequest) => {
-    console.log('Updated Request:', newRequest);
-    // 필요할 경우 상태로 저장하거나 다른 로직 추가
+    setApiDetail((prevDetail) => ({
+      ...prevDetail,
+      request: newRequest,
+    }));
+    // console.log('Updated Request:', newRequest);
   };
 
   const handleResponseChange = (updatedResponse) => {
@@ -104,7 +113,7 @@ const ApiDocsDetail = () => {
       ...prevDetail,
       response: updatedResponse,
     }));
-    console.log('Updated Response:', updatedResponse);
+    // console.log('Updated Response:', updatedResponse);
   };
 
   return (
@@ -236,7 +245,7 @@ const ApiDocsDetail = () => {
         )}
         {activeRightTab === 'summary' && (
           <Summary
-            apiDetail={apiDetail?.name}
+            apiName={apiDetail?.name}
             method={apiDetail?.method}
             methodStyles={methodStyles}
             apiUrl={apiDetail?.path}

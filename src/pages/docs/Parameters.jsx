@@ -8,22 +8,22 @@ const Parameters = ({ paramsChange, initialValues }) => {
   const [queryParams, setQueryParams] = useState(initialValues?.queryParameters || []);
   const [cookies, setCookies] = useState(initialValues?.cookies || []);
 
-  // 초기값이 변경되면 상태 업데이트
-  useEffect(() => {
-    setHeaders(initialValues?.headers || []);
-    setAuthType(initialValues?.authType || 'None');
-    setQueryParams(initialValues?.queryParameters || []);
-    setCookies(initialValues?.cookies || []);
-  }, [initialValues]);
+  // // 초기값이 변경되면 상태 업데이트
+  // useEffect(() => {
+  //   setHeaders(initialValues?.headers || []);
+  //   setAuthType(initialValues?.authType || 'None');
+  //   setQueryParams(initialValues?.queryParameters || []);
+  //   setCookies(initialValues?.cookies || []);
+  // }, [initialValues]);
 
   // authType이나 authorization이 변경되면 상위 컴포넌트에 전달
   useEffect(() => {
     paramsChange({
-      headers,
-      authType,
+      headers: headers,
+      authType: authType,
       authorization,
-      queryParams,
-      cookies,
+      queryParameters: queryParams,
+      cookies: cookies,
     });
   }, [headers, authType, authorization, queryParams, cookies]);
 
@@ -66,7 +66,7 @@ const Parameters = ({ paramsChange, initialValues }) => {
   };
 
   const handleAddHeader = () => {
-    setHeaders([...headers, { key: '', value: '' }]);
+    setHeaders([...headers, { headerKey: '', headerValue: '' }]);
   };
 
   const handleRemoveHeader = (index) => {
