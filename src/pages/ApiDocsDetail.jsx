@@ -87,15 +87,15 @@ const ApiDocsDetail = () => {
 
   const handleParamsChange = (data) => {
     setParams(data);
-  }
+  };
 
   const handleRequestChange = (data) => {
     setRequest(data);
-  }
+  };
 
   const handleResponseChange = (data) => {
     setResponse(data);
-  }
+  };
 
   return (
     <div className='flex h-[calc(100vh -104px)]'>
@@ -196,12 +196,11 @@ const ApiDocsDetail = () => {
 
         {/* Left Section Tab Content */}
         <div>
-          {activeLeftTab === 'parameters' && <Parameters contentType={contentType} 
-          paramsChange={handleParamsChange} />}
-          {activeLeftTab === 'request' && <Request setContentType={setContentType}
-          requestChange={handleRequestChange} />}
-          {activeLeftTab === 'response' && <Response 
-          responseChange={handleResponseChange}/>}
+          {activeLeftTab === 'parameters' && <Parameters contentType={contentType} paramsChange={handleParamsChange} />}
+          {activeLeftTab === 'request' && (
+            <Request setContentType={setContentType} requestChange={handleRequestChange} />
+          )}
+          {activeLeftTab === 'response' && <Response responseChange={handleResponseChange} />}
         </div>
       </div>
 
@@ -247,13 +246,13 @@ const ApiDocsDetail = () => {
         )}
         {activeRightTab === 'comment' && (
           <div>
-            <h4 className='font-bold'>Comments</h4>
-            <p className='my-2 text-gray-500'><Comments/></p>
+            <h4 className='text-2xl font-bold'>Comments</h4>
+            <Comments />
           </div>
         )}
         {activeRightTab === 'code' && (
           <div>
-            <h4 className='font-bold'>Code Snippet</h4>
+            <h4 className='text-2xl font-bold'>Code Snippet</h4>
             <pre className='bg-gray-100 p-2 rounded'>
               <code>{`fetch('${apiUrl}', { method: '${method}' })`}</code>
             </pre>

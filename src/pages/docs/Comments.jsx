@@ -1,18 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { BsSend } from 'react-icons/bs';
 import { FaEllipsisH } from 'react-icons/fa';
-import { Client } from '@stomp/stompjs';
+import { Stomp } from '@stomp/stompjs';
 import { useMutation } from 'react-query';
-import SockJs from 'sockjs-client';
+import SockJS from 'sockjs-client';
 import { findComments, findIndex, findUsers } from '../../api/queries/useCommentsQueries';
+import { getToken } from '../../utils/cookies';
 import User2 from '../../assets/workspace/basic_image.png';
 
 const Comments = () => {
   const [showOptionsDropdown, setShowOptionsDropdown] = useState(false);
-  const [optionsDropdownPosition, setOptionsDropdownPosition] = useState({ top: 0, left: 0 });
-  const [sendContent, setSendContent] = useState('');
-  const [sendParsedMessage, setSendParsedMessage] = useState([]); // 메시지 작성 중의 파싱된 메시지 배열
-  const [editParsedMessage, setEditParsedMessage] = useState([]); // 수정 중의 파싱된 메시지 배열
   const [userSuggestions, setUserSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
@@ -24,11 +21,20 @@ const Comments = () => {
   const textareaRef = useRef(null);
   const setRef = useRef(null);
   const deleteRef = useRef(null);
-
+  const [optionsDropdownPosition, setOptionsDropdownPosition] = useState({ top: 0, left: 0 });
   const [editingMessageId, setEditingMessageId] = useState(null); // 수정 중인 메시지 ID
-  const [editContent, setEditContent] = useState(''); // 수정 중인 콘텐츠
   const [selectedMessageId, setSelectedMessageId] = useState(null); // 드롭다운에서 선택된 메시지 ID
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const [sendContent, setSendContent] = useState('');
+  const [sendParsedMessage, setSendParsedMessage] = useState([]); // 메시지 작성 중의 파싱된 메시지 배열
+  const [editContent, setEditContent] = useState(''); // 수정 중인 콘텐츠
+  const [editParsedMessage, setEditParsedMessage] = useState([]); // 수정 중의 파싱된 메시지 배열
+
+  const [sending, setSending] = useState(false);
+
+  const stompClientRef = useRef(null); // stompClient를 useRef로 선언
+  const accessToken = getToken();
 
   const handleIconClick = (e, messageId) => {
     e.stopPropagation();
@@ -184,24 +190,37 @@ const Comments = () => {
   });
 
   const connect = () => {
-    const socket = new SockJs('http://192.168.31.219:8080/ws/ws-stomp');
-    stompClient.current = new Client({
-      webSocketFactory: () => socket,
-      debug: (str) => console.log(str),
-      onConnect: () => {
-        stompClient.current.subscribe(`/ws/sub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, (message) => {
+    const socket = new SockJS('http://192.168.31.219:8080/ws/ws-stomp');
+    stompClientRef.current = Stomp.over(socket); // stompClientRef에 STOMP client를 저장
+
+    stompClientRef.current.connect(
+      {
+        Authorization: `Bearer ${accessToken}`, // 헤더로 토큰 전달
+      },
+      (frame) => {
+        console.log('Connected:', JSON.stringify(frame.headers));
+
+        // 구독 시작
+        stompClientRef.current.subscribe(`/ws/sub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, (message) => {
+          console.log('Received data:', message);
           const receivedMessage = JSON.parse(message.body);
           setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
         });
       },
-      onStompError: (frame) => console.error('STOMP error:', frame),
-      reconnectDelay: 5000,
-    });
-    stompClient.current.activate();
-  };
+      (error) => {
+        console.error('Connection error:', error);
+      }
+    );
 
-  const disconnect = () => {
-    if (stompClient.current) stompClient.current.deactivate();
+    // 디버그 메시지 출력 설정
+    stompClientRef.current.debug = (str) => {
+      console.log(str);
+    };
+
+    // STOMP 오류 핸들링
+    stompClientRef.current.onStompError = (frame) => {
+      console.error('STOMP error:', frame);
+    };
   };
 
   useEffect(() => {
@@ -209,7 +228,7 @@ const Comments = () => {
     connect();
     indexMutation.mutate();
     return () => {
-      disconnect();
+      stompClientRef.current.disconnect();
       document.removeEventListener('click', handleClickOutside);
     };
   }, []);
@@ -279,7 +298,7 @@ const Comments = () => {
     } else {
       setSendContent(newContent);
       const textBefore = content.substring(0, atIndex);
-      setParsedMessage((prevParsed) => [
+      setSendParsedMessage((prevParsed) => [
         ...prevParsed,
         { type: 'TEXT', value: textBefore },
         { type: 'USER', value: { userId, nickname } },
@@ -290,24 +309,30 @@ const Comments = () => {
   };
 
   const sendMessage = () => {
-    if (stompClient.current && stompClient.current.connected) {
+    if (stompClientRef.current && stompClientRef.current.connected) {
       if (sendContent) {
-        setParsedMessage((prevParsed) => [...prevParsed, { type: 'TEXT', value: sendContent }]);
+        setSendParsedMessage((prevParsed) => [...prevParsed, { type: 'TEXT', value: sendContent }]);
+        setSending(true);
       }
+    }
+  };
 
-      stompClient.current.publish({
+  useEffect(() => {
+    if (sending) {
+      console.log(sendParsedMessage);
+      stompClientRef.current.publish({
         destination: '/ws/pub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments',
         body: JSON.stringify({
           type: 'ADD',
-          content: parsedMessage,
+          message: sendParsedMessage,
         }),
       });
-
+      setSending(false);
       setSendContent('');
-      setParsedMessage([]);
+      setSendParsedMessage([]);
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
     }
-  };
+  }, [sendParsedMessage]);
 
   return (
     <div
@@ -315,82 +340,85 @@ const Comments = () => {
       className='w-full h-[700px] bg-[#F8FCFF] flex flex-col justify-start pt-5 pb-24 overflow-y-auto box-border sidebar-scrollbar'
     >
       <div className='flex flex-col space-y-4 flex-grow'>
-        {messages
-          .slice()
-          .sort((a, b) => b.commentId - a.commentId)
-          .map((message) => (
-            <div key={message.commentId} className='flex flex-col'>
-              <div className={`flex ${message.isHost ? 'justify-end' : 'justify-start'}`}>
-                {!message.isHost && (
-                  <img className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain' src={User2} alt='Profile' />
-                )}
-                <div
-                  className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#D7E9F4] ${
-                    message.isHost ? 'ml-auto text-right' : 'text-left'
-                  }`}
-                >
-                  <div className={`flex ${message.isHost ? 'justify-between' : 'justify-between'} items-center`}>
-                    {message.isHost ? (
-                      <>
-                        <FaEllipsisH
-                          className='mt-1 ml-2 cursor-pointer'
-                          onClick={(e) => handleIconClick(e, message.commentId)}
-                        />
-                        <p className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</p>
-                      </>
-                    ) : (
-                      <>
-                        <p className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</p>
-                      </>
-                    )}
-                  </div>
-                  {editingMessageId === message.commentId ? (
-                    <div className='text-xl my-1 mx-2'>
-                      <textarea
-                        value={editContent}
-                        onInput={handleEditInput}
-                        className='w-full p-1 rounded-md border border-gray-300 resize-none overflow-hidden'
-                        style={{ height: 'auto' }}
+        {messages.map((message) => (
+          <div key={message.commentId} className='flex flex-col'>
+            <div className={`flex ${message.isHost ? 'justify-end' : 'justify-start'}`}>
+              {!message.isHost && (
+                <img className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain' src={User2} alt='Profile' />
+              )}
+              <div
+                className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#D7E9F4] ${
+                  message.isHost ? 'ml-auto text-right' : 'text-left'
+                }`}
+              >
+                <div className={`flex ${message.isHost ? 'justify-between' : 'justify-between'} items-center`}>
+                  {message.isHost ? (
+                    <>
+                      <FaEllipsisH
+                        className='mt-1 ml-2 cursor-pointer'
+                        onClick={(e) => handleIconClick(e, message.commentId)}
                       />
-                      <button
-                        onClick={() => handleSaveEdit(message.commentId)}
-                        className='text-blue-500 font-bold mt-2 mr-3'
-                      >
-                        저장
-                      </button>
-                      <button onClick={() => handleCancelEdit()} className='text-blue-500 font-bold mt-2'>
-                        취소
-                      </button>
-                    </div>
+                      <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
+                    </>
                   ) : (
-                    <div className='text-lg my-1 mx-2' style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                      {message.comment.map((part, index) =>
-                        part.type === 'TEXT' ? (
-                          <span key={index} style={{ display: 'inline' }}>
-                            {part.value}
-                          </span>
-                        ) : (
-                          <span
-                            key={index}
-                            className='font-bold text-blue-500 cursor-pointer'
-                            style={{ display: 'inline' }}
-                          >
-                            @{part.value.nickname}
-                          </span>
-                        )
-                      )}
-                    </div>
+                    <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
                   )}
                 </div>
-                {message.isHost && (
-                  <img className='w-[40px] h-[40px] rounded-full mr-5 ml-3 object-contain' src={User2} alt='Profile' />
+                {editingMessageId === message.commentId ? (
+                  <div className='text-xl my-1 mx-2'>
+                    <textarea
+                      value={editContent}
+                      onInput={handleEditInput}
+                      className='w-full p-1 rounded-md border border-gray-300 resize-none overflow-hidden'
+                      style={{ height: 'auto' }}
+                    />
+                    <button
+                      onClick={() => handleSaveEdit(message.commentId)}
+                      className='text-blue-500 font-bold mt-2 mr-3'
+                    >
+                      저장
+                    </button>
+                    <button onClick={() => handleCancelEdit()} className='text-blue-500 font-bold mt-2'>
+                      취소
+                    </button>
+                  </div>
+                ) : (
+                  <div className='text-lg my-1 mx-2' style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    {message.comment.map((part, index) =>
+                      part.type === 'TEXT' ? (
+                        <span key={index} style={{ display: 'inline' }}>
+                          {part.value}
+                        </span>
+                      ) : (
+                        <span
+                          key={index}
+                          className='font-bold text-blue-500 cursor-pointer'
+                          style={{ display: 'inline' }}
+                        >
+                          @{part.value.nickname}
+                        </span>
+                      )
+                    )}
+                  </div>
                 )}
               </div>
-              <div className={`flex ${message.isHost ? 'justify-end mr-[72px]' : 'justify-start ml-[72px]'}`}>
-                <p className='text-sm'>{message.createdDate}</p>
-              </div>
+              {message.isHost && (
+                <img className='w-[40px] h-[40px] rounded-full mr-5 ml-3 object-contain' src={User2} alt='Profile' />
+              )}
             </div>
-          ))}
+            <div className={`flex ${message.isHost ? 'justify-end mr-[72px]' : 'justify-start ml-[72px]'}`}>
+              <span className='text-sm mx-1'>
+                {new Date(message.createdDate).toLocaleString('ko-KR', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
+            </div>
+          </div>
+        ))}
         <div className='absolute bottom-5'>
           <div className='flex flex-row w-full rounded-[10px] ml-6 bg-[#D7E9F4] p-3'>
             <img className='w-[40px] h-[40px] rounded-full mr-3 object-contain' src={User2} alt='Profile' />

@@ -6,7 +6,6 @@ const base_URL = 'https://k11b305.p.ssafy.io'; // 본 서버
 
 export const findIndex = async () => {
   const accessToken = getToken();
-  console.log('accessToken', accessToken);
   const response = await axios.get(`${base_URL}/api/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments/last-index`, {
     headers: {
       'Content-Type': 'application/json',
@@ -20,7 +19,6 @@ export const findComments = async (id, size) => {
   try {
     console.log(`Requesting: /comments?targetcommentid=${id}&size=${size}`);
     const accessToken = getToken();
-    console.log('accessToken', accessToken);
     const response = await axios.get(`${base_URL}/api/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, {
       headers: {
         'Content-Type': 'application/json',
