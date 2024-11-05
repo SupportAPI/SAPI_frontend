@@ -13,7 +13,6 @@ const Comments = () => {
   const [userSuggestions, setUserSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
-  const stompClient = useRef(null);
   const [initIndex, setInitIndex] = useState(-1);
   const [index, setIndex] = useState(-1);
   const [messages, setMessages] = useState([]);
@@ -78,10 +77,13 @@ const Comments = () => {
   const deleteComment = (e) => {
     e.stopPropagation();
     const deleteTargetId = messages.find((msg) => msg.commentId === selectedMessageId);
-    if (deleteTargetId) {
-      const updatedMessages = messages.filter((msg) => msg.commentId !== selectedMessageId);
-      setMessages(updatedMessages);
-    }
+    stompClientRef.current.publish({
+      destination: '/ws/pub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments',
+      body: JSON.stringify({
+        type: 'DELETE',
+        message: deleteTargetId.commentId,
+      }),
+    });
     setShowDeleteModal(false);
   };
 
@@ -97,17 +99,34 @@ const Comments = () => {
   };
 
   // 수정 내용 저장 핸들러
-  const handleSaveEdit = (messageId) => {
-    setMessages((prevMessages) =>
-      prevMessages.map((message) =>
-        message.commentId === messageId ? { ...message, comment: editParsedMessage } : message
-      )
-    );
-
-    setEditingMessageId(null); // 수정 모드 종료
-    setEditContent(''); // 수정 필드 초기화
-    setEditParsedMessage([]); // 편집 상태 초기화
+  const handleSaveEdit = () => {
+    if (stompClientRef.current && stompClientRef.current.connected) {
+      if (editContent) {
+        setEditParsedMessage((prevParsed) => [...prevParsed, { type: 'TEXT', value: editContent }]);
+        setSending(true);
+      }
+    }
   };
+
+  useEffect(() => {
+    if (sending) {
+      console.log(editParsedMessage);
+      stompClientRef.current.publish({
+        destination: '/ws/pub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments',
+        body: JSON.stringify({
+          type: 'UPDATE',
+          message: {
+            commentId: selectedMessageId,
+            message: editParsedMessage,
+          },
+        }),
+      });
+      setSending(false);
+      setEditingMessageId(null); // 수정 모드 종료
+      setEditContent(''); // 수정 필드 초기화
+      setEditParsedMessage([]); // 편집 상태 초기화
+    }
+  }, [editParsedMessage]);
 
   const handleEditInput = (e) => {
     const textarea = e.target;
@@ -119,14 +138,18 @@ const Comments = () => {
     const cursorPosition = textarea.selectionStart;
     const lastChar = content[cursorPosition - 1]?.normalize('NFC');
 
-    if (/^[가-힣]$/.test(lastChar)) {
-      const atIndex = content.lastIndexOf('@');
+    const atIndex = content.lastIndexOf('@');
+    if (atIndex !== -1 && cursorPosition > atIndex && /^[가-힣]$/.test(lastChar)) {
       const searchQuery = content.substring(atIndex + 1, cursorPosition);
       if (searchQuery) {
-        findUserMutation.mutate(searchQuery);
-        const { top, left, height } = textarea.getBoundingClientRect();
-        setDropdownPosition({ top: top + window.scrollY, left: left + window.scrollX });
-        setShowDropdown(true);
+        // 사용자 검색 결과에 따라 handleSelectUser 호출 준비
+        findUserMutation.mutate(searchQuery, {
+          onSuccess: (response) => {
+            setUserSuggestions(response);
+            setDropdownPosition({ top: top + window.scrollY, left: left + window.scrollX });
+            setShowDropdown(true);
+          },
+        });
       }
     } else {
       setShowDropdown(false);
@@ -236,9 +259,31 @@ const Comments = () => {
 
         // 구독 시작
         stompClientRef.current.subscribe(`/ws/sub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, (message) => {
-          console.log('Received data:', message);
-          const receivedMessage = JSON.parse(message.body);
-          setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
+          const parsedData = JSON.parse(message.body); // message.body 파싱 한 번만 실행
+          const { type, message: receivedMessage } = parsedData;
+
+          console.log('Received data:', parsedData);
+          console.log('Message type:', type);
+
+          if (type === 'ADD') {
+            console.log('ADD 성공');
+            if (receivedMessage) {
+              // receivedMessage가 있는지 확인
+              setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
+            }
+          } else if (type === 'UPDATE') {
+            if (receivedMessage) {
+              // receivedMessage가 있는지 확인
+              setMessages((prevMessages) =>
+                prevMessages.map((msg) => (msg.commentId === receivedMessage.commentId ? receivedMessage : msg))
+              );
+            }
+          } else if (type === 'DELETE') {
+            if (receivedMessage && receivedMessage) {
+              // receivedMessage와 commentId가 있는지 확인
+              setMessages((prevMessages) => prevMessages.filter((msg) => msg.commentId !== receivedMessage));
+            }
+          }
         });
       },
       (error) => {
@@ -301,12 +346,12 @@ const Comments = () => {
     const cursorPosition = textarea.selectionStart;
     const lastChar = content[cursorPosition - 1]?.normalize('NFC');
 
-    if (/^[가-힣]$/.test(lastChar)) {
-      const atIndex = content.lastIndexOf('@');
+    const atIndex = content.lastIndexOf('@');
+    if (atIndex !== -1 && cursorPosition > atIndex && /^[가-힣]$/.test(lastChar)) {
       const searchQuery = content.substring(atIndex + 1, cursorPosition);
       if (searchQuery) {
         findUserMutation.mutate(searchQuery);
-        const { top, left, height } = textarea.getBoundingClientRect();
+        const { top, left } = textarea.getBoundingClientRect();
         setDropdownPosition({ top: top + window.scrollY, left: left + window.scrollX });
         setShowDropdown(true);
       }
@@ -368,6 +413,15 @@ const Comments = () => {
     }
   }, [sendParsedMessage]);
 
+  const handleUserClick = (nickname, userId) => {
+    // isEditing이 true이면 수정 모드에서 handleSelectUser 호출
+    if (editingMessageId) {
+      handleSelectUser(nickname, userId, true);
+    } else {
+      handleSelectUser(nickname, userId, false);
+    }
+  };
+
   return (
     <div
       ref={scrollContainerRef}
@@ -406,10 +460,7 @@ const Comments = () => {
                       className='w-full p-1 rounded-md border border-gray-300 resize-none overflow-hidden'
                       style={{ height: 'auto' }}
                     />
-                    <button
-                      onClick={() => handleSaveEdit(message.commentId)}
-                      className='text-blue-500 font-bold mt-2 mr-3'
-                    >
+                    <button onClick={() => handleSaveEdit()} className='text-blue-500 font-bold mt-2 mr-3'>
                       저장
                     </button>
                     <button onClick={() => handleCancelEdit()} className='text-blue-500 font-bold mt-2'>
@@ -514,7 +565,7 @@ const Comments = () => {
           {userSuggestions.map((user) => (
             <li
               key={user.id}
-              onClick={() => handleSelectUser(user.nickname, user.id)}
+              onClick={() => handleUserClick(user.nickname, user.id)}
               className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center justify-content'
             >
               <img className='w-[40px] h-[40px] rounded-full mr-5 ml-3' src={User2} alt='Profile' />
