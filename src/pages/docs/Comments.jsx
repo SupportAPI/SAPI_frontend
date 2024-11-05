@@ -189,14 +189,48 @@ const Comments = () => {
     onError: (error) => console.error('User fetch error:', error),
   });
 
+  // const connect = () => {
+  //   const socket = new SockJS('http://192.168.31.219:8080/ws/ws-stomp');
+  //   stompClientRef.current = Stomp.over(socket); // stompClientRef에 STOMP client를 저장
+
+  //   stompClientRef.current.connect(
+  //     {
+  //       Authorization: `Bearer ${accessToken}`, // 헤더로 토큰 전달
+  //     },
+  //     (frame) => {
+  //       console.log('Connected:', JSON.stringify(frame.headers));
+
+  //       // 구독 시작
+  //       stompClientRef.current.subscribe(`/ws/sub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, (message) => {
+  //         console.log('Received data:', message);
+  //         const receivedMessage = JSON.parse(message.body);
+  //         setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
+  //       });
+  //     },
+  //     (error) => {
+  //       console.error('Connection error:', error);
+  //     }
+  //   );
+
+  //   // 디버그 메시지 출력 설정
+  //   stompClientRef.current.debug = (str) => {
+  //     console.log(str);
+  //   };
+
+  //   // STOMP 오류 핸들링
+  //   stompClientRef.current.onStompError = (frame) => {
+  //     console.error('STOMP error:', frame);
+  //   };
+  // };
+
+  // pathvariable
   const connect = () => {
-    const socket = new SockJS('http://192.168.31.219:8080/ws/ws-stomp');
+    // accessToken을 URL에 포함
+    const socket = new SockJS(`http://192.168.31.219:8080/ws/ws-stomp?accessToken=${accessToken}`);
     stompClientRef.current = Stomp.over(socket); // stompClientRef에 STOMP client를 저장
 
     stompClientRef.current.connect(
-      {
-        Authorization: `Bearer ${accessToken}`, // 헤더로 토큰 전달
-      },
+      {},
       (frame) => {
         console.log('Connected:', JSON.stringify(frame.headers));
 
