@@ -9,7 +9,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 const ApiDocsSidebar = () => {
-  const { data = [], isLoading, error } = useApiDocs();
+  const { data = [], error } = useApiDocs();
   const { expandedCategories, toggleCategory, setAllCategories } = useSidebarStore();
   const { addTab, confirmTab } = useTabStore();
   const navigate = useNavigate();
@@ -28,7 +28,6 @@ const ApiDocsSidebar = () => {
       createApiDoc(workspaceId);
     }
   };
-  console.log(data);
 
   const handleApiClick = (apiId, apiName) => {
     if (!workspaceId) return;
@@ -97,7 +96,6 @@ const ApiDocsSidebar = () => {
     };
   }, []);
 
-  if (isLoading) return <div className='p-4'>Loading...</div>;
   if (error) return <div className='p-4'>Failed to load data.</div>;
 
   return (
@@ -183,7 +181,8 @@ const ApiDocsSidebar = () => {
                     const isDropdownActive = activeDropdown === api.apiId;
                     return (
                       <li
-                        key={api.apiId}
+                        // key={api.apiId}
+                        key={api.id}
                         className={`cursor-pointer w-full relative group ${
                           isActive ? 'bg-blue-100 text-blue-800 font-semibold' : ''
                         } ${isDropdownActive ? 'bg-gray-300' : 'hover:bg-gray-300'}`}

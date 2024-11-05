@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import useAuthStore from '../../stores/useAuthStore';
-import { useFetchInviteUser, useInviteMember } from '../../api/queries/useWorkspaceQueries';
+import { useFetchInviteUser, useInviteMember, useUserInfo } from '../../api/queries/useWorkspaceQueries';
+import { IoClose } from 'react-icons/io5';
 
 const InviteUser = ({ workspaceId, onClose }) => {
   // 유저 초대 상태 관리
@@ -11,17 +12,25 @@ const InviteUser = ({ workspaceId, onClose }) => {
   const userId = useAuthStore((state) => state.userId); // 자기 자신 id
 
   // React Query
-  const { data: CheckInviteUser, isLoading, refetch } = useFetchInviteUser(inviteUsername);
+  const { refetch } = useFetchInviteUser(inviteUsername);
   const inviteMemberMutation = useInviteMember();
+  const { data: userInfo } = useUserInfo(userId);
 
   // 유저 임시 목록
   const [userList, setUserList] = useState([]);
 
-  // 사용자 이메일을 확인하는 함수
+  // 사용자 이메일(양식-정상판단) API 조회
   const CheckUserEmail = async () => {
     // 이미 리스트에 있는 유저인지 확인
     if (userList.some((user) => user.email === inviteUsername)) {
       setEmailErrorMessage('이미 추가된 유저입니다.');
+      setEmailValid(false);
+      return;
+    }
+
+    // 자기자신이면 추가 불가
+    if (inviteUsername === userInfo.email) {
+      setEmailErrorMessage('자신은 추가할 수 없습니다.');
       setEmailValid(false);
       return;
     }
@@ -36,8 +45,15 @@ const InviteUser = ({ workspaceId, onClose }) => {
     }
   };
 
-  // 사용자 이메일을 확인하는 함수
+  // 사용자 이메일 양식 정상여부확인 먼저
   const ValidUserEmail = () => {
+    // 이메일 미 입력 시
+    if (inviteUsername === '') {
+      setEmailErrorMessage('이메일을 입력해주세요.');
+      setEmailValid(false);
+      return;
+    }
+
     const email_regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i;
     if (email_regex.test(inviteUsername)) {
       setEmailValid(true);
@@ -48,13 +64,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
     }
   };
 
-  // 유저 목록에서 유저를 삭제하는 함수
-  const removeUser = (email) => {
-    if (Array.isArray(userList)) {
-      setUserList(userList.filter((user) => user.email !== email));
-    }
-  };
-
+  // 유저 초대 함수 (단체초대)
   const sendInvitation = () => {
     const userIds = userList.map((user) => user.userId);
 
@@ -65,6 +75,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
 
     inviteMemberMutation.mutate(requestData);
     onClose();
+    alert('초대가 완료되었습니다.');
   };
 
   useEffect(() => {
@@ -72,15 +83,22 @@ const InviteUser = ({ workspaceId, onClose }) => {
     setActiveSend(userList.length > 0);
   }, [inviteUsername, userList]);
 
+  // 유저 목록에서 유저를 삭제하는 함수
+  const removeUser = (email) => {
+    if (Array.isArray(userList)) {
+      setUserList(userList.filter((user) => user.email !== email));
+    }
+  };
+
   return (
     // 모달 화면 위치 정의
     <div className='fixed flex justify-center items-center inset-0 bg-black bg-opacity-30 z-50'>
       {/* 모달 크기 정의 */}
       <div className='flex flex-col items-center bg-white w-[800px] h-[800px] border rounded-2xl'>
         <header className='flex justify-between items-center w-full text-xl mb-4 h-[80px] bg-blue-100 rounded-t-2xl'>
-          <div className='text-3xl ml-6'>Invite User</div>
-          <button className='' onClick={onClose}>
-            <img className='mr-4 w-6' src='/src/assets/workspace/x.png' alt='' />
+          <div className='text-3xl font-semibold ml-10'>Invite User</div>
+          <button className='mr-4' onClick={onClose}>
+            <IoClose className='text-3xl' />
           </button>
         </header>
 
@@ -89,7 +107,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
           <div className='mb-5'>
             {/* 초대할 사람 입력 */}
             <div className='flex flex-col'>
-              <div>Invite a member to Project</div>
+              <div className='text-lg font-semibold'>Invite a member to Project</div>
               <div className='flex justify-between items-center'>
                 <input
                   type='text'
@@ -97,6 +115,11 @@ const InviteUser = ({ workspaceId, onClose }) => {
                   placeholder='ssafy@ssafy.com'
                   value={inviteUsername}
                   onChange={(e) => setInviteUserName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      ValidUserEmail();
+                    }
+                  }}
                 />
                 <button
                   className={`w-20 h-14 ml-3 border rounded-lg bg-green-500 hover:bg-green-600`}
@@ -115,21 +138,23 @@ const InviteUser = ({ workspaceId, onClose }) => {
             {userList.map((item, index) => (
               <div key={index} className='flex justify-between hover:bg-blue-300 border border-none rounded-lg'>
                 <div className='flex items-center p-2'>
-                  <img className='border rounded-full w-14 h-14 mr-4' src={item.profileImage} alt='프로필' />
+                  <img
+                    className='border rounded-full w-14 h-14 mr-4 object-contain'
+                    src={item.profileImage}
+                    alt='프로필'
+                  />
                   <div className=''>
                     <div>{item.nickname}</div>
                     <div>{item.email}</div>
                   </div>
                 </div>
-                <button>
-                  <img
-                    className='w-5 mr-5'
-                    src='/src/assets/workspace/x.png'
-                    alt=''
-                    onClick={() => {
-                      removeUser(item.email);
-                    }}
-                  />
+                <button
+                  className='mr-4'
+                  onClick={() => {
+                    removeUser(item.email);
+                  }}
+                >
+                  <IoClose className='text-3xl' />
                 </button>
               </div>
             ))}

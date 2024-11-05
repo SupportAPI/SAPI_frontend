@@ -3,6 +3,7 @@ import UserComponent from './SettingUser';
 import SettingThemee from './SettingTheme';
 import SettingMember from './SettingMember';
 import { useNavigate } from 'react-router-dom';
+import { IoClose } from 'react-icons/io5';
 
 const Settings = ({ onClose }) => {
   const navigate = useNavigate();
@@ -27,24 +28,24 @@ const Settings = ({ onClose }) => {
         className='flex flex-col items-center bg-white rounded-lg w-[800px] h-[900px] min-w-[800px] border rounded-lg'
         onClick={(e) => e.stopPropagation()}
       >
-        <header className='flex justify-between items-center w-full text-xl h-[10%] bg-blue-100'>
-          <div className='text-5xl ml-10 mb-3'>Settings</div>
-          <button className='' onClick={onClose}>
-            <img className='mr-4 w-6' src='/src/assets/workspace/x.png' alt='' />
+        <header className='flex justify-between items-center w-full h-[10%] text-xl bg-[#f0f5f8] border-none rounded-t-lg'>
+          <div className='text-3xl font-semibold ml-10'>Settings</div>
+          <button className='mr-4' onClick={onClose}>
+            <IoClose className='text-3xl' />
           </button>
         </header>
 
         {/* 내부 컴포넌트 크기 정의 */}
-        <div className='flex w-full h-full'>
+        <div className='flex w-full h-full border-none rounded-2xl'>
           {/* 왼쪽에 목록 넣는 곳 */}
-          <div className='w-[300px] border-2 p-6'>
+          <div className='w-[300px] border-r p-6 border rounded-b-2xl'>
             {/* Account 항목 */}
             <div className='flex flex-col'>
-              <p className='text-3xl font-bold ml-3 mb-3'>Account</p>
+              <p className='text-2xl font-medium ml-2 mb-3'>Account</p>
               <div className='flex flex-col w-full h-52 m-auto'>
                 <button
-                  className={`w-[100%] h-20 ${
-                    activeComponent === 'User' ? 'bg-blue-100' : ''
+                  className={`w-[100%] h-20 mb-1 ${
+                    activeComponent === 'User' ? 'bg-blue-100 font-bold' : ''
                   } hover:bg-blue-100 border-none rounded-xl`}
                   onClick={() => handleComponentChange(<UserComponent />, 'User')}
                 >
@@ -52,7 +53,7 @@ const Settings = ({ onClose }) => {
                 </button>
                 <button
                   className={`w-[100%] h-20 ${
-                    activeComponent === 'Theme' ? 'bg-blue-100' : ''
+                    activeComponent === 'Theme' ? 'bg-blue-100 font-bold' : ''
                   } hover:bg-blue-100 border-none rounded-xl`}
                   onClick={() => handleComponentChange(<SettingThemee />, 'Theme')}
                 >
@@ -63,11 +64,11 @@ const Settings = ({ onClose }) => {
 
             {/* WorkSpace 항목 */}
             <div className='flex flex-col'>
-              <p className='text-3xl font-bold ml-3 mb-3'>WorkSpace</p>
+              <p className='text-2xl font-medium ml-2 mb-3'>WorkSpace</p>
               <div className='flex flex-col w-full m-auto'>
                 <button
-                  className={`w-[100%] h-20 ${
-                    activeComponent === 'Member' ? 'bg-blue-100' : ''
+                  className={`w-[100%] mb-1 h-20 ${
+                    activeComponent === 'Member' ? 'bg-blue-100 font-bold' : ''
                   } hover:bg-blue-100 border-none rounded-xl`}
                   onClick={() => handleComponentChange(<SettingMember />, 'Member')}
                 >

@@ -1,37 +1,93 @@
 // src/pages/WorkspaceSelection.js
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFetchWorkspaces } from '../../api/queries/useWorkspaceQueries';
+import { useFetchWorkspaces, useDeleteWorkspace } from '../../api/queries/useWorkspaceQueries';
+import { useQueryClient } from 'react-query';
 import CreateWorkspace from './CreateWorkspace';
 import InviteUser from './InviteUser';
 import Settings from './Settings';
 import Header from './Header';
 
+import { FaMinus } from 'react-icons/fa6';
+import { FaPlus } from 'react-icons/fa6';
+import { SlOptions } from 'react-icons/sl';
+
 const WorkspaceSelection = () => {
   const navigate = useNavigate();
   const { data: workspaces, isLoading } = useFetchWorkspaces();
-  const [showP_DeleteButton, setShowP_DeleteButton] = useState(null);
-  const [showD_DeleteButton, setShowD_DeleteButton] = useState(null);
   const [prograssTable, setPrograssTable] = useState([]);
   const [doneTable, setDoneTable] = useState([]);
   const [newworkspaceid, setNewWorkSpaceId] = useState('');
+  const queryClient = useQueryClient();
+  const [filterWorkspaces, setFilterWorkspaces] = useState('');
+
+  const modalRef = useRef();
+  const buttonRef = useRef(null);
+  const [DevelopAuthId, setDevelopAuthId] = useState(null);
+  const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 }); // 모달 위치 상태
+
+  // 워크스페이스 삭제
+  const workSpaceDeleteMutation = useDeleteWorkspace({
+    onSuccess: () => {
+      queryClient.invalidateQueries(['workspaces']);
+    },
+  });
+
+  // 데이터가 로딩된 후 테이블 데이터를 설정하는 로직 추가
+  useEffect(() => {
+    if (!isLoading && workspaces) {
+      // Progress Table 설정
+      setPrograssTable(workspaces);
+
+      // Done Table 설정
+      setDoneTable([]);
+    }
+  }, [isLoading, workspaces]);
+
+  // 검색 필터 적용
+  useEffect(() => {
+    if (!workspaces) return; // workspaces가 undefined일 경우 처리
+    if (filterWorkspaces.length === 0) {
+      setPrograssTable(workspaces);
+    } else {
+      const filtered = workspaces.filter((workspace) =>
+        workspace.projectName.toLowerCase().includes(filterWorkspaces.toLowerCase())
+      );
+      setPrograssTable(filtered);
+    }
+  }, [filterWorkspaces, workspaces]);
 
   const handleWorkspaceSelect = (workspaceId) => {
     navigate(`/workspace/${workspaceId}`);
   };
 
-  // 일단 대기
-  const handleDeleteWorkspace = (workspaceId) => {
-    console.log(workspaceId);
-    console.log('삭제요청되었습니다.');
+  // 워크스페이스 삭제
+  const DeleteWorkspace = (workspaceId) => {
+    if (window.confirm('정말로 삭제하시겠습니까?')) {
+      workSpaceDeleteMutation.mutate(workspaceId);
+      setDevelopAuthId(null);
+    }
   };
 
   // Delete 버튼 토글 함수
-  const toggleDeleteButton = (value, index) => {
-    if (value == 'p') {
-      setShowP_DeleteButton(showP_DeleteButton === index ? null : index);
+  const toggleDevelopAuth = (index, e) => {
+    if (DevelopAuthId === index) {
+      setDevelopAuthId(null);
     } else {
-      setShowD_DeleteButton(showD_DeleteButton === index ? null : index);
+      setDevelopAuthId(index);
+      buttonRef.current = e.target; // 클릭한 버튼 요소를 참조로 저장
+      updateModalPosition(); // 위치 초기 설정
+    }
+  };
+
+  // 스크롤 및 리사이즈에 따라 모달 위치 업데이트 함수
+  const updateModalPosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setModalPosition({
+        top: rect.top + window.scrollY + 15,
+        left: rect.left + window.scrollX + 15,
+      });
     }
   };
 
@@ -50,6 +106,7 @@ const WorkspaceSelection = () => {
     setIsOpenCreateWorkspace(false);
     setIsOpenInviteUser(true);
     setStep(2);
+    queryClient.invalidateQueries('workspaces');
   };
   const handleSettingsClick = () => {
     setIsOpenSetting(true);
@@ -93,33 +150,21 @@ const WorkspaceSelection = () => {
     setIsSortDOrder({ column, direction });
   };
 
-  // 데이터가 로딩된 후 테이블 데이터를 설정하는 로직 추가
-  useEffect(() => {
-    if (!isLoading && workspaces) {
-      // Progress Table 설정
-      setPrograssTable(workspaces);
-
-      // Done Table 설정
-
-      setDoneTable([]);
-    }
-  }, [isLoading, workspaces]);
-
   // 로딩 중인 경우 로딩 메시지 표시
   if (isLoading) {
     return <p>Loading workspaces...</p>;
   }
 
   return (
-    <div className='flex flex-col items-align bg-[#F0F5F8] overflow-hidden h-screen'>
+    <div className='flex flex-col items-align bg-[#f0f5f8] overflow-hidden h-screen'>
       {/* 헤더 위치 */}
       <Header onSettingsClick={handleSettingsClick} />
       <div className='flex flex-col w-[1200px] mx-auto'>
-        <div className='p-8'>
+        <div className='p-5'>
           <div className='flex flex-col mx-auto'>
             {/* 제목과 워크스페이스가 들어갈 공간 */}
             <section className='flex justify-between items-center mb-2'>
-              <p className='text-3xl'>Workspaces</p>
+              <p className='text-2xl font-bold'>Workspaces</p>
               {/* 누르면 워크스페이스 추가 모달 띄우기 */}
               <button
                 className='border p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-500'
@@ -144,18 +189,14 @@ const WorkspaceSelection = () => {
             {isOpenSetting && <Settings onClose={() => setIsOpenSetting(false)} />}
 
             {/* In Progress가 들어갈 공간 */}
-            <section className='relative flex flex-col border rounded-3xl bg-white p-8'>
+            <section className='flex flex-col border rounded-3xl bg-white p-8'>
               <div className='flex justify-between items-center mb-2'>
-                <p className=' text-2xl'>In Progress</p>
+                <p className='text-xl font-semibold'>In Progress</p>
                 <button
-                  className='absolute flex justify-center items-center right-6 border rounded-full w-10 h-10 bg-gray-100 hover:bg-gray-200'
+                  className='flex justify-center items-center right-6 border rounded-full w-10 h-10 bg-gray-100 hover:bg-gray-200'
                   onClick={() => setP_IsTableVisible(!isP_TableVisible)}
                 >
-                  {isP_TableVisible ? (
-                    <img className='w-4' src='/src/assets/workspace/Minus.png' alt='' />
-                  ) : (
-                    <img className='w-4' src='/src/assets/workspace/plus.png' alt='' />
-                  )}
+                  {isP_TableVisible ? <FaMinus /> : <FaPlus />}
                 </button>
               </div>
               {/* 가로 바 */}
@@ -169,7 +210,13 @@ const WorkspaceSelection = () => {
                         <th className='p-2 w-[35%]'>
                           <div className='flex items-center'>
                             <div>🍳</div>
-                            <input className='ml-2 border-b font-normal' type='text' placeholder='Search' />
+                            <input
+                              className='ml-2 border-b font-normal'
+                              type='text'
+                              placeholder='Search'
+                              value={filterWorkspaces}
+                              onChange={(e) => setFilterWorkspaces(e.target.value)}
+                            />
                           </div>
                         </th>
                         <th className='p-2 w-[20%]'>
@@ -178,21 +225,31 @@ const WorkspaceSelection = () => {
                               className='flex justify-center items-center'
                               onClick={() => sortPTable('ActiveUser')}
                             >
-                              <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>Active User</p>
-                              {isSortPOrder.column === 'ActiveUser' && isSortPOrder.direction === 'asc' ? '▲' : '▼'}
+                              <p
+                                className={`mr-2 px-4 py-2 rounded-3xl ${
+                                  isSortPOrder.column === 'ActiveUser' ? 'bg-blue-300' : 'bg-gray-100 hover:bg-gray-200'
+                                }`}
+                              >
+                                Active User
+                              </p>
                             </button>
                           </div>
                         </th>
                         <th className='p-2 w-[20%]'>
                           <div className='flex justify-center items-center'>
                             <button className='flex justify-center items-center' onClick={() => sortPTable('TeamID')}>
-                              <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>Team ID</p>
-                              {isSortPOrder.column === 'TeamID' && isSortPOrder.direction === 'asc' ? '▲' : '▼'}
+                              <p
+                                className={`mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200 ${
+                                  isSortPOrder.column === 'TeamID' ? 'bg-blue-300' : 'bg-gray-100 hover:bg-gray-200'
+                                }`}
+                              >
+                                Team ID
+                              </p>
                             </button>
                           </div>
                         </th>
 
-                        <th className='p-2 w-[20%]'>
+                        <th className='p-2 w-[25%]'>
                           <div className='flex justify-center items-center'>
                             <p className='pr-2 py-2'>Option</p>
                           </div>
@@ -207,51 +264,58 @@ const WorkspaceSelection = () => {
                             key={index}
                             className='border-b cursor-pointer hover:bg-gray-50' // hover 시 배경색
                             onClick={() => handleWorkspaceSelect(item.id)} // 행 전체 클릭 이벤트
+                            onMouseLeave={() => setDevelopAuthId(null)} // Hover 종료 시 Delete 옵션 버튼 닫기
                           >
                             <td className='p-2 w-[35%] h-[65px]'>
                               <div className='flex items-center ml-3'>
                                 <img
                                   src={item.mainImage}
                                   alt='icon'
-                                  className='border w-16 h-12 rounded-lg object-contain'
+                                  className='border min-w-[60px] max-w-[60px] min-h-[50px] max-h-[50px] rounded-lg object-contain'
                                 />
                                 <div className='flex flex-col ml-3'>
                                   <div className='text-left text-xl'>{item.projectName}</div>
-                                  <div className='text-sm text-gray-500 truncate w-[300px]'>{item.description}</div>
+                                  <div className='text-sm text-gray-500 truncate w-[280px]'>{item.description}</div>
                                 </div>
                               </div>
                             </td>
-                            <td className='p-2 w-[20%] text-center'>{item.ActiveUser}1</td>
-                            <td className='p-2 w-[20%] text-center'>{item.TeamID}2</td>
-                            <td className='p-2 w-[20%] text-center relative'>
-                              {/* 행이 hover 될 때 보이는 버튼 */}
+                            <td className='p-2 w-[20%] text-center'>{item.ActiveUser}</td>
+                            <td className='p-2 w-[20%] text-center'>{item.TeamID}</td>
+                            <td className='p-2 w-[25%] text-center'>
                               <div className='inline-block option-button opacity-0 transition-opacity duration-200'>
                                 <button
-                                  className='inline-block'
+                                  className='inline-block p-4'
                                   onClick={(e) => {
-                                    e.stopPropagation(); // 부모의 onClick 이벤트가 실행되지 않도록 방지
-                                    toggleDeleteButton('p', index);
+                                    e.stopPropagation();
+                                    toggleDevelopAuth(index, e);
                                   }}
                                 >
-                                  <img className='h-6 mx-auto' src='/src/assets/workspace/3point.png' alt='' />
+                                  <SlOptions />
                                 </button>
-                                {/* Delete 옵션 */}
-                                {showP_DeleteButton === index && (
-                                  <button
-                                    className='absolute border bg-white hover:bg-blue-200 rounded-lg pt-5 pb-5 pr-6 pl-6'
-                                    onClick={(e) => {
-                                      e.stopPropagation(); // 부모의 onClick 이벤트가 실행되지 않도록 방지
-                                      handleDeleteWorkspace(item.id);
+                                {DevelopAuthId === index && (
+                                  <div
+                                    ref={modalRef}
+                                    style={{
+                                      position: 'absolute',
+                                      top: modalPosition.top,
+                                      left: modalPosition.left,
                                     }}
+                                    className='border-2 bg-white rounded-lg shadow-lg z-10 w-24'
+                                    onClick={(e) => e.stopPropagation()}
                                   >
-                                    Delete
-                                  </button>
+                                    <button
+                                      className='w-full text-left p-2 hover:bg-red-100 text-red-500 text-center'
+                                      onClick={() => DeleteWorkspace(item.id)}
+                                    >
+                                      DELETE
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                             </td>
                           </tr>
                         ))
-                      ) : (
+                      ) : filterWorkspaces === '' ? (
                         <tr>
                           <td colSpan='4' className='text-center py-[100px]'>
                             <div>No Workspace yet</div>
@@ -265,6 +329,12 @@ const WorkspaceSelection = () => {
                             </button>
                           </td>
                         </tr>
+                      ) : (
+                        <tr>
+                          <td colSpan='4' className='text-center py-[100px]'>
+                            <div>No Workspace matched your search</div>
+                          </td>
+                        </tr>
                       )}
                     </tbody>
                   </table>
@@ -273,18 +343,15 @@ const WorkspaceSelection = () => {
             </section>
 
             {/* Done이 들어갈 공간 */}
-            <section className='relative flex flex-col border w-full rounded-3xl bg-white p-8 mt-5'>
+            <section className='flex flex-col border w-full rounded-3xl bg-white p-8 mt-5'>
               <div className='flex justify-between items-center mb-2'>
-                <p className=' text-2xl'>Done</p>
+                <p className='text-xl font-semibold'>Done</p>
                 <button
-                  className='absolute flex justify-center items-center right-6 border rounded-full w-10 h-10 bg-gray-100 hover:bg-gray-200'
+                  className='flex justify-center items-center right-6 border rounded-full w-10 h-10 bg-gray-100 hover:bg-gray-200'
                   onClick={() => setD_IsTableVisible(!isD_TableVisible)}
+                  onMouseLeave={() => setDevelopAuthId(null)} // Hover 종료 시 Delete 옵션 버튼 닫기
                 >
-                  {isD_TableVisible ? (
-                    <img className='w-4' src='/src/assets/workspace/Minus.png' alt='' />
-                  ) : (
-                    <img className='w-4' src='/src/assets/workspace/plus.png' alt='' />
-                  )}
+                  {isD_TableVisible ? <FaMinus /> : <FaPlus />}
                 </button>
               </div>
               {/* 가로 바 */}
@@ -305,8 +372,14 @@ const WorkspaceSelection = () => {
                           <th className='p-2 w-[20%]'>
                             <div className='flex justify-center items-center'>
                               <button className='flex justify-center items-center' onClick={() => sortDTable('User')}>
-                                <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>User</p>
-                                {isSortDOrder.column === 'User' && isSortDOrder.direction === 'asc' ? '▲' : '▼'}
+                                <p
+                                  className={`mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200 ${
+                                    isSortDOrder.column === 'User' ? 'bg-blue-300' : 'bg-gray-100 hover:bg-gray-200'
+                                  }
+                                }`}
+                                >
+                                  User
+                                </p>
                               </button>
                             </div>
                           </th>
@@ -317,12 +390,19 @@ const WorkspaceSelection = () => {
                                 className='flex justify-center items-center'
                                 onClick={() => sortDTable('RenewalDate')}
                               >
-                                <p className='mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200'>RENEWAL DATE</p>
-                                {isSortDOrder.column === 'RenewalDate' && isSortDOrder.direction === 'asc' ? '▲' : '▼'}
+                                <p
+                                  className={`mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200 ${
+                                    isSortDOrder.column === 'RenewalDate'
+                                      ? 'bg-blue-300'
+                                      : 'bg-gray-100 hover:bg-gray-200'
+                                  }`}
+                                >
+                                  RENEWAL DATE
+                                </p>
                               </button>
                             </div>
                           </th>
-                          <th className='p-2 w-[20%]'>
+                          <th className='p-2 w-[25%]'>
                             <div className='flex justify-center items-center'>
                               <p className='pr-2 py-2'>Option</p>
                             </div>
@@ -337,6 +417,7 @@ const WorkspaceSelection = () => {
                               key={index}
                               className='border-b cursor-pointer hover:bg-gray-50' // hover 시 배경색
                               onClick={() => handleWorkspaceSelect(item.id)} // 행 전체 클릭 이벤트
+                              onMouseLeave={() => setDevelopAuthId(null)} // Hover 종료 시 Delete 옵션 버튼 닫기
                             >
                               <td className='p-2 w-[35%] h-[65px]'>
                                 <div className='flex items-center ml-3'>
@@ -353,30 +434,18 @@ const WorkspaceSelection = () => {
                               </td>
                               <td className='p-2 w-[20%] text-center'>{item.User}</td>
                               <td className='p-2 w-[20%] text-center'>{item.RenewalDate}</td>
-                              <td className='p-2 w-[20%] text-center relative'>
-                                {/* 행이 hover될 때 보이는 버튼 */}
+                              <td className='p-2 w-[25%] text-center'>
+                                {/* 행이 hover 될 때 보이는 버튼 */}
                                 <div className='inline-block option-button opacity-0 transition-opacity duration-200'>
                                   <button
-                                    className='inline-block'
+                                    className='inline-block p-4'
                                     onClick={(e) => {
                                       e.stopPropagation(); // 부모의 onClick 이벤트가 실행되지 않도록 방지
-                                      toggleDeleteButton('d', index);
                                     }}
                                   >
-                                    <img className='h-6 mx-auto' src='/src/assets/workspace/3point.png' alt='' />
+                                    <SlOptions />
                                   </button>
                                   {/* Delete 옵션 */}
-                                  {showD_DeleteButton === index && (
-                                    <button
-                                      className='absolute border bg-white hover:bg-blue-200 rounded-lg pt-5 pb-5 pr-6 pl-6'
-                                      onClick={(e) => {
-                                        e.stopPropagation(); // 부모의 onClick 이벤트가 실행되지 않도록 방지
-                                        handleDeleteWorkspace(item.id);
-                                      }}
-                                    >
-                                      Delete
-                                    </button>
-                                  )}
                                 </div>
                               </td>
                             </tr>
