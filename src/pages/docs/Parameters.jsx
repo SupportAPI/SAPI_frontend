@@ -1,14 +1,23 @@
 import { useState, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 
-const Parameters = ({paramsChange}) => {
-  const [headers, setHeaders] = useState([]); // 추가된 헤더들
-  const [authType, setAuthType] = useState('None');
+const Parameters = ({ paramsChange, initialValues }) => {
+  const [headers, setHeaders] = useState(initialValues?.headers || []);
+  const [authType, setAuthType] = useState(initialValues?.authType || 'None');
   const [authorization, setAuthorization] = useState('');
-  const [queryParams, setQueryParams] = useState([]);
-  const [cookies, setCookies] = useState([]);
+  const [queryParams, setQueryParams] = useState(initialValues?.queryParameters || []);
+  const [cookies, setCookies] = useState(initialValues?.cookies || []);
 
-  useEffect(()=> {
+  // 초기값이 변경되면 상태 업데이트
+  useEffect(() => {
+    setHeaders(initialValues?.headers || []);
+    setAuthType(initialValues?.authType || 'None');
+    setQueryParams(initialValues?.queryParameters || []);
+    setCookies(initialValues?.cookies || []);
+  }, [initialValues]);
+
+  // authType이나 authorization이 변경되면 상위 컴포넌트에 전달
+  useEffect(() => {
     paramsChange({
       headers,
       authType,

@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 
-const Request = ({requestChange}) => {
-  const [requestType, setRequestType] = useState('none');
-  const [jsonData, setJsonData] = useState('{}');
-  const [formData, setFormData] = useState([{ key: '', value: '' }]);
+const Request = ({ requestChange = () => {}, initialValues }) => {
+  const [requestType, setRequestType] = useState(initialValues?.requestType || 'none');
+  const [jsonData, setJsonData] = useState(initialValues?.json || '{}');
+  const [formData, setFormData] = useState(initialValues?.formData || [{ key: '', value: '' }]);
 
   const handleRequestTypeChange = (type) => {
     setRequestType(type);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     requestChange({
       requestType,
       jsonData,
       formData,
     });
-  }, [requestType, jsonData, formData])
+  }, [requestType, jsonData, formData]);
 
   const handleJsonInputChange = (e) => {
     const { value, selectionStart } = e.target;
@@ -75,6 +75,8 @@ const Request = ({requestChange}) => {
     }
   };
 
+  console.log(formData);
+
   return (
     <div className='mb-4'>
       <label className='block font-semibold mb-2 text-[18px]'>Request</label>
@@ -123,14 +125,14 @@ const Request = ({requestChange}) => {
                   type='text'
                   className='border rounded p-2 flex-1'
                   placeholder='Key'
-                  value={field.key}
+                  value={field.formDataKey}
                   onChange={(e) => handleFormDataChange(index, 'key', e.target.value)}
                 />
                 <input
                   type='text'
                   className='border rounded p-2 flex-1'
                   placeholder='Value'
-                  value={field.value}
+                  value={field.formDataValue}
                   onChange={(e) => handleFormDataChange(index, 'value', e.target.value)}
                 />
                 <button onClick={() => handleRemoveFormData(index)} className='text-red-500 font-bold'>
