@@ -205,6 +205,15 @@ const Comments = () => {
     onError: (error) => console.error('Find comments error:', error),
   });
 
+  const findMutation = useMutation(() => findComments(index, 5), {
+    onSuccess: (response) => {
+      console.log(response);
+      setMessages((prevMessages) => [...prevMessages, ...response]);
+      setIndex(Math.min(...response.map((message) => message.id)));
+    },
+    onError: (error) => console.error('Find comments error:', error),
+  });
+
   const findUserMutation = useMutation((nickname) => findUsers(nickname), {
     onSuccess: (response) => {
       setUserSuggestions(response);
