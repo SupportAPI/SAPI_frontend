@@ -30,22 +30,22 @@ public class CommentController {
         return commentService.getCommentId(docId);
     }
 
-    @PostMapping("/comment/{docId}/test")
-    public void createComment(@PathVariable("docId") UUID docId, @RequestBody CommentMessage message) {
-        log.info("Received message with docsId {}: {}", docId, message);
-        commentService.createComment(message, docId);
-    }
-
-    @PutMapping("/comment/{docId}/test")
-    public void updateComment(@PathVariable("docId") UUID docId, @RequestBody CommentMessage message) {
-        log.info("Received message with docsId {}: {}", docId, message);
-        commentService.updateComment(message);
-    }
-
-    @DeleteMapping("/comment/{docId}/test")
-    public void deleteComment(@PathVariable("docId") UUID docId, @RequestBody CommentMessage message) {
-        log.info("Received message with docsId {}: {}", docId, message);
-        commentService.deleteComment(message);
-    }
+//    @PostMapping("/comment/{docId}/test")
+//    public void createComment(@PathVariable("docId") UUID docId, @RequestBody CommentMessage message) {
+//        log.info("Received message with docsId {}: {}", docId, message);
+//        commentService.createComment(message, docId);
+//    }
+//
+//    @PutMapping("/comment/{docId}/test")
+//    public void updateComment(@PathVariable("docId") UUID docId, @RequestBody CommentMessage message) {
+//        log.info("Received message with docsId {}: {}", docId, message);
+//        commentService.updateComment(message, docId);
+//    }
+//
+//    @DeleteMapping("/comment/{docId}/test")
+//    public void deleteComment(@PathVariable("docId") UUID docId, @RequestBody CommentMessage message) {
+//        log.info("Received message with docsId {}: {}", docId, message);
+//        commentService.deleteComment(message, docId);
+//    }
 
 }

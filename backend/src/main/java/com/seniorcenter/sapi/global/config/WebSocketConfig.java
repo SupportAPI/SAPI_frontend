@@ -1,5 +1,8 @@
 package com.seniorcenter.sapi.global.config;
 
+import com.seniorcenter.sapi.domain.user.domain.repository.UserRepository;
+import com.seniorcenter.sapi.global.interceptor.AuthHandshakeInterceptor;
+import com.seniorcenter.sapi.global.security.jwt.TokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -15,10 +18,14 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketConnectionInterceptor webSocketConnectionInterceptor;
+    private final TokenProvider tokenProvider;
+    private final UserRepository userRepository;
 
     @Autowired
-    public WebSocketConfig(WebSocketConnectionInterceptor webSocketConnectionInterceptor) {
+    public WebSocketConfig(WebSocketConnectionInterceptor webSocketConnectionInterceptor, TokenProvider tokenProvider, UserRepository userRepository) {
         this.webSocketConnectionInterceptor = webSocketConnectionInterceptor;
+        this.tokenProvider = tokenProvider;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -31,6 +38,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/ws-stomp")
                 .setAllowedOriginPatterns("*")
+                .addInterceptors(new AuthHandshakeInterceptor(tokenProvider, userRepository))
                 .withSockJS();
     }
 

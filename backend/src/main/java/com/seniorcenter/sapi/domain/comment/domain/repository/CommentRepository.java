@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    Comment findBySpecificationId(UUID specificationId);
 
     List<Comment> findBySpecificationIdOrderByCreatedDateAsc(UUID docId);
 
