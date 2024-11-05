@@ -5,7 +5,7 @@ import { useNavbarStore } from '../stores/useNavbarStore';
 import { useSidebarStore } from '../stores/useSidebarStore';
 import { useTabStore } from '../stores/useTabStore';
 import { FiChevronDown, FiMessageSquare, FiCode, FiFileText, FiX } from 'react-icons/fi';
-import { FaDownload, FaSave, FaShareAlt, FaTrashAlt } from 'react-icons/fa';
+import { FaDownload, FaSave, FaShareAlt, FaTrashAlt, FaInfoCircle } from 'react-icons/fa';
 
 import Parameters from './docs/Parameters';
 import Request from './docs/Request';
@@ -259,6 +259,11 @@ const ApiDocsDetail = () => {
             </pre>
           </div>
         )}
+        {activeRightTab === 'info' && (
+          <div>
+            <h4 className='font-bold'>info</h4>
+          </div>
+        )}
       </div>
 
       {/* Right Sidebar (50px width) */}
@@ -277,6 +282,11 @@ const ApiDocsDetail = () => {
           className={`cursor-pointer mb-4 ${activeRightTab === 'summary' ? 'text-blue-500' : 'text-gray-500'}`}
           size={24}
           onClick={() => toggleRightTab('summary')}
+        />
+        <FaInfoCircle
+          className={`cursor-pointer mb-4 ${activeRightTab === 'info' ? 'text-blue-500' : 'text-gray-500'}`}
+          size={24}
+          onClick={() => toggleRightTab('info')}
         />
       </div>
     </div>
