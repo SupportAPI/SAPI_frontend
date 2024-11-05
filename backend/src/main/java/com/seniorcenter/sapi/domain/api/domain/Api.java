@@ -1,5 +1,8 @@
 package com.seniorcenter.sapi.domain.api.domain;
 
+import com.seniorcenter.sapi.domain.api.domain.enums.AuthenticationType;
+import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
+import com.seniorcenter.sapi.domain.api.domain.enums.HttpMethod;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.global.database.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -7,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 import static jakarta.persistence.FetchType.LAZY;
@@ -15,6 +19,7 @@ import static lombok.AccessLevel.PROTECTED;
 @Entity
 @Getter
 @NoArgsConstructor(access = PROTECTED)
+@Table(name = "apis")
 public class Api extends BaseTimeEntity {
 
     @Id
@@ -37,9 +42,26 @@ public class Api extends BaseTimeEntity {
 
     private String category;
 
+    private String description;
+
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "specification_id")
     private Specification specification;
+
+    @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ApiHeader> headers;
+
+    @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ApiCookie> cookies;
+
+    @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ApiQueryParameter> queryParameters;
+
+    @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ApiBody> bodies;
+
+    @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ApiResponse> responses;
 
     @Builder
     public Api(Specification specification) {
@@ -49,10 +71,11 @@ public class Api extends BaseTimeEntity {
         this.bodyType = BodyType.NONE;
         this.authenticationType = AuthenticationType.NOAUTH;
         this.category = "Uncategorized";
+        this.description = "";
         this.specification = specification;
     }
 
-    public static Api createApi(){
+    public static Api createApi() {
         return builder()
                 .build();
     }
@@ -64,6 +87,7 @@ public class Api extends BaseTimeEntity {
         this.bodyType = api.getBodyType();
         this.authenticationType = api.getAuthenticationType();
         this.category = api.getCategory();
+        this.description = api.getDescription();
     }
 
     public void updateSpecification(Specification specification) {
