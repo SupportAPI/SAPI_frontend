@@ -35,11 +35,11 @@ public class Notification extends BaseTimeEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Column(nullable = false)
-	private UUID specificationId;
+	@Column
+	private UUID fromId;
 
-	@Column(nullable = false)
-	private String apiName;
+	@Column
+	private String fromName;
 
 	@Column(nullable = false)
 	private String message;
@@ -49,19 +49,19 @@ public class Notification extends BaseTimeEntity {
 	private NotificationType type;
 
 	@Builder
-	private Notification(User user, UUID specificationId, String apiName, String message, NotificationType type) {
+	private Notification(User user, UUID fromId, String fromName, String message, NotificationType type) {
 		this.user = user;
-		this.specificationId = specificationId;
-		this.apiName = apiName;
+		this.fromId = fromId;
+		this.fromName = fromName;
 		this.message = message;
 		this.type = type;
 	}
 
-	public static Notification createNotification(User user, UUID specificationId, String apiName, String message, NotificationType type) {
+	public static Notification createNotification(User user, UUID fromId, String fromName, String message, NotificationType type) {
 		return Notification.builder()
 			.user(user)
-			.specificationId(specificationId)
-			.apiName(apiName)
+			.fromId(fromId)
+			.fromName(fromName)
 			.message(message)
 			.type(type)
 			.build();
