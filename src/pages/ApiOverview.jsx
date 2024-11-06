@@ -22,11 +22,10 @@ const ApiOverview = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
-    // WebSocket 연결이 되어있을 때만 구독을 설정
     if (isConnected) {
       const subscription = subscribe(`/ws/sub/workspaces/${workspaceId}/docs`, (message) => {
         console.log('Received WebSocket message:', message);
-        refetch(); // 메시지를 받으면 데이터 갱신
+        refetch();
       });
 
       return () => {
@@ -107,7 +106,7 @@ const ApiOverview = () => {
 
   return (
     <div className='px-8 py-8 overflow-x-auto'>
-      <div className='flex justify-between items-baseline mb-4'>
+      <div className='flex justify-between items-baseline mb-8'>
         <h2 className='text-2xl font-bold'>API Overview</h2>
         <div className='flex space-x-4'>
           <button
@@ -163,21 +162,22 @@ const ApiOverview = () => {
         <table className='w-full min-w-[1200px] table-fixed' style={{ borderSpacing: 0 }}>
           <thead>
             <tr className='bg-gray-100 h-12'>
-              <th className='p-4 text-center font-medium w-[5%]'>
+              <th className='p-4 text-center font-medium w-[5%] cursor-default' onClick={() => toggleSelectAll()}>
                 <div className='flex items-center justify-center'>
                   <input
                     type='checkbox'
-                    className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500'
+                    className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500 cursor-default'
                     checked={isAllSelected}
                     onChange={toggleSelectAll}
                   />
                 </div>
               </th>
               <th className='p-4 text-left font-medium w-[15%]'>Category</th>
-              <th className='p-4 text-left font-medium w-[20%]'>API Name</th>
+              <th className='p-4 text-left font-medium w-[15%]'>API Name</th>
               <th className='p-4 text-left font-medium w-[10%]'>HTTP</th>
-              <th className='p-4 text-left font-medium w-[25%]'>API Path</th>
-              <th className='p-4 text-center font-medium w-[15%]'>Manager</th>
+              <th className='p-4 text-left font-medium w-[20%]'>API Path</th>
+              <th className='p-4 text-left font-medium w-[15%]'>Description</th>
+              <th className='p-4 text-center font-medium w-[10%]'>Manager</th>
               <th className='p-4 text-center font-medium w-[5%]'>LS</th>
               <th className='p-4 text-center font-medium w-[5%]'>SS</th>
             </tr>
@@ -188,18 +188,24 @@ const ApiOverview = () => {
               return (
                 <tr
                   key={api.docId}
-                  onClick={() => handleRowClick(api.docId)}
+                  onClick={() => handleRowClick(api.apiId)}
                   className={`text-[14px] cursor-pointer ${
                     isSelected ? 'bg-indigo-50 hover:bg-indigo-100' : 'hover:bg-gray-50'
                   }`}
                 >
-                  <td className='p-4 text-center'>
+                  <td
+                    className='p-4 text-center cursor-default'
+                    onClick={(e) => {
+                      e.stopPropagation(); // 이벤트 전파 방지
+                      handleCheckboxChange(api.docId);
+                    }}
+                  >
                     <div className='flex items-center justify-center'>
                       <input
                         type='checkbox'
-                        className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500'
+                        className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500 cursor-'
                         checked={isSelected}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()} // 체크박스 클릭 시 이벤트 전파 방지
                         onChange={() => handleCheckboxChange(api.docId)}
                       />
                     </div>
@@ -208,6 +214,7 @@ const ApiOverview = () => {
                   <td className='p-4'>{api.name || 'Unnamed API'}</td>
                   <td className='p-4'>{api.method || 'GET'}</td>
                   <td className='p-4'>{api.path || `/api/${api.name.toLowerCase().replace(/\s+/g, '-')}`}</td>
+                  <td className='p-4 '>{api.description}</td>
                   <td className='p-4 text-center'>{api.manager_id || 'N/A'}</td>
                   <td className='p-4 text-center'>
                     {api.localStatus === 'PENDING' ? (

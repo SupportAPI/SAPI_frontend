@@ -1,7 +1,9 @@
 const Summary = ({ apiName, method, methodStyles, apiUrl, description, params, request, response }) => {
   const { headers = [], authType = 'None', queryParameters = [], cookies = [] } = params;
 
-  const { bodyType = 'None', json = '', formData = [] } = request;
+  console.log(params);
+  const { bodyType = 'None', json = [], formData = [] } = request;
+  const { responses = {}, statusCodes = {} } = response;
 
   return (
     <div className=''>
@@ -67,13 +69,14 @@ const Summary = ({ apiName, method, methodStyles, apiUrl, description, params, r
 
       {/* Request Body */}
       <p className='text-xl text-[#666666] mt-5 mb-2'>Request Body</p>
-      {bodyType === 'none' ? (
+      {bodyType === 'NONE' ? (
         <p className='text-[#666666]'>No Request Body</p>
-      ) : bodyType === 'json' ? (
+      ) : bodyType === 'JSON' ? (
         <>
           <p className='text-lg text-[#666666] mb-2'>Request Type : JSON </p>
           <div className='text-[#666666] bg-gray-100 p-2 rounded-md' style={{ whiteSpace: 'pre-wrap' }}>
-            {jsonData}
+            <p className=''>{json.jsonDataKey} : </p>
+            <p className='ml-3'>{json.jsonDataValue}</p>
           </div>
         </>
       ) : (
@@ -93,7 +96,7 @@ const Summary = ({ apiName, method, methodStyles, apiUrl, description, params, r
       <hr className='border-t border-gray-300 mb-3' />
 
       {/* Response */}
-      {/* {statusCodes.length === 0 ? (
+      {statusCodes.length === 0 ? (
         <p className='text-[#666666]'>No Response</p>
       ) : (
         statusCodes.map((code, index) => (
@@ -104,7 +107,7 @@ const Summary = ({ apiName, method, methodStyles, apiUrl, description, params, r
             </div>
           </>
         ))
-      )} */}
+      )}
     </div>
   );
 };

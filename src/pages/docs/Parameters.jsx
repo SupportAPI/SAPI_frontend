@@ -2,59 +2,50 @@ import { useState, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 
 const Parameters = ({ paramsChange, initialValues }) => {
-  const [headers, setHeaders] = useState(initialValues?.headers || []);
+  const [headers, setHeader] = useState(initialValues?.headers || []);
   const [authType, setAuthType] = useState(initialValues?.authType || 'None');
+  const [queryParameters, setQueryParameter] = useState(initialValues?.queryParameters || []);
+  const [cookies, setCookie] = useState(initialValues?.cookies || []);
   const [authorization, setAuthorization] = useState('');
-  const [queryParams, setQueryParams] = useState(initialValues?.queryParameters || []);
-  const [cookies, setCookies] = useState(initialValues?.cookies || []);
 
-  // // 초기값이 변경되면 상태 업데이트
   // useEffect(() => {
-  //   setHeaders(initialValues?.headers || []);
+  //   setHeader(initialValues?.headers || []);
   //   setAuthType(initialValues?.authType || 'None');
-  //   setQueryParams(initialValues?.queryParameters || []);
-  //   setCookies(initialValues?.cookies || []);
+  //   setQueryParameter(initialValues?.queryParameters || []);
+  //   setCookie(initialValues?.cookies || []);
   // }, [initialValues]);
 
-  // authType이나 authorization이 변경되면 상위 컴포넌트에 전달
   useEffect(() => {
     paramsChange({
-      headers: headers,
-      authType: authType,
-      authorization,
-      queryParameters: queryParams,
-      cookies: cookies,
+      headers,
+      authType,
+      queryParameters,
+      cookies,
     });
-  }, [headers, authType, authorization, queryParams, cookies]);
+  }, [headers, authType, queryParameters, cookies]);
 
   const handleAuthTypeChange = (type) => {
     setAuthType(type);
 
-    // Auth 타입에 따라 Authorization 헤더 값 설정
-    if (type === 'Bearer') setAuthorization('Bearer <token>');
-    else if (type === 'Basic') setAuthorization('Basic <credentials>');
-    else setAuthorization(''); // None 선택 시 비워짐
+    if (type === 'BEARER') setAuthorization('Bearer <token>');
+    else if (type === 'BASIC') setAuthorization('Basic <credentials>');
+    else setAuthorization('');
   };
 
   useEffect(() => {
-    // Authorization 헤더가 중복으로 추가되지 않도록 보장
-    setHeaders((prevHeaders) => {
-      const index = prevHeaders.findIndex((header) => header.key === 'Authorization');
+    setHeader((prevHeaders) => {
+      const index = prevHeaders.findIndex((header) => header.headerKey === 'Authorization');
 
-      // authType이 None이 아닌 경우 Authorization 헤더 추가 또는 업데이트
-      if (authType !== 'None') {
+      if (authType !== 'NOAUTH') {
         if (index !== -1) {
-          // Authorization 헤더가 이미 있을 경우, 값만 업데이트
           const updatedHeaders = [...prevHeaders];
-          updatedHeaders[index].value = authorization;
+          updatedHeaders[index].headerValue = authorization;
           return updatedHeaders;
         } else {
-          // Authorization 헤더가 없을 경우, 새로 추가
-          return [{ key: 'Authorization', value: authorization }, ...prevHeaders];
+          return [{ headerKey: 'Authorization', headerValue: authorization }, ...prevHeaders];
         }
       } else {
-        // authType이 None일 경우 Authorization 헤더 제거
-        return prevHeaders.filter((header) => header.key !== 'Authorization');
+        return prevHeaders.filter((header) => header.headerKey !== 'Authorization');
       }
     });
   }, [authorization, authType]);
@@ -62,34 +53,35 @@ const Parameters = ({ paramsChange, initialValues }) => {
   const handleHeaderChange = (index, field, value) => {
     const updatedHeaders = [...headers];
     updatedHeaders[index][field] = value;
-    setHeaders(updatedHeaders);
+    setHeader(updatedHeaders);
   };
 
   const handleAddHeader = () => {
-    setHeaders([...headers, { headerKey: '', headerValue: '' }]);
+    setHeader([...headers, { headerKey: '', headerValue: '' }]);
   };
 
   const handleRemoveHeader = (index) => {
-    setHeaders(headers.filter((_, i) => i !== index));
+    setHeader(headers.filter((_, i) => i !== index));
   };
 
-  const handleAddQueryParam = () => setQueryParams([...queryParams, { key: '', value: '' }]);
-  const handleAddCookie = () => setCookies([...cookies, { key: '', value: '' }]);
+  const handleAddQueryParam = () =>
+    setQueryParameter([...queryParameters, { queryParameterKey: '', queryParameterValue: '' }]);
+  const handleAddCookie = () => setCookie([...cookies, { cookieKey: '', cookieValue: '' }]);
 
   const handleQueryParamChange = (index, field, value) => {
-    const updatedParams = [...queryParams];
+    const updatedParams = [...queryParameters];
     updatedParams[index][field] = value;
-    setQueryParams(updatedParams);
+    setQueryParameter(updatedParams);
   };
 
   const handleCookieChange = (index, field, value) => {
     const updatedCookies = [...cookies];
     updatedCookies[index][field] = value;
-    setCookies(updatedCookies);
+    setCookie(updatedCookies);
   };
 
-  const handleRemoveQueryParam = (index) => setQueryParams(queryParams.filter((_, i) => i !== index));
-  const handleRemoveCookie = (index) => setCookies(cookies.filter((_, i) => i !== index));
+  const handleRemoveQueryParam = (index) => setQueryParameter(queryParameters.filter((_, i) => i !== index));
+  const handleRemoveCookie = (index) => setCookie(cookies.filter((_, i) => i !== index));
 
   return (
     <div className='pt-4'>
@@ -101,9 +93,9 @@ const Parameters = ({ paramsChange, initialValues }) => {
           onChange={(e) => handleAuthTypeChange(e.target.value)}
           className='border rounded px-2 py-1 w-full h-10'
         >
-          <option value='None'>None</option>
-          <option value='Bearer'>Bearer Token</option>
-          <option value='Basic'>Basic Auth</option>
+          <option value='NOAUTH'>No Auth</option>
+          <option value='BEARER'>Bearer Token</option>
+          <option value='BASIC'>Basic Auth</option>
         </select>
       </div>
 
@@ -112,8 +104,7 @@ const Parameters = ({ paramsChange, initialValues }) => {
         <div className='flex justify-between items-center'>
           <h3 className='font-semibold text-[18px] h-8'>Headers</h3>
           <button
-            className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 
-            hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
+            className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
             onClick={handleAddHeader}
           >
             <FaPlus />
@@ -128,7 +119,7 @@ const Parameters = ({ paramsChange, initialValues }) => {
           <table className='w-full border mt-2'>
             <tbody>
               {/* Authorization 항목 항상 상단 고정 */}
-              {authType !== 'None' && (
+              {authType !== 'NOAUTH' && (
                 <tr>
                   <td className='border p-2 h-10'>
                     <input
@@ -155,14 +146,14 @@ const Parameters = ({ paramsChange, initialValues }) => {
               {/* 나머지 헤더들 */}
               {headers.map(
                 (header, index) =>
-                  header.key !== 'Authorization' && (
+                  header.headerKey !== 'Authorization' && (
                     <tr key={index}>
                       <td className='border p-2 h-10'>
                         <input
                           type='text'
                           placeholder='Key'
-                          value={header.key}
-                          onChange={(e) => handleHeaderChange(index, 'key', e.target.value)}
+                          value={header.headerKey}
+                          onChange={(e) => handleHeaderChange(index, 'headerKey', e.target.value)}
                           className='w-full border-none outline-none'
                         />
                       </td>
@@ -170,8 +161,8 @@ const Parameters = ({ paramsChange, initialValues }) => {
                         <input
                           type='text'
                           placeholder='Value'
-                          value={header.value}
-                          onChange={(e) => handleHeaderChange(index, 'value', e.target.value)}
+                          value={header.headerValue}
+                          onChange={(e) => handleHeaderChange(index, 'headerValue', e.target.value)}
                           className='w-full border-none outline-none'
                         />
                       </td>
@@ -201,19 +192,19 @@ const Parameters = ({ paramsChange, initialValues }) => {
             <span>Add</span>
           </button>
         </div>
-        {queryParams.length === 0 ? (
+        {queryParameters.length === 0 ? (
           <p className='text-gray-500 h-10'>No query parameters added.</p>
         ) : (
           <table className='w-full border'>
             <tbody>
-              {queryParams.map((param, index) => (
+              {queryParameters.map((param, index) => (
                 <tr key={index}>
                   <td className='border p-2 h-10'>
                     <input
                       type='text'
                       placeholder='Key'
-                      value={param.key}
-                      onChange={(e) => handleQueryParamChange(index, 'key', e.target.value)}
+                      value={param.queryParameterKey}
+                      onChange={(e) => handleQueryParamChange(index, 'queryParameterKey', e.target.value)}
                       className='w-full border-none outline-none'
                     />
                   </td>
@@ -221,8 +212,8 @@ const Parameters = ({ paramsChange, initialValues }) => {
                     <input
                       type='text'
                       placeholder='Value'
-                      value={param.value}
-                      onChange={(e) => handleQueryParamChange(index, 'value', e.target.value)}
+                      value={param.queryParameterValue}
+                      onChange={(e) => handleQueryParamChange(index, 'queryParameterValue', e.target.value)}
                       className='w-full border-none outline-none'
                     />
                   </td>
@@ -262,8 +253,8 @@ const Parameters = ({ paramsChange, initialValues }) => {
                     <input
                       type='text'
                       placeholder='Key'
-                      value={cookie.key}
-                      onChange={(e) => handleCookieChange(index, 'key', e.target.value)}
+                      value={cookie.cookieKey}
+                      onChange={(e) => handleCookieChange(index, 'cookieKey', e.target.value)}
                       className='w-full border-none outline-none'
                     />
                   </td>
@@ -271,8 +262,8 @@ const Parameters = ({ paramsChange, initialValues }) => {
                     <input
                       type='text'
                       placeholder='Value'
-                      value={cookie.value}
-                      onChange={(e) => handleCookieChange(index, 'value', e.target.value)}
+                      value={cookie.cookieValue}
+                      onChange={(e) => handleCookieChange(index, 'cookieValue', e.target.value)}
                       className='w-full border-none outline-none'
                     />
                   </td>
