@@ -2,6 +2,7 @@ import { useState } from 'react';
 import UserComponent from './SettingUser';
 import SettingThemee from './SettingTheme';
 import SettingMember from './SettingMember';
+import SettingInvitation from './SettingInvitation';
 import { useNavigate } from 'react-router-dom';
 import { IoClose } from 'react-icons/io5';
 
@@ -42,7 +43,7 @@ const Settings = ({ onClose }) => {
             {/* Account 항목 */}
             <div className='flex flex-col'>
               <p className='text-2xl font-medium ml-2 mb-3'>Account</p>
-              <div className='flex flex-col w-full h-52 m-auto'>
+              <div className='flex flex-col w-full h-72 m-auto'>
                 <button
                   className={`w-[100%] h-20 mb-1 ${
                     activeComponent === 'User' ? 'bg-blue-100 font-bold' : ''
@@ -52,12 +53,20 @@ const Settings = ({ onClose }) => {
                   User
                 </button>
                 <button
-                  className={`w-[100%] h-20 ${
+                  className={`w-[100%] h-20 mb-1 ${
                     activeComponent === 'Theme' ? 'bg-blue-100 font-bold' : ''
                   } hover:bg-blue-100 border-none rounded-xl`}
                   onClick={() => handleComponentChange(<SettingThemee />, 'Theme')}
                 >
                   Theme
+                </button>
+                <button
+                  className={`w-[100%] h-20 ${
+                    activeComponent === 'Invitation' ? 'bg-blue-100 font-bold' : ''
+                  } hover:bg-blue-100 border-none rounded-xl`}
+                  onClick={() => handleComponentChange(<SettingInvitation />, 'Invitation')}
+                >
+                  Invitation
                 </button>
               </div>
             </div>

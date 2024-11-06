@@ -2,7 +2,8 @@ import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { getToken } from '../../utils/cookies';
 
-const base_URL = 'https://k11b305.p.ssafy.io';
+// const base_URL = 'https://k11b305.p.ssafy.io';
+const base_URL = 'http://192.168.31.35:8080'; // 세현 로컬
 
 // 1. 워크스페이스 목록 가져오기
 export const fetchWorkspaces = async () => {
@@ -102,7 +103,27 @@ export const useDeleteWorkspace = () => {
   );
 };
 
-// 4. 초대할 유저 정보 가져오기
+// 4-0. 초대할 유저 목록 자동 완성
+export const fetchAutoUserSearch = async (workspaceId, email) => {
+  const accessToken = getToken();
+  const response = await axios.get(
+    `${base_URL}/api/users/workspace-search?workspaceId=${workspaceId}&emailValue=${email}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  return response.data.data;
+};
+
+// React Query 훅: 초대할 유저 목록 자동완성하기
+export const useFetchAutoUserSearch = (workspaceId, email) => {
+  return useQuery(['InviteAutoList', workspaceId, email], () => fetchAutoUserSearch(workspaceId, email));
+};
+
+// 4-1. 초대할 유저 정보 가져오기
 export const fetchinviteUser = async (useremail) => {
   const accessToken = getToken();
   const response = await axios.get(`${base_URL}/api/users?email=${useremail}`, {
@@ -131,6 +152,7 @@ export const useFetchInviteUser = (useremail) => {
 // 5. 유저 워크스페이스로 초대하기
 export const InviteMember = async (requestData) => {
   const accessToken = getToken();
+  console.log(requestData);
   const response = await axios.post(`${base_URL}/api/memberships`, requestData, {
     headers: {
       'Content-Type': 'application/json',
@@ -184,10 +206,65 @@ export const fetchUserInWorkspace = async (workspaceId) => {
 };
 
 // React Query 훅 : 워크스페이스 내 유저 정보 조회
-
 export const useUserInWorkspace = (workspaceId) => {
   return useQuery(['workspaceId', workspaceId], () => fetchUserInWorkspace(workspaceId), {
     retry: false,
     refetchOnWindowFocus: false,
   });
+};
+
+// 8. 자기자신 워크스페이스 초대 현황 확인
+export const fetchUserInvitedList = async () => {
+  const accessToken = getToken();
+
+  const response = await axios.get(`${base_URL}/api/memberships/invited`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  console.log(response.data.data);
+
+  return response.data.data;
+};
+
+// React Query 훅 : 워크스페이스 유저 초대 조회
+export const useUserInvitedList = () => {
+  return useQuery('InviteList', fetchUserInvitedList);
+};
+
+// 9. 워크스페이스 초대 수락
+export const userInvitedAccept = async (membershipId) => {
+  const accessToken = getToken();
+  const response = await axios.patch(
+    `${base_URL}/api/memberships/${membershipId}/accept`,
+    {},
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+};
+
+// React Query 훅: 워크스페이스 초대 수락
+export const useInvitedAccept = () => {
+  return useMutation((membershipId) => userInvitedAccept(membershipId));
+};
+
+// 9. 워크스페이스 초대 거절
+export const userInvitedRefuse = async (membershipId) => {
+  const accessToken = getToken();
+  const response = await axios.delete(`${base_URL}/api/memberships/${membershipId}/refuse`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+};
+
+// React Query 훅: 워크스페이스 초대 거절
+export const useInvitedRefuse = () => {
+  return useMutation((membershipId) => userInvitedRefuse(membershipId));
 };

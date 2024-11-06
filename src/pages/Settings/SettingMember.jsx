@@ -9,6 +9,7 @@ import {
   useInviteMember,
   fetchUserInWorkspace,
   useUserInfo,
+  useFetchAutoUserSearch,
 } from '../../api/queries/useWorkspaceQueries';
 import { toast } from 'react-toastify';
 
@@ -30,7 +31,9 @@ const SettingMember = () => {
   const userListInWorkspace = useCallback(async () => {
     if (currentWorkspaceId) {
       const userList = await fetchUserInWorkspace(currentWorkspaceId);
+      console.log(userList);
       setUserList(userList.filter((user) => user.email != userInfo.email));
+      console.log(userInfo);
     }
   }, [currentWorkspaceId]);
 
@@ -138,6 +141,39 @@ const SettingMember = () => {
     setEmailValid(true);
   }, [useremail, userList]);
 
+  // 유저 초대 자동완성 상태 관리
+  const [showAutoList, setShowAutoList] = useState(false); // 자동완성 목록 표시 상태 추가
+  const { data: InviteAutoListRaw } = useFetchAutoUserSearch(currentWorkspaceId, useremail, {
+    enabled: !!useremail,
+  });
+
+  const InviteAutoList = useremail ? InviteAutoListRaw ?? [] : [];
+
+  const handleAutoCompleteClick = (email) => {
+    setUseremail(email);
+    setShowAutoList(false);
+  };
+
+  const renderAutoCompleteList = () => {
+    return InviteAutoList.map((user) => (
+      <div
+        key={user.userId}
+        className='flex items-center p-2 cursor-pointer hover:bg-gray-200'
+        onClick={() => handleAutoCompleteClick(user.email)}
+      >
+        <img
+          className='border rounded-full w-14 h-14 mr-4 object-contain'
+          src={user.profileImage}
+          alt='프로필 이미지'
+        />
+        <div>
+          <div>{user.nickname}</div>
+          <div className='text-sm text-gray-500'>{user.email}</div>
+        </div>
+      </div>
+    ));
+  };
+
   return (
     <div className='m-10' onClick={handleClickOutside}>
       <div className='flex flex-col'>
@@ -149,28 +185,38 @@ const SettingMember = () => {
             <MdOutlineMail className='mr-2 text-xl' />
             <div className='text-xl'> Email Address</div>
           </div>
-          <div className='flex justify-between items-center'>
+          <div className='relative flex justify-between items-center'>
             <input
               type='text'
               placeholder='Invite a member to Project'
               className='border rounded-lg h-16 p-5 mr-5 w-full'
               value={useremail}
-              onChange={(e) => setUseremail(e.target.value)}
+              onChange={(e) => {
+                setUseremail(e.target.value);
+                setShowAutoList(true);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   ValidUserEmail();
+                  setShowAutoList(false);
                 }
               }}
             />
+            {showAutoList && useremail && (
+              <div className='absolute top-full left-0 right-0 rounded-lg overflow-y-auto max-h-40 bg-white shadow-lg z-10 sidebar-scrollbar'>
+                {renderAutoCompleteList()}
+              </div>
+            )}
             <button
               onClick={() => ValidUserEmail()}
-              className={`w-20 h-14 ml-3 rounded-lg bg-green-500 hover:bg-green-600`}
+              className={`w-20 h-14 ml-3 rounded-lg bg-green-500 hover:bg-green-600 text-white`}
             >
               Invite
             </button>
           </div>
           <div className={`${!isemailvalid ? 'visible' : 'invisible'} text-red-500`}>{emailErrormessage}</div>
-          <div className='border mt-5'></div>
+          <div className='text-xl'>Member List</div>
+          <div className='border mt-1'></div>
           <div className='mt-5 max-h-[400px] overflow-y-auto sidebar-scrollbar'>
             <table className='min-w-full bg-white custom-table'>
               <tbody>
