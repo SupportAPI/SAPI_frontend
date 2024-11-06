@@ -2,6 +2,7 @@ import AppRoutes from './routes/AppRoutes';
 import useAuthStore from './stores/useAuthStore';
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
+import { useState } from 'react';
 import { ToastContainer, toast, cssTransition } from 'react-toastify';
 import { AiOutlineClose } from 'react-icons/ai';
 import 'react-toastify/dist/ReactToastify.css';
