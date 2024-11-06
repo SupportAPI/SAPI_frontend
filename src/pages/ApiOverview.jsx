@@ -1,24 +1,39 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { useDetailApiDocs, useDeleteApiDoc, useCreateApiDoc } from '../api/queries/useApiDocsQueries';
+import { useDetailApiDocs } from '../api/queries/useApiDocsQueries';
 import { useNavbarStore } from '../stores/useNavbarStore';
 import { useTabStore } from '../stores/useTabStore';
 import { FaCheck, FaTimes, FaTrashAlt, FaPlus, FaShareAlt, FaDownload } from 'react-icons/fa';
+import { useWebSocket } from '../contexts/WebSocketContext';
+import { toast } from 'react-toastify';
 
 const ApiOverview = () => {
-  const { data = [], isLoading, error } = useDetailApiDocs();
   const { workspaceId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { setMenu } = useNavbarStore();
   const { addTab, openTabs } = useTabStore();
 
-  const { mutate: deleteApiDoc } = useDeleteApiDoc();
-  const { mutate: createApiDoc } = useCreateApiDoc();
+  const { subscribe, publish, isConnected } = useWebSocket();
+  const { data: apiData = [], refetch } = useDetailApiDocs(workspaceId);
 
   const [selectedItems, setSelectedItems] = useState({});
   const [isAllSelected, setIsAllSelected] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  useEffect(() => {
+    // WebSocket 연결이 되어있을 때만 구독을 설정
+    if (isConnected) {
+      const subscription = subscribe(`/ws/sub/workspaces/${workspaceId}/docs`, (message) => {
+        console.log('Received WebSocket message:', message);
+        refetch(); // 메시지를 받으면 데이터 갱신
+      });
+
+      return () => {
+        subscription?.unsubscribe();
+      };
+    }
+  }, [isConnected, workspaceId, subscribe, refetch]);
 
   useEffect(() => {
     if (location.pathname === `/workspace/${workspaceId}/apidocs/all`) {
@@ -35,14 +50,14 @@ const ApiOverview = () => {
   }, [location, workspaceId, setMenu, addTab, openTabs]);
 
   useEffect(() => {
-    const allSelected = data.every((api) => selectedItems[api.docId]);
+    const allSelected = apiData.length > 0 && apiData.every((api) => selectedItems[api.docId]);
     setIsAllSelected(allSelected);
-  }, [selectedItems, data]);
+  }, [selectedItems, apiData]);
 
   const toggleSelectAll = () => {
     const newSelectedState = !isAllSelected;
     const newSelectedItems = {};
-    data.forEach((api) => {
+    apiData.forEach((api) => {
       newSelectedItems[api.docId] = newSelectedState;
     });
     setSelectedItems(newSelectedItems);
@@ -61,13 +76,22 @@ const ApiOverview = () => {
   };
 
   const handleDeleteSelected = () => {
+    const hasSelectedItems = Object.values(selectedItems).some((isSelected) => isSelected);
+    if (!hasSelectedItems) {
+      toast.error('삭제할 항목이 없습니다.');
+      return;
+    }
     setShowDeleteModal(true);
   };
 
   const handleConfirmDelete = () => {
-    Object.keys(selectedItems).forEach((apiId) => {
-      if (selectedItems[apiId]) {
-        deleteApiDoc({ workspaceId, apiId });
+    Object.keys(selectedItems).forEach((docId) => {
+      if (selectedItems[docId]) {
+        console.log(docId);
+        publish(`/ws/pub/workspaces/${workspaceId}/docs`, {
+          type: 'DELETE',
+          message: docId,
+        });
       }
     });
     setSelectedItems({});
@@ -75,13 +99,11 @@ const ApiOverview = () => {
   };
 
   const handleAddApiDoc = () => {
-    if (workspaceId) {
-      createApiDoc(workspaceId);
-    }
+    publish(`/ws/pub/workspaces/${workspaceId}/docs`, {
+      type: 'ADD',
+      message: '',
+    });
   };
-
-  if (isLoading) return <div className='p-4'>Loading...</div>;
-  if (error) return <div className='p-4'>Failed to load data.</div>;
 
   return (
     <div className='px-8 py-8 overflow-x-auto'>
@@ -161,7 +183,7 @@ const ApiOverview = () => {
             </tr>
           </thead>
           <tbody>
-            {data.map((api) => {
+            {apiData.map((api) => {
               const isSelected = !!selectedItems[api.docId];
               return (
                 <tr

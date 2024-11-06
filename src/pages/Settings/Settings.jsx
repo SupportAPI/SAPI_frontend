@@ -29,7 +29,7 @@ const Settings = ({ onClose }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <header className='flex justify-between items-center w-full h-[10%] text-xl bg-[#f0f5f8] border-none rounded-t-lg'>
-          <div className='text-3xl font-semibold ml-10'>Settings</div>
+          <div className='text-3xl ml-10'>Settings</div>
           <button className='mr-4' onClick={onClose}>
             <IoClose className='text-3xl' />
           </button>
