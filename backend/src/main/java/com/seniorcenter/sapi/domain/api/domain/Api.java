@@ -45,8 +45,6 @@ public class Api extends BaseTimeEntity {
 
     private String category;
 
-    private String description;
-
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "specification_id")
     private Specification specification;

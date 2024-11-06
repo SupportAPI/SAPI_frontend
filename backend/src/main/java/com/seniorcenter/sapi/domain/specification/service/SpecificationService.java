@@ -40,7 +40,7 @@ public class SpecificationService {
     private final ApiLambdaService apiLambdaService;
 
     @Transactional
-    public void createSpecification(SpecificationMessage message, UUID worksapceId) {
+    public void createSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
         Api api = Api.createApi();
         apiRepository.save(api);
         Workspace workspace = workspaceRepository.findById(worksapceId)
