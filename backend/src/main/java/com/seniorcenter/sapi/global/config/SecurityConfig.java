@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.seniorcenter.sapi.global.security.exceptionhandler.CustomExceptionHandler;
 import com.seniorcenter.sapi.global.security.jwt.JwtAuthorizationFilter;
 import com.seniorcenter.sapi.global.security.jwt.TokenProvider;
 
@@ -23,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
 	private final TokenProvider tokenProvider;
-	private final CustomExceptionHandler customExceptionHandler;
 
 	@Bean
 	public JwtAuthorizationFilter jwtAuthorizationFilter() throws Exception {
@@ -47,7 +45,6 @@ public class SecurityConfig {
 			.requestMatchers("/ws/ws-stomp/**", "/ws/pub/**", "/ws/sub/**").permitAll()
 			.anyRequest().authenticated()
 		);
-		http.exceptionHandling((handle) -> handle.authenticationEntryPoint(customExceptionHandler));
 		http.addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
