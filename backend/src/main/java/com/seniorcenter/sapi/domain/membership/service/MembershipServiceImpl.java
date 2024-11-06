@@ -18,6 +18,8 @@ import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMe
 import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMembershipRoleRequestDto;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.response.InvitedWorkspaceInfoResponseDto;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.response.MemberInfoResponseDto;
+import com.seniorcenter.sapi.domain.notification.domain.NotificationType;
+import com.seniorcenter.sapi.domain.notification.util.SseUtils;
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
@@ -35,6 +37,7 @@ public class MembershipServiceImpl implements MembershipService {
 	private final MembershipRepository membershipRepository;
 	private final WorkspaceRepository workspaceRepository;
 	private final UserUtils userUtils;
+	private final SseUtils sseUtils;
 
 	@Override
 	@Transactional
@@ -62,6 +65,7 @@ public class MembershipServiceImpl implements MembershipService {
 				Membership membership = Membership.createMembership(invitedUser, workspace, Role.MEMBER,
 					InviteStatus.PENDING);
 				memberships.add(membership);
+				sseUtils.send(invitedUser, workspaceId, NotificationType.WORKSPACE_INVITE);
 			}
 		}
 		membershipRepository.saveAll(memberships);
