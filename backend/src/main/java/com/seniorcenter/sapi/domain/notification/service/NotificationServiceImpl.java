@@ -66,8 +66,8 @@ public class NotificationServiceImpl implements NotificationService {
 		Notification notification = notificationRepository.save(createNotification(receiver, specificationId, notificationType));
 		String userId = String.valueOf(receiver.getId());
 
-		NotificationResponseDto responseDto = new NotificationResponseDto(specificationId, "테스트~",
-			notification.getMessage(), notification.getCreatedDate());
+		NotificationResponseDto responseDto = new NotificationResponseDto(notification.getId(),
+			specificationId, "테스트~", notification.getMessage(), notification.getCreatedDate());
 
 		Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByUserId(userId);
 		sseEmitters.forEach(
@@ -121,6 +121,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 		return notifications.stream()
 			.map(notification -> new NotificationResponseDto(
+				notification.getId(),
 				notification.getSpecificationId(),
 				notification.getApiName(),
 				notification.getMessage(),
