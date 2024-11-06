@@ -29,6 +29,8 @@ public class Api extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private HttpMethod method;
 
+    private String description;
+
     @Enumerated(EnumType.STRING)
     private BodyType bodyType;
 
@@ -49,6 +51,7 @@ public class Api extends BaseTimeEntity {
         this.bodyType = BodyType.NONE;
         this.authenticationType = AuthenticationType.NOAUTH;
         this.category = "Uncategorized";
+        this.description = "";
         this.specification = specification;
     }
 
