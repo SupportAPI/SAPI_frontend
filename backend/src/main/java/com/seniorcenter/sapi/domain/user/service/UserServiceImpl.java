@@ -1,7 +1,12 @@
 package com.seniorcenter.sapi.domain.user.service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,9 +125,13 @@ public class UserServiceImpl implements UserService {
 			throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
 		}
 
-		String profileImageUrl = profileImage == null || profileImage.isEmpty()
-			? "https://sapibucket.s3.ap-northeast-2.amazonaws.com/default_images/basic_image.png"
-			: s3UploadUtil.saveFile(profileImage);
+		String profileImageUrl = "";
+		if (profileImage != null && !profileImage.isEmpty()) {
+			profileImageUrl = s3UploadUtil.saveFile(profileImage);
+		} else {
+			profileImageUrl = user.getProfileImage();
+		}
+
 		user.updateInfo(requestDto.nickname(), profileImageUrl);
 	}
 
@@ -138,4 +147,35 @@ public class UserServiceImpl implements UserService {
 
 		user.resign();
 	}
+
+	@Override
+	public List<UserInfoResponseDto> searchUsersNotInWorkspaceWithEmail(UUID workspaceId, String emailValue) {
+		Pageable pageable = PageRequest.of(0, 30);
+		List<User> users = userRepository.findUsersNotInWorkspaceWithEmail(workspaceId, emailValue, pageable);
+
+		return users.stream()
+			.map(user -> new UserInfoResponseDto(
+				user.getId(),
+				user.getEmail(),
+				user.getNickname(),
+				user.getProfileImage()
+			))
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<UserInfoResponseDto> searchUserInWorkspaceWithNickname(UUID workspaceId, String nicknameValue) {
+		Pageable pageable = PageRequest.of(0, 30);
+		List<User> users = userRepository.findUsersInWorkspaceWithNickname(workspaceId, nicknameValue, pageable);
+
+		return users.stream()
+			.map(user -> new UserInfoResponseDto(
+				user.getId(),
+				user.getEmail(),
+				user.getNickname(),
+				user.getProfileImage()
+			))
+			.collect(Collectors.toList());
+	}
+
 }

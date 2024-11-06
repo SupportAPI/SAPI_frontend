@@ -46,6 +46,9 @@ public class Workspace extends BaseTimeEntity {
 	@Column(nullable = false)
 	private String domain;
 
+	@Column(nullable = false)
+	private Boolean isCompleted;
+
 	@OneToMany(mappedBy = "workspace", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Membership> memberships = new ArrayList<>();
 
@@ -61,6 +64,7 @@ public class Workspace extends BaseTimeEntity {
 		this.description = description;
 		this.mainImage = mainImage;
 		this.domain = domain;
+		this.isCompleted = false;
 	}
 
 	public static Workspace createWorkspace(CreateWorkspaceRequestDto requestDto, String mainImageUrl) {
@@ -77,5 +81,6 @@ public class Workspace extends BaseTimeEntity {
 		this.description = requestDto.description();
 		this.domain = requestDto.domain();
 		this.mainImage = mainImage;
+		this.isCompleted = requestDto.isCompleted();
 	}
 }

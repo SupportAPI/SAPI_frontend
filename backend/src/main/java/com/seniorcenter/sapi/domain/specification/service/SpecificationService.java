@@ -1,6 +1,9 @@
 package com.seniorcenter.sapi.domain.specification.service;
 
 import com.seniorcenter.sapi.domain.api.domain.Api;
+import com.seniorcenter.sapi.domain.api.domain.ApiBody;
+import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiBodyRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.domain.specification.domain.SpecificationMessage;
@@ -38,11 +41,16 @@ public class SpecificationService {
     private final ApiRepository apiRepository;
     private final UserUtils userUtils;
     private final ApiLambdaService apiLambdaService;
+    private final ApiBodyRepository apiBodyRepository;
 
     @Transactional
     public void createSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
         Api api = Api.createApi();
         apiRepository.save(api);
+
+        ApiBody jsonBody = ApiBody.createApiBody(api, ParameterType.JSON);
+        apiBodyRepository.save(jsonBody);
+
         Workspace workspace = workspaceRepository.findById(worksapceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
         Specification specification = Specification.createSpecification(api.getId(), workspace);
