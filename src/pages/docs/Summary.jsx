@@ -1,16 +1,12 @@
-const Summary = ({ apiDetail, method, methodStyles, apiUrl, description, params, request, response }) => {
-  const { headers = [], authType = 'None', authorization = '', queryParams = [], cookies = [] } = params;
+const Summary = ({ apiName, method, methodStyles, apiUrl, description, params, request, response }) => {
+  const { headers = [], authType = 'None', queryParameters = [], cookies = [] } = params;
 
-  const { requestType = 'None', jsonData = '', formData = [] } = request;
-
-  const { statusCodes = [], responses = [] } = response;
-
-  console.log(statusCodes);
+  const { bodyType = 'None', json = '', formData = [] } = request;
 
   return (
     <div className=''>
       <h3 className='text-2xl font-bold'>Summary</h3>
-      <p className='text-2xl mt-4 text-[#666666]'>{apiDetail.name || 'Enter API name'}</p>
+      <p className='text-2xl mt-4 text-[#666666]'>{apiName || 'Enter API name'}</p>
       <div className='flex flex-row justify-content items-center'>
         <p
           className={`my-2 ${methodStyles[method]} border border-gray-300 p-2 
@@ -71,9 +67,9 @@ const Summary = ({ apiDetail, method, methodStyles, apiUrl, description, params,
 
       {/* Request Body */}
       <p className='text-xl text-[#666666] mt-5 mb-2'>Request Body</p>
-      {requestType === 'none' ? (
+      {bodyType === 'none' ? (
         <p className='text-[#666666]'>No Request Body</p>
-      ) : requestType === 'json' ? (
+      ) : bodyType === 'json' ? (
         <>
           <p className='text-lg text-[#666666] mb-2'>Request Type : JSON </p>
           <div className='text-[#666666] bg-gray-100 p-2 rounded-md' style={{ whiteSpace: 'pre-wrap' }}>

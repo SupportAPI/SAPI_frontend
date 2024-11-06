@@ -102,7 +102,7 @@ const ApiDocsDetail = () => {
       ...prevDetail,
       parameters: newParams,
     }));
-    console.log('updated', apiDetail.parameters);
+    console.log('updated', apiDetail?.parameters);
     // console.log('Updated Parameters:', newParams);
   };
 
