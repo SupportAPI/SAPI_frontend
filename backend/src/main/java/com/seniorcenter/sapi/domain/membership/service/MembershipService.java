@@ -18,4 +18,6 @@ public interface MembershipService {
 	void updateMembershipAuthority(UpdateMembershipAuthorityRequestDto requestDto, Long membershipId);
 	List<MemberInfoResponseDto> getMembershipsAtWorkspace(UUID workspaceId);
 	List<InvitedWorkspaceInfoResponseDto> getInvitedMemberships();
+	void resign(UUID workspaceId);
+	void exile(Long userId, UUID workspaceId);
 }
