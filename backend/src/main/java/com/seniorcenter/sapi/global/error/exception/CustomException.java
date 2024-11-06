@@ -14,6 +14,7 @@ public enum CustomException {
 	VERIFICATION_CODE_MISMATCH(400, "인증번호가 일치하지 않습니다"),
 	NOT_ALLOWED_INVITE_SELF(400, "자신을 워크스페이스에 초대할 수 없습니다."),
 	FAIL_TO_SEND_NOTIFICATION(400, "알림 전송이 실패했습니다."),
+	FAIL_SECESSION_BY_MAINTAINER(400, "관리자는 워크스페이스 탈퇴가 불가합니다. 다른 멤버에게 관리자 역할을 부여해주세요."),
 
 	/* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
 	NOT_FOUND_SESSION_EXCEPTION(401, "세션이 존재하지 않습니다."),
@@ -22,7 +23,7 @@ public enum CustomException {
 	NOT_VALID_JWT_EXCEPTION(401, "토큰이 유효하지 않습니다."),
 
 	/* 403 FORBIDDEN : 리소스에 대한 접근이 금지됨 */
-	ACCESS_DENIED_EXCEPTION(403, "권한이 없습니다"),
+	ACCESS_DENIED_EXCEPTION(403, "권한이 없습니다."),
 
 	/* 404 NOT_FOUND : 리소스를 찾을 수 없음 */
 	NOT_FOUND_USER_EXCEPTION(404, "해당하는 정보의 사용자를 찾을 수 없습니다."),
