@@ -96,8 +96,8 @@ const InviteUser = ({ workspaceId, onClose }) => {
     <div className='fixed flex justify-center items-center inset-0 bg-black bg-opacity-30 z-50'>
       {/* 모달 크기 정의 */}
       <div className='flex flex-col items-center bg-white w-[800px] h-[800px] border rounded-2xl'>
-        <header className='flex justify-between items-center w-full text-xl mb-4 h-[80px] bg-blue-100 rounded-t-2xl'>
-          <div className='text-3xl font-semibold ml-10'>Invite User</div>
+        <header className='flex justify-between items-center w-full text-xl mb-4 h-[80px] bg-[#f0f5f8] rounded-t-2xl'>
+          <div className='text-3xl  ml-10'>Invite User</div>
           <button className='mr-4' onClick={onClose}>
             <IoClose className='text-3xl' />
           </button>
@@ -108,7 +108,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
           <div className='mb-5'>
             {/* 초대할 사람 입력 */}
             <div className='flex flex-col'>
-              <div className='text-lg font-semibold'>Invite a member to Project</div>
+              <div className='text-lg '>Invite a member to Project</div>
               <div className='flex justify-between items-center'>
                 <input
                   type='text'
@@ -123,7 +123,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
                   }}
                 />
                 <button
-                  className={`w-20 h-14 ml-3 border rounded-lg bg-green-500 hover:bg-green-600`}
+                  className={`w-20 h-14 ml-3 rounded-lg bg-green-500 hover:bg-green-600`}
                   onClick={() => ValidUserEmail()}
                 >
                   Invite
@@ -162,7 +162,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
           </div>
           <button
             className={`text-white py-2 px-4 rounded-lg ${
-              isactiveSend ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-300'
+              isactiveSend ? 'bg-blue-500 hover:bg-blue-400' : 'bg-gray-300'
             }`}
             disabled={!isactiveSend}
             onClick={sendInvitation}
