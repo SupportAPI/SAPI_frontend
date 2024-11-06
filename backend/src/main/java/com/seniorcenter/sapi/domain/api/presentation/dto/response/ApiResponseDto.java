@@ -1,9 +1,9 @@
 package com.seniorcenter.sapi.domain.api.presentation.dto.response;
 
 import com.seniorcenter.sapi.domain.api.domain.Api;
-import com.seniorcenter.sapi.domain.api.domain.AuthenticationType;
-import com.seniorcenter.sapi.domain.api.domain.BodyType;
-import com.seniorcenter.sapi.domain.api.domain.HttpMethod;
+import com.seniorcenter.sapi.domain.api.domain.enums.AuthenticationType;
+import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
+import com.seniorcenter.sapi.domain.api.domain.enums.HttpMethod;
 
 import java.util.UUID;
 

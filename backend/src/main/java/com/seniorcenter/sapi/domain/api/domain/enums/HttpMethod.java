@@ -1,4 +1,4 @@
-package com.seniorcenter.sapi.domain.api.domain;
+package com.seniorcenter.sapi.domain.api.domain.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
