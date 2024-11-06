@@ -24,7 +24,7 @@ const App = () => {
   const { setReceived } = useAlarmStore();
 
   useEffect(() => {
-    const eventSource = new EventSourcePolyfill(`http://192.168.31.35:8080/api/notifications/connect`, {
+    const eventSource = new EventSourcePolyfill(`${baseUrl}/api/notifications/connect`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
