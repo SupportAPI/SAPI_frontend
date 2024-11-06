@@ -260,7 +260,7 @@ const ApiDocsDetail = () => {
             response={apiDetail?.response}
           />
         )}
-        {activeRightTab === 'comment' && <Comments />}
+        {activeRightTab === 'comment' && <Comments docsId={apiDetail?.docsId} workspaceId={workspaceId} />}
         {activeRightTab === 'code' && (
           <CodeSnippet
             path={apiDetail?.path}
