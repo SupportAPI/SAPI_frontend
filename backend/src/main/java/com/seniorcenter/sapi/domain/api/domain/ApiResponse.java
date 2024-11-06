@@ -22,26 +22,40 @@ public class ApiResponse extends BaseTimeEntity {
     private Api api;
 
     private int code;
-    private String description;
 
     @Enumerated(EnumType.STRING)
     private BodyType bodyType;
 
     private String bodyData;
 
+    private String description;
+
     @Builder
-    public ApiResponse(Api api, int code) {
+    public ApiResponse(Api api, int code, BodyType bodyType, String bodyData, String description) {
         this.api = api;
         this.code = code;
-        this.description = "";
-        this.bodyType = BodyType.JSON;
-        this.bodyData = "";
+        this.bodyType = bodyType;
+        this.bodyData = bodyData;
+        this.description = description;
     }
 
     public static ApiResponse createApiResponse(Api api, int code) {
         return ApiResponse.builder()
                 .api(api)
                 .code(code)
+                .bodyType(BodyType.NONE)
+                .bodyData("")
+                .description("")
+                .build();
+    }
+
+    public static ApiResponse copyApiResponse(Api api, ApiResponse originResponse) {
+        return ApiResponse.builder()
+                .api(api)
+                .code(originResponse.getCode())
+                .bodyType(originResponse.getBodyType())
+                .bodyData(originResponse.getBodyData())
+                .description(originResponse.getDescription())
                 .build();
     }
 }
