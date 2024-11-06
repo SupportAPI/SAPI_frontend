@@ -5,9 +5,10 @@ import java.util.UUID;
 
 public record NotificationResponseDto(
 	Long id,
-	UUID specificationId,
-	String apiName,
+	UUID fromId,
+	String fromName,
 	String message,
+	String notificationType,
 	LocalDateTime createdDatetime
 ) {
 }
