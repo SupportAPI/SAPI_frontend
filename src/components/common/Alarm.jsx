@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiX } from 'react-icons/fi';
+import { useMutation } from 'react-query';
+import { fetchNotifications } from '../../api/queries/useNotificationsQueries';
 
 const Alarm = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 1, title: 'Friend Request', message: 'You have a new friend request.', date: '2024-10-01' },
-    { id: 2, title: 'Password Changed', message: 'Your password was changed successfully.', date: '2024-10-03' },
-    { id: 3, title: 'Unread Messages', message: 'You have unread messages in your inbox.', date: '2024-10-05' },
-    {
-      id: 4,
-      title: 'Email Verification',
-      message:
-        'Please verify your email addressasdasdasdasdasdasdasdasdasdasdsaasdasdasdasdasdasdasdasdasdasdasdasdasdasdasaddressasdasdasdasdasdasdasdasdasdasdsaasdasdasdasdasdasdaddressasdasdasdasdasdasdasdasdasdasdsaasdasdasdasdasdasdasdasdasdasdasdasdasdasdasaddressasdasdasdasdasdasdasdasdasdasdsaasdasdasdasdasdasdasdasdasdasdasdasdasdasdasaddressasdasdasdasdasdasdasdasdasdasdsaasdasdasdasdasdasdasdasdasdasdasdasdasdasdasasdasdasdasdasdasdasdasdas.',
-      date: '2024-10-07',
+  const [notifications, setNotifications] = useState([]);
+
+  const alarmMutation = useMutation(() => fetchNotifications(), {
+    onSuccess: (response) => {
+      if (response !== undefined) setNotifications(response);
     },
-  ]);
+    onError: (error) => {
+      console.error('alarm fetch error', error);
+    },
+  });
+
+  useEffect(() => {
+    alarmMutation.mutate();
+  }, []);
 
   const toggleNotification = () => {
     setIsNotificationOpen(!isNotificationOpen);
@@ -43,8 +47,17 @@ const Alarm = () => {
                 className='flex flex-col gap-1 p-3 hover:bg-[#EBF3F8] border-b border-gray-100 last:border-b-0'
               >
                 <div className='flex flex-row ml-1'>
-                  <p className='text-lg text-black font-bold'>{notification.title}</p>
-                  <p className='text-xs text-black ml-2 mt-2'>{notification.date}</p>
+                  <p className='text-lg text-black font-bold'>{notification.apiName}</p>
+                  <p className='text-xs text-black ml-2 mt-2'>
+                    {' '}
+                    {new Date(notification.createdDatetime).toLocaleString('ko-KR', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
                   <FiX
                     className='text-lg mt-1 ml-auto cursor-pointer'
                     onClick={(event) => handleDeleteNotification(notification.id, event)}
