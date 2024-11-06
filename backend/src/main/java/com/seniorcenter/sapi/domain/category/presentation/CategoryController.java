@@ -30,7 +30,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/workspaces/{workspaceId}/categories/{categoryId}")
-    public void deleteCategory(@PathVariable Long workspaceId, @PathVariable("workspaceId") Long categoryId){
+    public void deleteCategory(@PathVariable("workspaceId") UUID workspaceId, @PathVariable("categoryId") Long categoryId){
         categoryService.removeCategory(categoryId);
     }
 

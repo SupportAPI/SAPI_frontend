@@ -35,7 +35,13 @@ public class CategoryService {
 
     @Transactional
     public CategoryResponseDto createCategory(CreateCategoryRequestDto createCategoryRequestDto, UUID workspaceId) {
-        Workspace workspace = workspaceRepository.findById(workspaceId).orElse(null);
+        Workspace workspace = workspaceRepository.findById(workspaceId)
+                .orElseThrow(()->new MainException(CustomException.NOT_FOUND_WORKSPACE));
+        categoryRepository.findByWorkspaceIdAndName(workspaceId,createCategoryRequestDto.name())
+                .ifPresent(existingCategory -> {
+                    throw new MainException(CustomException.DUPLICATE_CATEGORY);
+                });
+
         Category category = Category.createCategory(createCategoryRequestDto.name(),workspace);
         categoryRepository.save(category);
         return new CategoryResponseDto(category);

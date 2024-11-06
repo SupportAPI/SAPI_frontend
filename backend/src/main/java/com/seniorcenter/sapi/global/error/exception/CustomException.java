@@ -40,6 +40,7 @@ public enum CustomException {
 
 	/* 409 중복된 리소스 */
 	EMAIL_ALREADY_VERIFIED(409, "이 이메일은 이미 인증되었습니다"),
+	DUPLICATE_CATEGORY(409,"이미 존재하는 카테고리입니다."),
 
 
 	/* 500 SERVER_ERROR */
