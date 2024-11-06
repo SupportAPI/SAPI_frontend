@@ -21,6 +21,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -39,7 +40,7 @@ public class SpecificationService {
     private final ApiLambdaService apiLambdaService;
 
     @Transactional
-    public void createSpecification(SpecificationMessage message, UUID worksapceId) {
+    public void createSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
         Api api = Api.createApi();
         apiRepository.save(api);
         Workspace workspace = workspaceRepository.findById(worksapceId)
@@ -51,8 +52,8 @@ public class SpecificationService {
     }
 
     @Transactional
-    public void removeSpecification(SpecificationMessage message, UUID worksapceId) {
-        UUID specificationId = UUID.fromString(message.message());
+    public void removeSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
+        UUID specificationId = UUID.fromString((String) message.message());
         Specification specification = specificationRepository.findById(specificationId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
@@ -62,6 +63,11 @@ public class SpecificationService {
             specificationRepository.delete(specification);
             sendOriginMessageToAll(message, worksapceId);
         }
+    }
+
+    @Transactional
+    public void updateSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
+
     }
 
     @Transactional
@@ -102,18 +108,19 @@ public class SpecificationService {
         if (user != null) {
             messagingTemplate.convertAndSendToUser(
                     String.valueOf(user.getId()),
-                    "/ws/sub/workspace/" + workspaceUUID + "/specification/errors",
+                    "/ws/sub/workspaces/" + workspaceUUID + "/docs/errors",
                     errorMessage
             );
         }
     }
 
     public void sendOriginMessageToAll(SpecificationMessage message, UUID worksapceUUId) {
-        messagingTemplate.convertAndSend("/ws/sub/specification/workspace/" + worksapceUUId, message);
+        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + worksapceUUId + "/docs", message);
     }
 
     @Transactional
     public UUID createSpecificationByApi(UUID workspaceId) {
+        String tempLambdaId = "1"; // 임시 lambda ID
         Api api = Api.createApi();
         apiRepository.save(api);
         Workspace workspace = workspaceRepository.findById(workspaceId)

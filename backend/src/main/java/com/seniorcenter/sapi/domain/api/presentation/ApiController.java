@@ -1,7 +1,7 @@
 package com.seniorcenter.sapi.domain.api.presentation;
 
-import com.seniorcenter.sapi.domain.api.presentation.dto.ApiDetailResponseDto;
-import com.seniorcenter.sapi.domain.api.presentation.dto.ApiResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.service.ApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.seniorcenter.sapi.domain.api.presentation.dto;
+package com.seniorcenter.sapi.domain.api.presentation.dto.response;
 
 import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
 

@@ -3,8 +3,8 @@ package com.seniorcenter.sapi.domain.api.service;
 import com.seniorcenter.sapi.domain.api.domain.Api;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
-import com.seniorcenter.sapi.domain.api.presentation.dto.ApiDetailResponseDto;
-import com.seniorcenter.sapi.domain.api.presentation.dto.ApiResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepository;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
@@ -19,6 +19,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -36,29 +37,31 @@ public class ApiService {
     private final UserUtils userUtils;
 
     @Transactional
-    public void createApi(ApiMessage message) {
-        Specification specification = specificationRepository.findById(message.specificationUUID())
+    public void createApi(ApiMessage message, UUID workspaceId, UUID docId, Principal principal) {
+        Specification specification = specificationRepository.findById(docId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
         Api api = Api.createApi();
         api.updateSpecification(specification);
         apiRepository.save(api);
-        sendOriginMessageToAll(message);
+        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/docs/" + docId + "/apis", message);
     }
 
-    @Transactional
-    public void removeApi(ApiMessage message) {
-        Api api = apiRepository.findById(message.apiUUID());
+//    @Transactional
+//    public void removeApi(ApiMessage message, UUID workspaceId, UUID docId, Principal principal) {
+//
+//        Api api = apiRepository.findById(message.apiUUID());
+//
+//        if (api == null) {
+//            sendErrorMessageToUser("존재하지 않는 API UUID입니다.", workspaceId);
+//        } else {
+//            apiRepository.delete(api);
+//            messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/docs/" + docId + "/apis", message);
+//        }
+//    }
 
-        if (api == null) {
-            sendErrorMessageToUser("존재하지 않는 API UUID입니다.", message.workspaceUUID());
-        } else {
-            apiRepository.delete(api);
-            sendOriginMessageToAll(message);
-        }
-    }
-
     @Transactional
-    public void updateApi() {
+    public void updateApi(ApiMessage message, UUID workspaceId, UUID docId, Principal principal) {
+        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/docs/" + docId + "/apis", message);
     }
 
     @Transactional
@@ -80,10 +83,6 @@ public class ApiService {
                     errorMessage
             );
         }
-    }
-
-    public void sendOriginMessageToAll(ApiMessage message) {
-        messagingTemplate.convertAndSend("/ws/sub/workspace/" + message.workspaceUUID() + "/api", message);
     }
 
     public List<ApiResponseDto> getApiHistoryBySpecificationId(UUID specificationId) {

@@ -20,7 +20,8 @@ public record SpecificationResponseDto(
         BodyType bodyType,
         AuthenticationType authenticationType,
         TestStatus localStatus,
-        TestStatus serverStatus
+        TestStatus serverStatus,
+        String description
 ) {
     public SpecificationResponseDto(Api api, Specification specification) {
         this(
@@ -34,7 +35,8 @@ public record SpecificationResponseDto(
                 api.getBodyType(),
                 api.getAuthenticationType(),
                 specification.getLocalStatus(),
-                specification.getServerStatus()
+                specification.getServerStatus(),
+                api.getDescription()
         );
     }
 }

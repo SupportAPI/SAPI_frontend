@@ -35,6 +35,8 @@ public class Api extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private HttpMethod method;
 
+    private String description;
+
     @Enumerated(EnumType.STRING)
     private BodyType bodyType;
 
@@ -42,8 +44,6 @@ public class Api extends BaseTimeEntity {
     private AuthenticationType authenticationType;
 
     private String category;
-
-    private String description;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "specification_id")

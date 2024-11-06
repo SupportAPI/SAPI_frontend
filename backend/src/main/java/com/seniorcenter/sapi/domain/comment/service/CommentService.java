@@ -16,6 +16,7 @@ import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.user.domain.repository.UserRepository;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
+import com.seniorcenter.sapi.global.type.MessageType;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -88,6 +89,7 @@ public class CommentService {
 
     public Long getCommentId(UUID docId) {
         Comment comment = commentRepository.findFirstBySpecificationIdOrderByCreatedDateDesc(docId);
+        if(comment == null) return -1L;
         return comment.getId();
     }
 
@@ -111,7 +113,8 @@ public class CommentService {
         List<CommentPart> messages = updateMessage.message();
         String modifiedMessage = makeCommentText(messages);
         comment.updateComment(modifiedMessage);
-        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", message);
+        CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
+        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", new CommentMessage(MessageType.UPDATE,commentResponseDto));
     }
 
     @Transactional
@@ -179,7 +182,7 @@ public class CommentService {
     public void createAndSendComment(CommentMessage message, UUID docId, Principal principal) {
         Comment comment = createComment(message, docId, principal);
         CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
-        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", commentResponseDto);
+        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", new CommentMessage(MessageType.ADD,commentResponseDto));
     }
 
     public String makeCommentText(List<CommentPart> messages) {

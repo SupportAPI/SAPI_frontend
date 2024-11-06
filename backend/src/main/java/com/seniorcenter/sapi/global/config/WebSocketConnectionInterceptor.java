@@ -21,6 +21,11 @@ public class WebSocketConnectionInterceptor implements ChannelInterceptor {
             if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                 log.info("WebSocket 연결됨: 세션 ID = {}", accessor.getSessionId());
             }
+            else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+                String sessionId = accessor.getSessionId();
+                String destination = accessor.getDestination();
+                log.info("WebSocket 구독 요청: 세션 ID = {}, 구독 경로 = {}", sessionId, destination);
+            }
             else if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
                 log.info("WebSocket 연결 해제: 세션 ID = {}", accessor.getSessionId());
             }
