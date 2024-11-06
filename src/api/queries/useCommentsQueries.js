@@ -35,17 +35,23 @@ export const findComments = async (id, size) => {
   }
 };
 
-export const findUsers = async (nickname) => {
+export const findUsers = async (workspaceId, nicknameValue) => {
   try {
     console.log(nickname);
     const accessToken = getToken();
-    const response = await axios.get(`${base_URL}/users`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      params: { nickname },
-    });
+    const response = await axios.get(
+      `${base_URL}/users/comment-search?workspaceId=${workspaceId}&nicknameValue=${nicknameValue}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        params: {
+          workspaceId: workspaceId,
+          nicknameValue: nicknameValue,
+        },
+      }
+    );
     return response.data.data;
   } catch (error) {
     console.error('Find comments error:', error);

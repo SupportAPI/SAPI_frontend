@@ -6,12 +6,12 @@ import { useFetchWorkspaces } from '../../api/queries/useWorkspaceQueries';
 import Alarm from './Alarm';
 import Settings from '../../pages/Settings/Settings';
 import useAuthStore from '../../stores/useAuthStore'; // useAuthStore 가져오기
+import { useAlarmStore } from '../../stores/useAlarmStore';
 
 const Header = () => {
   const [isWorkspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [hasNotifications, setHasNotifications] = useState(true);
   const { workspaceId: currentWorkspaceId } = useParams();
   const workspaceName = `Workspace ${currentWorkspaceId}`;
 
@@ -23,6 +23,7 @@ const Header = () => {
 
   const { data: workspaces = [] } = useFetchWorkspaces('1');
   const logout = useAuthStore((state) => state.logout); // logout 함수 가져오기
+  const { received, setReceived } = useAlarmStore();
 
   const filteredWorkspaces = workspaces.filter((workspace) => workspace.id !== currentWorkspaceId);
 
@@ -87,9 +88,15 @@ const Header = () => {
       <div className='flex items-center gap-8'>
         {/* 알람 */}
         <div className='relative' ref={alarmRef}>
-          <FaBell className='text-2xl cursor-pointer' onClick={() => setIsNotificationOpen((prev) => !prev)} />
+          <FaBell
+            className='text-2xl cursor-pointer'
+            onClick={() => {
+              setIsNotificationOpen((prev) => !prev);
+              setReceived(false);
+            }}
+          />
           {isNotificationOpen && <Alarm />}
-          {hasNotifications && <span className='absolute top-0 right-0 bg-red-500 rounded-full w-3 h-3'></span>}
+          {received && <span className='absolute top-0 right-0 bg-red-500 rounded-full w-3 h-3'></span>}
         </div>
 
         {/* Setting 모달 열기 */}

@@ -5,6 +5,7 @@ import { useNavbarStore } from '../stores/useNavbarStore';
 import { useTabStore } from '../stores/useTabStore';
 import { FaCheck, FaTimes, FaTrashAlt, FaPlus, FaShareAlt, FaDownload } from 'react-icons/fa';
 import { useWebSocket } from '../contexts/WebSocketContext';
+import { toast } from 'react-toastify';
 
 const ApiOverview = () => {
   const { workspaceId } = useParams();
@@ -49,7 +50,7 @@ const ApiOverview = () => {
   }, [location, workspaceId, setMenu, addTab, openTabs]);
 
   useEffect(() => {
-    const allSelected = apiData.every((api) => selectedItems[api.docId]);
+    const allSelected = apiData.length > 0 && apiData.every((api) => selectedItems[api.docId]);
     setIsAllSelected(allSelected);
   }, [selectedItems, apiData]);
 
@@ -75,6 +76,11 @@ const ApiOverview = () => {
   };
 
   const handleDeleteSelected = () => {
+    const hasSelectedItems = Object.values(selectedItems).some((isSelected) => isSelected);
+    if (!hasSelectedItems) {
+      toast.error('삭제할 항목이 없습니다.');
+      return;
+    }
     setShowDeleteModal(true);
   };
 

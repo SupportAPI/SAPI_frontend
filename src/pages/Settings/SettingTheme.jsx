@@ -10,7 +10,7 @@ const SettingThemee = () => {
   return (
     <div className='m-10'>
       <div className='flex flex-col'>
-        <div className='text-2xl font-semibold mb-5'>Theme</div>
+        <div className='text-2xl mb-5'>Theme</div>
         <div className='border'></div>
 
         <div className='flex flex-col mt-10'>

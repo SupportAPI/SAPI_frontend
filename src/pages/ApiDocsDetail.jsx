@@ -17,12 +17,12 @@ import CodeSnippet from './docs/CodeSnippet';
 const ApiDocsDetail = () => {
   const { workspaceId, apiId } = useParams();
   const location = useLocation();
-  const { data: apiData, isLoading, error } = useApiDocDetail(workspaceId, apiId);
+  const { data: apiData, isLoading, error } = useApiDocDetail();
+  const [apiDetail, setApiDetail] = useState(null);
   const { setMenu } = useNavbarStore();
   const { expandedCategories, expandCategory } = useSidebarStore();
   const { addTab, openTabs } = useTabStore();
 
-  const [apiDetail, setApiDetail] = useState(apiData || null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeLeftTab, setActiveLeftTab] = useState('parameters');
   const [activeRightTab, setActiveRightTab] = useState(null);
@@ -42,7 +42,6 @@ const ApiDocsDetail = () => {
 
   useEffect(() => {
     if (location.pathname.includes('/apidocs')) setMenu('API Docs');
-
     if (apiData && apiId) {
       setApiDetail(apiData);
       const category = apiData.category;
@@ -282,7 +281,7 @@ const ApiDocsDetail = () => {
             response={apiDetail?.response}
           />
         )}
-        {activeRightTab === 'comment' && <Comments />}
+        {activeRightTab === 'comment' && <Comments docsId={apiDetail?.docsId} workspaceId={workspaceId} />}
         {activeRightTab === 'code' && (
           <CodeSnippet
             path={apiDetail?.path}

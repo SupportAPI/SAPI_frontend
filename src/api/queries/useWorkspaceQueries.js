@@ -131,7 +131,6 @@ export const useFetchInviteUser = (useremail) => {
 // 5. 유저 워크스페이스로 초대하기
 export const InviteMember = async (requestData) => {
   const accessToken = getToken();
-  console.log(requestData);
   const response = await axios.post(`${base_URL}/api/memberships`, requestData, {
     headers: {
       'Content-Type': 'application/json',
