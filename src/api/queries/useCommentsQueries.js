@@ -5,22 +5,20 @@ const base_URL = 'https://k11b305.p.ssafy.io'; // 본 서버
 
 export const findIndex = async () => {
   const accessToken = getToken();
-  console.log('accessToken', accessToken);
-  const response = await axios.get(`${base_URL}/api/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments/last-index`, {
+  const response = await axios.get(`${base_URL}/api/docs/6a0c76ad-b4f1-4148-8ebc-78e6e104b1cf/comments/last-index`, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
   });
-  return response.data;
+  return response.data.data;
 };
 
 export const findComments = async (id, size) => {
   try {
     console.log(`Requesting: /comments?targetcommentid=${id}&size=${size}`);
     const accessToken = getToken();
-    console.log('accessToken', accessToken);
-    const response = await axios.get(`${base_URL}/api/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, {
+    const response = await axios.get(`${base_URL}/api/docs/6a0c76ad-b4f1-4148-8ebc-78e6e104b1cf/comments`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
@@ -30,7 +28,7 @@ export const findComments = async (id, size) => {
         size: size,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error('Find comments error:', error);
     throw error;
@@ -48,7 +46,7 @@ export const findUsers = async (nickname) => {
       },
       params: { nickname },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error('Find comments error:', error);
     throw error;
