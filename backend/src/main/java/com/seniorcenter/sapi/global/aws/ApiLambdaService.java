@@ -58,7 +58,8 @@ public class ApiLambdaService {
         Specification specification = specificationRepository.findById(specificationId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
-        Api confirmedApi = apiRepository.findById(specification.getConfirmedApiId());
+        Api confirmedApi = apiRepository.findById(specification.getConfirmedApiId())
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
         // 최초 생성 여부 확인
         if(specification.getApiGatewayId().isEmpty()) {

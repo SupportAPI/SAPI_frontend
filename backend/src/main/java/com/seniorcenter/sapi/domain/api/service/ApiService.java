@@ -1,6 +1,6 @@
 package com.seniorcenter.sapi.domain.api.service;
 
-import com.seniorcenter.sapi.domain.api.domain.Api;
+import com.seniorcenter.sapi.domain.api.domain.*;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
@@ -9,6 +9,7 @@ import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepository;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
+import com.seniorcenter.sapi.domain.specification.service.SpecificationService;
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
@@ -69,9 +70,31 @@ public class ApiService {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         return specifications.stream()
                 .map(specification -> {
-                    Api api = apiRepository.findById(specification.getConfirmedApiId());
+                    Api api = apiRepository.findById(specification.getConfirmedApiId())
+                            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
                     return new ApiResponseDto(api);
                 }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void createKeyValueApi(ApiMessage message, UUID workspaceId, UUID docId, Principal principal) {
+        User user = userUtils.getUserFromSecurityPrincipal(principal);
+        Specification specification = specificationRepository.findById(docId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+        Api api = apiRepository.findById(specification.getConfirmedApiId())
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
+            ApiQueryParameter apiQueryParameter = ApiQueryParameter.createApiQueryParameter(api);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
+            ApiHeader apiHeader = ApiHeader.createApiHeader(api);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
+            ApiCookie apiCookie = ApiCookie.createApiCookie(api);
+        } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
+        }
+
+
+        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/docs/" + docId + "/apis", message);
     }
 
     public void sendErrorMessageToUser(String errorMessage, UUID workspaceUUID) {

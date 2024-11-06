@@ -12,7 +12,7 @@ import com.seniorcenter.sapi.domain.membership.domain.Membership;
 
 public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
-	@Query("SELECT m FROM Membership m JOIN FETCH m.workspace WHERE m.user.id = :userId")
+	@Query("SELECT m FROM Membership m JOIN FETCH m.workspace WHERE m.user.id = :userId AND m.inviteStatus = 'ACCEPTED'")
 	List<Membership> findMembershipsWithWorkspacesByUserId(@Param("userId") Long userId);
 
 	Optional<Membership> findByUserIdAndWorkspaceId(Long userId, UUID workspaceId);

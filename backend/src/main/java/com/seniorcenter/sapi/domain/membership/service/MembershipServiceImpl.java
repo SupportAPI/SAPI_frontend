@@ -159,4 +159,36 @@ public class MembershipServiceImpl implements MembershipService {
 			))
 			.collect(Collectors.toList());
 	}
+
+	@Override
+	@Transactional
+	public void resign(UUID workspaceId) {
+		User user = userUtils.getUserFromSecurityContext();
+		Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
+			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_MEMBERSHIP));
+
+		if (membership.getRole().equals(Role.MAINTAINER)) {
+			throw new MainException(CustomException.FAIL_SECESSION_BY_MAINTAINER);
+		}
+
+		membershipRepository.delete(membership);
+	}
+
+	@Override
+	@Transactional
+	public void exile(Long userId, UUID workspaceId) {
+		User maintainer = userUtils.getUserFromSecurityContext();
+		Membership maintainerMembership = membershipRepository.findByUserIdAndWorkspaceId(maintainer.getId(), workspaceId)
+			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_MEMBERSHIP));
+
+		if (!maintainerMembership.getRole().equals(Role.MAINTAINER)) {
+			throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
+		}
+
+		Membership membership = membershipRepository.findByUserIdAndWorkspaceId(userId, workspaceId)
+			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_MEMBERSHIP));
+
+		membershipRepository.delete(membership);
+	}
+
 }

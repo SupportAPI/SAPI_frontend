@@ -1,5 +1,8 @@
 package com.seniorcenter.sapi.domain.user.presentation;
 
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -93,6 +96,16 @@ public class UserController {
 	@DeleteMapping("/{userId}")
 	public void resignUser(@PathVariable Long userId) {
 		userService.resignUser(userId);
+	}
+
+	@GetMapping("/workspace-search")
+	public List<UserInfoResponseDto> searchUsersNotInWorkspaceWithEmail(@RequestParam UUID workspaceId, @RequestParam String emailValue) {
+		return userService.searchUsersNotInWorkspaceWithEmail(workspaceId, emailValue);
+	}
+
+	@GetMapping("/comment-search")
+	public List<UserInfoResponseDto> searchUserInWorkspaceWithNickname(@RequestParam UUID workspaceId, @RequestParam String nicknameValue) {
+		return userService.searchUserInWorkspaceWithNickname(workspaceId, nicknameValue);
 	}
 
 }
