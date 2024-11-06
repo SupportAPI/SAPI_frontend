@@ -31,18 +31,31 @@ public class ApiBody extends BaseTimeEntity {
     private String description;
 
     @Builder
-    public ApiBody(Api api, ParameterType parameterType) {
+    public ApiBody(Api api, ParameterType parameterType, String bodyKey, String bodyValue, String description) {
         this.api = api;
         this.parameterType = parameterType;
-        this.bodyKey = "";
-        this.bodyValue = "";
-        this.description = "";
+        this.bodyKey = bodyKey;
+        this.bodyValue = bodyValue;
+        this.description = description;
     }
 
     public static ApiBody createApiBody(Api api, ParameterType parameterType) {
         return ApiBody.builder()
                 .api(api)
                 .parameterType(parameterType)
+                .bodyKey("")
+                .bodyValue("")
+                .description("")
+                .build();
+    }
+
+    public static ApiBody copyBody(Api api, ApiBody originBody) {
+        return ApiBody.builder()
+                .api(api)
+                .parameterType(originBody.getParameterType())
+                .bodyKey(originBody.getBodyKey())
+                .bodyValue(originBody.getBodyValue())
+                .description(originBody.getDescription())
                 .build();
     }
 }
