@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { FaBook, FaListAlt, FaFlask, FaTachometerAlt } from 'react-icons/fa';
+import { TbLogout2 } from 'react-icons/tb';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = ({ onMenuClick }) => {
+  const navigate = useNavigate();
   const [selectedMenu, setSelectedMenu] = useState(null);
 
   const handleMenuClick = (menu) => {
@@ -66,6 +69,9 @@ const Navbar = ({ onMenuClick }) => {
           </div>
         </li>
       </ul>
+      <button onClick={() => navigate('/workspaces')}>
+        <TbLogout2 className='text-3xl m-5 text-[#475467]' />
+      </button>
     </nav>
   );
 };

@@ -1,27 +1,25 @@
-
 import { FaChevronDown, FaPlus, FaSearch } from 'react-icons/fa';
 import { useTabStore } from '../../stores/useTabStore';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 const DashboardSidebar = () => {
-
   const { addTab, confirmTab } = useTabStore();
   const navigate = useNavigate();
   const location = useLocation();
   const { workspaceId } = useParams();
 
   const paths = [
-    { id : 1, name : "Dashboard Overview", path : `/workspace/${workspaceId}/dashboard/all` },
-    { id : 2, name : "Dashboard Daily", path : `/workspace/${workspaceId}/dashboard/daily` },
-    { id : 3, name : "Dashboard Status", path : `/workspace/${workspaceId}/dashboard/status` },
+    { id: 1, name: 'Dashboard Overview', path: `/workspace/${workspaceId}/dashboard/all` },
+    { id: 2, name: 'Dashboard Daily', path: `/workspace/${workspaceId}/dashboard/daily` },
+    { id: 3, name: 'Dashboard Status', path: `/workspace/${workspaceId}/dashboard/status` },
   ];
 
   const handleDashboardClick = (id) => {
     if (!workspaceId) return;
-  
+
     const selectedPath = paths.find((item) => item.id === id);
-  
+
     if (selectedPath) {
       addTab({
         id: selectedPath.id,
@@ -31,14 +29,11 @@ const DashboardSidebar = () => {
 
       navigate(selectedPath.path);
     }
-
   };
 
   const handleDashboardDoubleClick = (id) => {
-
     confirmTab(id);
-
-  }
+  };
 
   return (
     <div className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm'>
@@ -60,27 +55,24 @@ const DashboardSidebar = () => {
           <ul className='pl-4'>
             {paths.map((p) => {
               const isActive = location.pathname === p.path;
-              return(
-                <li 
+              return (
+                <li
                   key={p.id}
                   className={`cursor-pointer w-full relative ${
-                  isActive ? 'bg-blue-100 text-blue-800 font-semibold' : ''
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDashboardClick(p.id);
-                }}
-                onDoubleClick={()=>{
-                  handleDashboardDoubleClick(p.id);
-                }}
+                    isActive ? 'bg-blue-100 text-blue-800 font-semibold' : ''
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDashboardClick(p.id);
+                  }}
+                  onDoubleClick={() => {
+                    handleDashboardDoubleClick(p.id);
+                  }}
                 >
-                  <div className='pl-12 pr-4 py-2 flex justify-between items-center'>
-                    {p.name}
-                  </div>
+                  <div className='pl-12 pr-4 py-2 flex justify-between items-center'>{p.name}</div>
                 </li>
               );
-              })
-            }
+            })}
           </ul>
         </div>
       </div>
