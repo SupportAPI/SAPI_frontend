@@ -75,7 +75,8 @@ public class SpecificationService {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         return specifications.stream()
                 .map(specification -> {
-                    Api api = apiRepository.findById(specification.getConfirmedApiId());
+                    Api api = apiRepository.findById(specification.getConfirmedApiId())
+                            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
                     return new SpecificationResponseDto(api, specification);
                 }).collect(Collectors.toList());
     }
@@ -89,7 +90,8 @@ public class SpecificationService {
         List<SpecificationCategoryResponseDto> categoryResponseDtos = new ArrayList<>();
         specifications.stream()
                 .map(specification -> {
-                    Api api = apiRepository.findById(specification.getConfirmedApiId());
+                    Api api = apiRepository.findById(specification.getConfirmedApiId())
+                            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
                     if (!categoryMap.containsKey(api.getCategory())) {
                         categoryMap.put(api.getCategory(), categoryIndex.incrementAndGet() - 1);
                         categoryResponseDtos.add(new SpecificationCategoryResponseDto(api.getCategory(), new ArrayList<>()));

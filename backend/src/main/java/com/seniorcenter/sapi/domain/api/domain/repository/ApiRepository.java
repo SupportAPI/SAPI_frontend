@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ApiRepository extends JpaRepository<Api, Long> {
-    Api findById(UUID apiUUID);
+    Optional<Api> findById(UUID apiUUID);
 
     List<Api> findBySpecificationIdOrderByCreatedDateDesc(UUID specificationId);
 
