@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
+import Editor from '@monaco-editor/react';
 
 const Request = ({ requestChange = () => {}, initialValues }) => {
-  const [requestType, setRequestType] = useState(initialValues?.requestType || 'none');
-  const [jsonData, setJsonData] = useState(initialValues?.json || '{}');
-  const [formData, setFormData] = useState(initialValues?.formData || [{ key: '', value: '' }]);
+  const [requestType, setRequestType] = useState(initialValues?.bodyType || 'none');
+  const [jsonData, setJsonData] = useState(initialValues?.json?.jsonDataValue || '{}');
+  const [formData, setFormData] = useState(initialValues?.formData || []);
 
   const handleRequestTypeChange = (type) => {
     setRequestType(type);
@@ -12,48 +13,29 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
 
   useEffect(() => {
     requestChange({
-      requestType,
-      jsonData,
-      formData,
+      bodyType: requestType,
+      json: {
+        jsonDataId: initialValues?.json?.jsonDataId || '',
+        jsonDataKey: initialValues?.json?.jsonDataKey || 'json',
+        jsonDataValue: jsonData,
+        jsonDataType: initialValues?.json?.jsonDataType || 'JSON',
+        jsonDataDescription: initialValues?.json?.jsonDataDescription || null,
+      },
+      formData: formData.map((data) => ({
+        formDataId: data.formDataId || '',
+        formDataKey: data.formDataKey || '',
+        formDataValue: data.formDataValue || '',
+        formDataType: data.formDataType || 'TEXT',
+        formDataDescription: data.formDataDescription || null,
+      })),
     });
   }, [requestType, jsonData, formData]);
 
-  const handleJsonInputChange = (e) => {
-    const { value, selectionStart } = e.target;
-    const lastChar = value[selectionStart - 1];
-    const nextChar = value[selectionStart];
-
-    // `{` 입력 시 `}` 추가하고 자동 개행 및 들여쓰기 설정
-    if (lastChar === '{' && nextChar !== '}') {
-      const newValue = value.slice(0, selectionStart) + '\n  \n}' + value.slice(selectionStart);
-      setJsonData(newValue);
-
-      // 커서를 중괄호 안쪽 새 줄로 이동
-      setTimeout(() => {
-        e.target.selectionStart = selectionStart + 3;
-        e.target.selectionEnd = selectionStart + 3;
-      }, 0);
-    }
-    // 자동 줄바꿈 및 들여쓰기 유지
-    else if (lastChar === '\n') {
-      const previousIndentation = (value.slice(0, selectionStart).match(/(  )*$/) || [''])[0];
-      const indentation = previousIndentation + '  '; // 기본 들여쓰기 2칸
-
-      const newValue = value.slice(0, selectionStart) + indentation + value.slice(selectionStart);
-      setJsonData(newValue);
-
-      // 커서를 들여쓴 위치로 이동
-      setTimeout(() => {
-        e.target.selectionStart = selectionStart + indentation.length;
-        e.target.selectionEnd = selectionStart + indentation.length;
-      }, 0);
-    } else {
-      setJsonData(value);
-    }
-  };
-
   const handleAddFormData = () => {
-    setFormData([...formData, { key: '', value: '' }]);
+    setFormData([
+      ...formData,
+      { formDataId: '', formDataKey: '', formDataValue: '', formDataType: 'TEXT', formDataDescription: '' },
+    ]);
   };
 
   const handleFormDataChange = (index, field, value) => {
@@ -69,21 +51,19 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
   const handleFormatJson = () => {
     try {
       const parsed = JSON.parse(jsonData);
-      setJsonData(JSON.stringify(parsed, null, 2)); // JSON 정렬 시 기본 들여쓰기 2칸 적용
+      setJsonData(JSON.stringify(parsed, null, 2));
     } catch (error) {
       alert('유효한 JSON 형식이 아닙니다.');
     }
   };
 
-  console.log(formData);
-
   return (
-    <div className='mb-4'>
-      <label className='block font-semibold mb-2 text-[18px]'>Request</label>
+    <div className='pt-4'>
+      <label className='block text-[18px] font-semibold h-8'>Request</label>
       <select
         value={requestType}
         onChange={(e) => handleRequestTypeChange(e.target.value)}
-        className='border rounded px-2 py-1 mb-4 w-full'
+        className='border rounded px-2 py-1 w-full h-10'
       >
         <option value='none'>None</option>
         <option value='json'>JSON</option>
@@ -94,18 +74,23 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
       {requestType === 'json' && (
         <div className='mb-4'>
           <label className='block text-[16px] font-semibold mb-2'>JSON Data</label>
-          <textarea
-            className='border rounded w-full p-2 font-mono text-sm bg-gray-50'
-            rows={10}
-            placeholder='Enter JSON data here...'
+          <Editor
+            height='200px'
+            language='json'
             value={jsonData}
-            onChange={handleJsonInputChange}
-            style={{
-              whiteSpace: 'pre',
-              overflowWrap: 'break-word',
-              lineHeight: '1.4',
-              borderLeft: '4px solid #ccc',
-              paddingLeft: '10px',
+            onChange={(value) => setJsonData(value || '{}')}
+            options={{
+              automaticLayout: true,
+              autoClosingBrackets: 'always',
+              formatOnType: true,
+              overviewRulerLanes: 0,
+              hideCursorInOverviewRuler: true,
+              minimap: {
+                enabled: false,
+                renderCharacters: false,
+                showSlider: 'mouseover',
+                decorations: false,
+              },
             }}
           />
           <button className='mt-2 bg-blue-500 text-white px-4 py-2 rounded' onClick={handleFormatJson}>
@@ -126,15 +111,23 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
                   className='border rounded p-2 flex-1'
                   placeholder='Key'
                   value={field.formDataKey}
-                  onChange={(e) => handleFormDataChange(index, 'key', e.target.value)}
+                  onChange={(e) => handleFormDataChange(index, 'formDataKey', e.target.value)}
                 />
                 <input
                   type='text'
                   className='border rounded p-2 flex-1'
                   placeholder='Value'
                   value={field.formDataValue}
-                  onChange={(e) => handleFormDataChange(index, 'value', e.target.value)}
+                  onChange={(e) => handleFormDataChange(index, 'formDataValue', e.target.value)}
                 />
+                <select
+                  className='border rounded p-2 flex-1'
+                  value={field.formDataType}
+                  onChange={(e) => handleFormDataChange(index, 'formDataType', e.target.value)}
+                >
+                  <option value='TEXT'>Text</option>
+                  <option value='FILE'>File</option>
+                </select>
                 <button onClick={() => handleRemoveFormData(index)} className='text-red-500 font-bold'>
                   🗑️
                 </button>

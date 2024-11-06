@@ -3,10 +3,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFetchWorkspaces, useDeleteWorkspace } from '../../api/queries/useWorkspaceQueries';
 import { useQueryClient } from 'react-query';
+import { toast } from 'react-toastify';
 import CreateWorkspace from './CreateWorkspace';
 import InviteUser from './InviteUser';
 import Settings from './Settings';
 import Header from './Header';
+import CheckModal from '../../components/common/CheckModal';
 
 import { FaMinus } from 'react-icons/fa6';
 import { FaPlus } from 'react-icons/fa6';
@@ -63,9 +65,10 @@ const WorkspaceSelection = () => {
 
   // 워크스페이스 삭제
   const DeleteWorkspace = (workspaceId) => {
-    if (window.confirm('정말로 삭제하시겠습니까?')) {
+    if (workspaceId) {
       workSpaceDeleteMutation.mutate(workspaceId);
       setDevelopAuthId(null);
+      toast('워크스페이스가 삭제되었습니다.');
     }
   };
 
@@ -150,6 +153,17 @@ const WorkspaceSelection = () => {
     setIsSortDOrder({ column, direction });
   };
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteWorkspaceId, setdeleteWorkspaceId] = useState('');
+  const handleAgree = () => {
+    DeleteWorkspace(deleteWorkspaceId);
+    setIsModalOpen(false); // 모달 닫기
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false); // 모달 닫기
+  };
+
   // 로딩 중인 경우 로딩 메시지 표시
   if (isLoading) {
     return <p>Loading workspaces...</p>;
@@ -187,6 +201,17 @@ const WorkspaceSelection = () => {
             )}
             {/* Setting 모달 */}
             {isOpenSetting && <Settings onClose={() => setIsOpenSetting(false)} />}
+            {isModalOpen && (
+              <CheckModal
+                modalTitle='워크스페이스 삭제 확인'
+                modalContent={`정말로 삭제하시겠습니까?
+                삭제된 워크스페이스는 복구할 수 없습니다.`}
+                cancleFunction={handleCancel}
+                cancleName='취소'
+                agreeFunction={handleAgree}
+                agreeName='확인'
+              />
+            )}
 
             {/* In Progress가 들어갈 공간 */}
             <section className='flex flex-col border rounded-3xl bg-white p-8'>
@@ -305,7 +330,10 @@ const WorkspaceSelection = () => {
                                   >
                                     <button
                                       className='w-full text-left p-2 hover:bg-red-100 text-red-500 text-center'
-                                      onClick={() => DeleteWorkspace(item.id)}
+                                      onClick={() => {
+                                        setIsModalOpen(true);
+                                        setdeleteWorkspaceId(item.id);
+                                      }}
                                     >
                                       DELETE
                                     </button>

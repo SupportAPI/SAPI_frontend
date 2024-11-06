@@ -12,11 +12,12 @@ import Request from './docs/Request';
 import Response from './docs/Response';
 import Comments from './docs/Comments';
 import Summary from './docs/Summary';
+import CodeSnippet from './docs/CodeSnippet';
 
 const ApiDocsDetail = () => {
   const { workspaceId, apiId } = useParams();
   const location = useLocation();
-  const { data: apiData, isLoading, error } = useApiDocDetail();
+  const { data: apiData, isLoading, error } = useApiDocDetail(workspaceId, apiId);
   const { setMenu } = useNavbarStore();
   const { expandedCategories, expandCategory } = useSidebarStore();
   const { addTab, openTabs } = useTabStore();
@@ -43,9 +44,7 @@ const ApiDocsDetail = () => {
     if (location.pathname.includes('/apidocs')) setMenu('API Docs');
 
     if (apiData && apiId) {
-      console.log('apiData loaded:', apiData); // 로드된 apiData 출력
       setApiDetail(apiData);
-
       const category = apiData.category;
       if (category && !expandedCategories[category]) expandCategory(category);
       if (!openTabs.find((tab) => tab.id === apiId)) {
@@ -54,10 +53,13 @@ const ApiDocsDetail = () => {
     }
   }, [apiData, apiId, expandCategory, addTab, setMenu, expandedCategories, openTabs, location.pathname, workspaceId]);
 
+<<<<<<< HEAD
   // useEffect(() => {
   //   console.log('apiDetail updated:', apiDetail); // apiDetail이 변경될 때마다 출력
   // }, [apiDetail]);
 
+=======
+>>>>>>> 5a923362ab44d73e8480e6a726977719d29f5240
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -86,10 +88,19 @@ const ApiDocsDetail = () => {
     setApiDetail((prev) => ({ ...prev, path: e.target.value }));
   };
 
+  const handleNameChange = (e) => {
+    setApiDetail((prev) => ({ ...prev, name: e.target.value }));
+  };
+
+  const handleCategoryChange = (e) => {
+    setApiDetail((prev) => ({ ...prev, category: e.target.value }));
+  };
+
   const toggleRightTab = (tab) => {
     setActiveRightTab(activeRightTab === tab ? null : tab);
   };
 
+<<<<<<< HEAD
   // paramsChange 함수 정의
   const handleParamsChange = (newParams) => {
     setApiDetail((prevDetail) => ({
@@ -107,21 +118,37 @@ const ApiDocsDetail = () => {
     }));
     // console.log('Updated Request:', newRequest);
   };
+=======
+  const handleParamsChange = (newParams) => {};
+
+  const handleRequestChange = (newRequest) => {};
+>>>>>>> 5a923362ab44d73e8480e6a726977719d29f5240
 
   const handleResponseChange = (updatedResponse) => {
     setApiDetail((prevDetail) => ({
       ...prevDetail,
       response: updatedResponse,
     }));
+<<<<<<< HEAD
     // console.log('Updated Response:', updatedResponse);
+=======
+>>>>>>> 5a923362ab44d73e8480e6a726977719d29f5240
   };
+
+  console.log(apiDetail);
 
   return (
     <div className='flex h-[calc(100vh -104px)]'>
       {/* Left Section with Scrollable Content */}
       <div className='flex-1 p-8 overflow-y-auto h-[calc(100vh-104px)] sidebar-scrollbar scrollbar-gutter-stable'>
         <div className='flex justify-between items-baseline mb-4'>
-          <h2 className='text-2xl font-bold'>{apiDetail?.name || 'Enter API name'}</h2>
+          <input
+            type='text'
+            className='text-2xl font-bold border-b focus:outline-none'
+            value={apiDetail?.name || ''}
+            onChange={handleNameChange}
+            placeholder='Enter API Name'
+          />
           <div className='flex space-x-4'>
             <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
               <FaSave />
@@ -140,6 +167,18 @@ const ApiDocsDetail = () => {
               <span>Share</span>
             </button>
           </div>
+        </div>
+
+        {/* Category Field */}
+        <div className='mb-4'>
+          <label className='block text-[18px] font-semibold mb-2'>Category</label>
+          <input
+            type='text'
+            className='border rounded px-2 py-1 w-full'
+            placeholder='Enter Category'
+            value={apiDetail?.category || ''}
+            onChange={handleCategoryChange}
+          />
         </div>
 
         {/* API Path and Description */}
@@ -257,12 +296,12 @@ const ApiDocsDetail = () => {
         )}
         {activeRightTab === 'comment' && <Comments />}
         {activeRightTab === 'code' && (
-          <div>
-            <h4 className='font-bold'>Code Snippet</h4>
-            <pre className='bg-gray-100 p-2 rounded'>
-              <code>{`fetch('${apiDetail?.path}', { method: '${apiDetail?.method}' })`}</code>
-            </pre>
-          </div>
+          <CodeSnippet
+            path={apiDetail?.path}
+            method={apiDetail?.method}
+            parameters={apiDetail.parameters}
+            request={apiDetail.request}
+          />
         )}
       </div>
 

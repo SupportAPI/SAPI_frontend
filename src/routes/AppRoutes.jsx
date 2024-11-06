@@ -11,6 +11,7 @@ import DashboardDaily from '../pages/Dashboard/DashboardDaily';
 import DashboardStatus from '../pages/Dashboard/DashboardStatus';
 import useAuthStore from '../stores/useAuthStore';
 import Environment from '../pages/Environment/Environment';
+import ApiTest from '../pages/ApiTest/APItest';
 
 const AppRoutes = () => {
   const userId = useAuthStore((state) => state.userId);
@@ -73,6 +74,14 @@ const AppRoutes = () => {
         element={
           <Layout>
             <Environment />
+          </Layout>
+        }
+      />
+      <Route
+        path='/workspace/:workspaceId/api-test'
+        element={
+          <Layout>
+            <ApiTest />
           </Layout>
         }
       />
