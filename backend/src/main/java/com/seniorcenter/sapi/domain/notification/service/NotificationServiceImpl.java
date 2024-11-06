@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -23,9 +24,11 @@ import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationServiceImpl implements NotificationService {
 
 	private final EmitterRepository emitterRepository;
@@ -49,7 +52,7 @@ public class NotificationServiceImpl implements NotificationService {
 		emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
 
 		// 최초 연결 시 더미데이터가 없으면 503 오류가 발생하기 때문에 더미데이터 생성
-		sendToClient(emitter, emitterId, "EventStream Created. [userId=" + userId + "]");
+		sendToClient(emitter, emitterId, "{\"message\": \"EventStream Created.\", \"userId\": " + userId + "}");
 
 		// lastEventId가 있다는 것은 연결이 종료됐다고 판단함. 메모리에 저장된 데이터를 모두 전송.
 		if (!lastEventId.isEmpty()) {
@@ -107,8 +110,10 @@ public class NotificationServiceImpl implements NotificationService {
 		try {
 			emitter.send(SseEmitter.event()
 				.id(emitterId)
-				.data(data));
+				.name("notification")
+				.data(data, MediaType.APPLICATION_JSON));
 		} catch (IOException e) {
+			log.error(e.getMessage());
 			emitterRepository.deleteById(emitterId);
 			throw new MainException(CustomException.FAIL_TO_SEND_NOTIFICATION);
 		}
