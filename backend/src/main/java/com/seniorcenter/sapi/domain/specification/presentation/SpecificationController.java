@@ -1,6 +1,6 @@
 package com.seniorcenter.sapi.domain.specification.presentation;
 
-import com.seniorcenter.sapi.domain.api.presentation.dto.ApiResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.service.ApiService;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationCategoryResponseDto;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationResponseDto;
