@@ -1,15 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
 import { FaBell, FaUser, FaCog } from 'react-icons/fa';
 import Alarm from '../../components/common/Alarm';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../../stores/useAuthStore';
+import { useAlarmStore } from '../../stores/useAlarmStore';
 
 const Header = ({ onSettingsClick }) => {
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const { received, setReceived } = useAlarmStore();
 
   // 알람에 대한 정보
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [hasNotifications, setHasNotifications] = useState(true);
   const alarmRef = useRef(null);
+
+  // 로그아웃
+  const logout = useAuthStore((state) => state.logout); // logout 함수 가져오기
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const handleClickOutside = (event) => {
     if (alarmRef.current && !alarmRef.current.contains(event.target)) {
@@ -36,9 +47,15 @@ const Header = ({ onSettingsClick }) => {
       {/* 오른쪽 아이콘들 */}
       <div className='flex items-center space-x-8'>
         <div className='relative' ref={alarmRef}>
-          <FaBell className='text-2xl cursor-pointer' onClick={() => setIsNotificationOpen((prev) => !prev)} />
+          <FaBell
+            className='text-2xl cursor-pointer'
+            onClick={() => {
+              setIsNotificationOpen((prev) => !prev);
+              setReceived(false);
+            }}
+          />
           {isNotificationOpen && <Alarm />}
-          {hasNotifications && <span className='absolute top-0 right-0 bg-red-500 rounded-full w-3 h-3'></span>}
+          {received && <span className='absolute top-0 right-0 bg-red-500 rounded-full w-3 h-3'></span>}
         </div>
 
         {/* 설정에 대한 아이콘 */}
@@ -51,7 +68,9 @@ const Header = ({ onSettingsClick }) => {
             <div className='absolute right-0 mt-2 w-32 bg-white text-black rounded shadow-lg'>
               <ul>
                 <li className='px-4 py-2 hover:bg-gray-200 cursor-pointer'>Profile</li>
-                <li className='px-4 py-2 hover:bg-gray-200 cursor-pointer'>Logout</li>
+                <li className='px-4 py-2 hover:bg-gray-200 cursor-pointer' onClick={handleLogout}>
+                  Logout
+                </li>
               </ul>
             </div>
           )}

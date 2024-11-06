@@ -4,12 +4,13 @@ import { BiCollapseVertical, BiExpandVertical } from 'react-icons/bi';
 import { BsThreeDots } from 'react-icons/bs';
 import { useSidebarStore } from '../../stores/useSidebarStore';
 import { useTabStore } from '../../stores/useTabStore';
-import { useApiDocs, useCreateApiDoc, useDeleteApiDoc } from '../../api/queries/useApiDocsQueries';
+import { useApiDocs } from '../../api/queries/useApiDocsQueries'; // react-query로 데이터 불러오기만 사용
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useWebSocket } from '../../contexts/WebSocketContext'; // WebSocket 가져오기
 
 const ApiDocsSidebar = () => {
-  const { data = [], error } = useApiDocs();
+  const { data = [], error, refetch } = useApiDocs(); // refetch 함수 추가
   const { expandedCategories, toggleCategory, setAllCategories } = useSidebarStore();
   const { addTab, confirmTab } = useTabStore();
   const navigate = useNavigate();
@@ -17,15 +18,15 @@ const ApiDocsSidebar = () => {
   const location = useLocation();
   const [activeDropdown, setActiveDropdown] = useState(null);
   const dropdownRef = useRef(null);
-  const { mutate: createApiDoc } = useCreateApiDoc();
-  const { mutate: deleteApiDoc } = useDeleteApiDoc();
-
+  const { subscribe, publish, isConnected } = useWebSocket(); // WebSocket 메서드 추가
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedApiId, setSelectedApiId] = useState(null);
 
+  // WebSocket을 통해 ADD 이벤트를 전송
   const handleAddApiDoc = () => {
     if (workspaceId) {
-      createApiDoc(workspaceId);
+      publish(`/ws/pub/workspaces/${workspaceId}/docs`, { type: 'ADD', message: '' });
+      toast('새로운 API 문서가 추가되었습니다.');
     }
   };
 
@@ -77,12 +78,26 @@ const ApiDocsSidebar = () => {
 
   const handleConfirmDelete = () => {
     if (selectedApiId && workspaceId) {
-      deleteApiDoc({ workspaceId, docId: selectedApiId });
-      toast('삭제되었습니다.');
+      publish(`/ws/pub/workspaces/${workspaceId}/docs`, { type: 'DELETE', message: selectedApiId });
+      toast('API 문서가 삭제되었습니다.');
       setSelectedApiId(null);
       setShowDeleteModal(false); // 모달 닫기
     }
   };
+
+  // WebSocket을 통해 ADD, DELETE 이벤트 수신 시 refetch 실행
+  useEffect(() => {
+    if (isConnected) {
+      const subscription = subscribe(`/ws/sub/workspaces/${workspaceId}/docs`, (message) => {
+        console.log('Received WebSocket message:', message);
+        refetch(); // 이벤트 수신 시 데이터 갱신
+      });
+
+      return () => {
+        subscription?.unsubscribe();
+      };
+    }
+  }, [isConnected, workspaceId, subscribe, refetch]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -181,8 +196,7 @@ const ApiDocsSidebar = () => {
                     const isDropdownActive = activeDropdown === api.apiId;
                     return (
                       <li
-                        // key={api.apiId}
-                        key={api.id}
+                        key={api.apiId}
                         className={`cursor-pointer w-full relative group ${
                           isActive ? 'bg-blue-100 text-blue-800 font-semibold' : ''
                         } ${isDropdownActive ? 'bg-gray-300' : 'hover:bg-gray-300'}`}

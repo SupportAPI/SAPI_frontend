@@ -1,47 +1,96 @@
-const CodeSnippet = ({
-  apiUrl,
-  method,
-  headers,
-  pathVariables,
-  body,
-  queryParams,
-  httpClient = 'fetch', // 'fetch' 기본값
-  framework = 'react', // 'react' 기본값
-}) => {
-  // Path Variable과 Query Params를 포함한 최종 URL 생성
-  const fullUrl = `${apiUrl.replace(/:\w+/g, (match) => pathVariables[match.slice(1)] || match)}${
-    queryParams ? '?' + new URLSearchParams(queryParams).toString() : ''
-  }`;
+import { useState } from 'react';
+import Editor from '@monaco-editor/react';
+import { FiCopy } from 'react-icons/fi';
 
-  const fetchCode = `
-fetch('${fullUrl}', {
-  method: '${method}',${headers ? `\n  headers: ${JSON.stringify(headers)},` : ''}
-  ${body ? `body: JSON.stringify(${JSON.stringify(body)})` : ''}
+const CodeSnippet = ({ path, method, parameters, request }) => {
+  const [library, setLibrary] = useState('axios'); // 기본값을 'axios'로 설정
+
+  const headerValue = parameters.headers?.[0]?.headerValue || 'application/json';
+
+  const snippets = {
+    axios: `
+axios.${method.toLowerCase()}(\`\${url}/${path}\`, {
+  headers: {
+    'Content-Type': '${headerValue}',
+  },
+});
+    `,
+    fetch: `
+fetch(\`\${url}/${path}\`, {
+  method: '${method}',
+  headers: {
+    'Content-Type': '${headerValue}',
+  },
 })
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(error => console.error(error));
-  `;
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error(error));
+    `,
+  };
 
-  const axiosCode = `
-axios.${method.toLowerCase()}('${fullUrl}'${body ? `, ${JSON.stringify(body)}` : ''}, {
-  ${headers ? `headers: ${JSON.stringify(headers)}` : ''}
-})
-.then(response => console.log(response.data))
-.catch(error => console.error(error));
-  `;
-
-  // HTTP 클라이언트 선택에 따른 코드 생성
-  const codeSnippet = httpClient === 'axios' ? axiosCode : fetchCode;
+  const copyToClipboard = (code) => {
+    navigator.clipboard.writeText(code);
+    alert('코드가 클립보드에 복사되었습니다!');
+  };
 
   return (
     <div>
-      <h4 className='font-bold'>
-        Code Snippet ({framework.toUpperCase()} with {httpClient.toUpperCase()})
-      </h4>
-      <pre className='bg-gray-100 p-2 rounded'>
-        <code>{codeSnippet}</code>
-      </pre>
+      <h3 className='text-lg font-bold mb-4'>API 코드 스니펫</h3>
+
+      {/* axios와 fetch 선택 버튼 */}
+      <div className='flex items-center space-x-4 mb-6'>
+        <button
+          onClick={() => setLibrary('axios')}
+          className={`p-3 rounded-full ${library === 'axios' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+        >
+          Axios
+        </button>
+        <button
+          onClick={() => setLibrary('fetch')}
+          className={`p-3 rounded-full ${library === 'fetch' ? 'bg-green-500 text-white' : 'bg-gray-200'}`}
+        >
+          Fetch
+        </button>
+      </div>
+
+      {/* 코드 스니펫 영역 */}
+      <div className='mb-4 relative group'>
+        <span className='text-sm font-semibold mb-2'>{library.toUpperCase()}</span>
+        <div
+          className='border border-gray-300 rounded-md p-4 relative'
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          <Editor
+            height='200px'
+            defaultLanguage='javascript'
+            value={snippets[library]}
+            options={{
+              readOnly: true,
+              domReadOnly: true,
+              minimap: { enabled: false },
+              lineNumbers: 'off',
+              renderLineHighlight: 'none',
+              occurrencesHighlight: false,
+              selectionHighlight: false,
+              wordWrap: 'on',
+              overviewRulerLanes: 0,
+              scrollbar: {
+                horizontal: 'hidden',
+                vertical: 'hidden',
+              },
+            }}
+            theme='vs-light'
+          />
+
+          <button
+            onClick={() => copyToClipboard(snippets[library])}
+            className='absolute top-2 right-2 text-blue-500 hover:text-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200'
+            style={{ pointerEvents: 'auto' }}
+          >
+            <FiCopy size={18} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

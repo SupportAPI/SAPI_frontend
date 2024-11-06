@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useCreateWorkspace } from '../../api/queries/useWorkspaceQueries';
 import { IoClose } from 'react-icons/io5';
+import { toast } from 'react-toastify';
 
 const CreateWorkspace = ({ onComplete, onClose }) => {
   // 워크스페이스 상태 관리
@@ -29,6 +30,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
   const CreateWorkSpaceAPI = () => {
     if (projectName && domain && projectName.length <= 30 && domain.length <= 255 && description.length <= 255) {
       workSpaceMutation.mutate({ mainImage, projectName, description, domain });
+      toast('워크스페이스가 생성되었습니다.');
     } else {
       if (!projectName) {
         setShowNameError(true);
@@ -74,8 +76,8 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
     <div className='fixed flex justify-center items-center inset-0 bg-black bg-opacity-30 z-50'>
       {/* 모달 크기 정의 */}
       <div className='flex flex-col items-center bg-white w-[800px] h-[800px] border rounded-2xl'>
-        <header className='flex justify-between items-center w-full text-xl mb-4 h-[80px] bg-blue-100 rounded-t-2xl'>
-          <div className='text-3xl font-semibold ml-10'>Create Workspace</div>
+        <header className='flex justify-between items-center w-full text-xl mb-4 h-[80px] bg-[#f0f5f8] rounded-t-2xl'>
+          <div className='text-3xl ml-10'>Create Workspace</div>
           <button className='mr-4' onClick={onClose}>
             <IoClose className='text-3xl' />
           </button>
@@ -101,7 +103,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
             <div className='flex flex-col mb-1'>
               {/* WorkSpace 이름 입력 */}
               <div className='flex'>
-                <div className='text-lg font-semibold'>WorkSpaces name</div>
+                <div className='text-lg'>WorkSpaces name</div>
                 <div className='text-sm text-red-500'>*</div>
               </div>
               <input
@@ -117,7 +119,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
             {/* Domain 주소 입력 */}
             <div className='flex flex-col mb-1'>
               <div className='flex'>
-                <div className='text-lg font-semibold'>Domain Address</div>
+                <div className='text-lg'>Domain Address</div>
                 <div className='text-sm text-red-500'>*</div>
               </div>
               <input
@@ -132,7 +134,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
 
             {/* Description 입력 */}
             <div className='flex flex-col'>
-              <div className='text-lg font-semibold'>Description</div>
+              <div className='text-lg'>Description</div>
               <textarea
                 type='text'
                 className='border w-full h-28 p-3 rounded-lg sidebar-scrollbar resize-none'
@@ -146,7 +148,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
             </div>
           </div>
           <button
-            className='bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600'
+            className='bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-400'
             onClick={CreateWorkSpaceAPI}
           >
             Create

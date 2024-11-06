@@ -1,24 +1,38 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { useDetailApiDocs, useDeleteApiDoc, useCreateApiDoc } from '../api/queries/useApiDocsQueries';
+import { useDetailApiDocs } from '../api/queries/useApiDocsQueries';
 import { useNavbarStore } from '../stores/useNavbarStore';
 import { useTabStore } from '../stores/useTabStore';
 import { FaCheck, FaTimes, FaTrashAlt, FaPlus, FaShareAlt, FaDownload } from 'react-icons/fa';
+import { useWebSocket } from '../contexts/WebSocketContext';
+import { toast } from 'react-toastify';
 
 const ApiOverview = () => {
-  const { data = [], isLoading, error } = useDetailApiDocs();
   const { workspaceId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { setMenu } = useNavbarStore();
   const { addTab, openTabs } = useTabStore();
 
-  const { mutate: deleteApiDoc } = useDeleteApiDoc();
-  const { mutate: createApiDoc } = useCreateApiDoc();
+  const { subscribe, publish, isConnected } = useWebSocket();
+  const { data: apiData = [], refetch } = useDetailApiDocs(workspaceId);
 
   const [selectedItems, setSelectedItems] = useState({});
   const [isAllSelected, setIsAllSelected] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  useEffect(() => {
+    if (isConnected) {
+      const subscription = subscribe(`/ws/sub/workspaces/${workspaceId}/docs`, (message) => {
+        console.log('Received WebSocket message:', message);
+        refetch();
+      });
+
+      return () => {
+        subscription?.unsubscribe();
+      };
+    }
+  }, [isConnected, workspaceId, subscribe, refetch]);
 
   useEffect(() => {
     if (location.pathname === `/workspace/${workspaceId}/apidocs/all`) {
@@ -35,14 +49,14 @@ const ApiOverview = () => {
   }, [location, workspaceId, setMenu, addTab, openTabs]);
 
   useEffect(() => {
-    const allSelected = data.every((api) => selectedItems[api.docId]);
+    const allSelected = apiData.length > 0 && apiData.every((api) => selectedItems[api.docId]);
     setIsAllSelected(allSelected);
-  }, [selectedItems, data]);
+  }, [selectedItems, apiData]);
 
   const toggleSelectAll = () => {
     const newSelectedState = !isAllSelected;
     const newSelectedItems = {};
-    data.forEach((api) => {
+    apiData.forEach((api) => {
       newSelectedItems[api.docId] = newSelectedState;
     });
     setSelectedItems(newSelectedItems);
@@ -61,13 +75,22 @@ const ApiOverview = () => {
   };
 
   const handleDeleteSelected = () => {
+    const hasSelectedItems = Object.values(selectedItems).some((isSelected) => isSelected);
+    if (!hasSelectedItems) {
+      toast.error('삭제할 항목이 없습니다.');
+      return;
+    }
     setShowDeleteModal(true);
   };
 
   const handleConfirmDelete = () => {
-    Object.keys(selectedItems).forEach((apiId) => {
-      if (selectedItems[apiId]) {
-        deleteApiDoc({ workspaceId, apiId });
+    Object.keys(selectedItems).forEach((docId) => {
+      if (selectedItems[docId]) {
+        console.log(docId);
+        publish(`/ws/pub/workspaces/${workspaceId}/docs`, {
+          type: 'DELETE',
+          message: docId,
+        });
       }
     });
     setSelectedItems({});
@@ -75,17 +98,15 @@ const ApiOverview = () => {
   };
 
   const handleAddApiDoc = () => {
-    if (workspaceId) {
-      createApiDoc(workspaceId);
-    }
+    publish(`/ws/pub/workspaces/${workspaceId}/docs`, {
+      type: 'ADD',
+      message: '',
+    });
   };
-
-  if (isLoading) return <div className='p-4'>Loading...</div>;
-  if (error) return <div className='p-4'>Failed to load data.</div>;
 
   return (
     <div className='px-8 py-8 overflow-x-auto'>
-      <div className='flex justify-between items-baseline mb-4'>
+      <div className='flex justify-between items-baseline mb-8'>
         <h2 className='text-2xl font-bold'>API Overview</h2>
         <div className='flex space-x-4'>
           <button
@@ -141,43 +162,50 @@ const ApiOverview = () => {
         <table className='w-full min-w-[1200px] table-fixed' style={{ borderSpacing: 0 }}>
           <thead>
             <tr className='bg-gray-100 h-12'>
-              <th className='p-4 text-center font-medium w-[5%]'>
+              <th className='p-4 text-center font-medium w-[5%] cursor-default' onClick={() => toggleSelectAll()}>
                 <div className='flex items-center justify-center'>
                   <input
                     type='checkbox'
-                    className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500'
+                    className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500 cursor-default'
                     checked={isAllSelected}
                     onChange={toggleSelectAll}
                   />
                 </div>
               </th>
               <th className='p-4 text-left font-medium w-[15%]'>Category</th>
-              <th className='p-4 text-left font-medium w-[20%]'>API Name</th>
+              <th className='p-4 text-left font-medium w-[15%]'>API Name</th>
               <th className='p-4 text-left font-medium w-[10%]'>HTTP</th>
-              <th className='p-4 text-left font-medium w-[25%]'>API Path</th>
-              <th className='p-4 text-center font-medium w-[15%]'>Manager</th>
+              <th className='p-4 text-left font-medium w-[20%]'>API Path</th>
+              <th className='p-4 text-left font-medium w-[15%]'>Description</th>
+              <th className='p-4 text-center font-medium w-[10%]'>Manager</th>
               <th className='p-4 text-center font-medium w-[5%]'>LS</th>
               <th className='p-4 text-center font-medium w-[5%]'>SS</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((api) => {
+            {apiData.map((api) => {
               const isSelected = !!selectedItems[api.docId];
               return (
                 <tr
                   key={api.docId}
-                  onClick={() => handleRowClick(api.docId)}
+                  onClick={() => handleRowClick(api.apiId)}
                   className={`text-[14px] cursor-pointer ${
                     isSelected ? 'bg-indigo-50 hover:bg-indigo-100' : 'hover:bg-gray-50'
                   }`}
                 >
-                  <td className='p-4 text-center'>
+                  <td
+                    className='p-4 text-center cursor-default'
+                    onClick={(e) => {
+                      e.stopPropagation(); // 이벤트 전파 방지
+                      handleCheckboxChange(api.docId);
+                    }}
+                  >
                     <div className='flex items-center justify-center'>
                       <input
                         type='checkbox'
-                        className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500'
+                        className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500 cursor-'
                         checked={isSelected}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()} // 체크박스 클릭 시 이벤트 전파 방지
                         onChange={() => handleCheckboxChange(api.docId)}
                       />
                     </div>
@@ -186,6 +214,7 @@ const ApiOverview = () => {
                   <td className='p-4'>{api.name || 'Unnamed API'}</td>
                   <td className='p-4'>{api.method || 'GET'}</td>
                   <td className='p-4'>{api.path || `/api/${api.name.toLowerCase().replace(/\s+/g, '-')}`}</td>
+                  <td className='p-4 '>{api.description}</td>
                   <td className='p-4 text-center'>{api.manager_id || 'N/A'}</td>
                   <td className='p-4 text-center'>
                     {api.localStatus === 'PENDING' ? (

@@ -1,31 +1,40 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
-import { useApiDocDetail } from '../api/queries/useApiDocsQueries';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useApiDocDetail, useWorkspaceCategory } from '../api/queries/useApiDocsQueries';
 import { useNavbarStore } from '../stores/useNavbarStore';
 import { useSidebarStore } from '../stores/useSidebarStore';
 import { useTabStore } from '../stores/useTabStore';
 import { FiChevronDown, FiMessageSquare, FiCode, FiFileText, FiX } from 'react-icons/fi';
 import { FaDownload, FaSave, FaShareAlt, FaTrashAlt, FaInfoCircle } from 'react-icons/fa';
+import { useWebSocket } from '../contexts/WebSocketContext';
 
 import Parameters from './docs/Parameters';
 import Request from './docs/Request';
 import Response from './docs/Response';
 import Comments from './docs/Comments';
 import Summary from './docs/Summary';
+import CodeSnippet from './docs/CodeSnippet';
 
 const ApiDocsDetail = () => {
   const { workspaceId, apiId } = useParams();
   const location = useLocation();
   const { data: apiData, isLoading, error } = useApiDocDetail();
+  const { data: categoryData } = useWorkspaceCategory();
+  const [apiDetail, setApiDetail] = useState(null);
   const { setMenu } = useNavbarStore();
   const { expandedCategories, expandCategory } = useSidebarStore();
-  const { addTab, openTabs } = useTabStore();
-
-  const [apiDetail, setApiDetail] = useState(apiData || null);
+  const { addTab, openTabs, removeTab } = useTabStore();
+  const { publish } = useWebSocket();
+  const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeLeftTab, setActiveLeftTab] = useState('parameters');
   const [activeRightTab, setActiveRightTab] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const dropdownRef = useRef(null);
+  const categoryRef = useRef(null);
+  const nameRef = useRef(null);
+
+  console.log('details', apiDetail);
 
   const methodStyles = {
     GET: 'text-blue-500',
@@ -37,13 +46,25 @@ const ApiDocsDetail = () => {
     OPTIONS: 'text-yellow-500',
   };
 
+  const adjustWidth = (target, ref) => {
+    ref.current.style.width = '0px';
+    ref.current.style.width = `${target.scrollWidth}px`;
+  };
+
+  const handleCategoryChange = (e) => {
+    setApiDetail((prev) => ({ ...prev, category: e.target.value }));
+    adjustWidth(e.target, categoryRef);
+  };
+
+  const handleNameChange = (e) => {
+    setApiDetail((prev) => ({ ...prev, name: e.target.value }));
+    adjustWidth(e.target, nameRef);
+  };
+
   useEffect(() => {
     if (location.pathname.includes('/apidocs')) setMenu('API Docs');
-
     if (apiData && apiId) {
-      console.log('apiData loaded:', apiData); // 로드된 apiData 출력
       setApiDetail(apiData);
-
       const category = apiData.category;
       if (category && !expandedCategories[category]) expandCategory(category);
       if (!openTabs.find((tab) => tab.id === apiId)) {
@@ -52,9 +73,9 @@ const ApiDocsDetail = () => {
     }
   }, [apiData, apiId, expandCategory, addTab, setMenu, expandedCategories, openTabs, location.pathname, workspaceId]);
 
-  useEffect(() => {
-    console.log('apiDetail updated:', apiDetail); // apiDetail이 변경될 때마다 출력
-  }, [apiDetail]);
+  // useEffect(() => {
+  //   console.log('apiDetail updated:', apiDetail); // apiDetail이 변경될 때마다 출력
+  // }, [apiDetail]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -67,6 +88,11 @@ const ApiDocsDetail = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [dropdownRef]);
+
+  useEffect(() => {
+    if (categoryRef.current) adjustWidth(categoryRef.current, categoryRef);
+    if (nameRef.current) adjustWidth(nameRef.current, nameRef);
+  }, [apiDetail]);
 
   if (isLoading) return <div className='p-4'>Loading API details...</div>;
   if (error) return <div className='p-4'>Failed to load API data. Please try again later.</div>;
@@ -90,13 +116,20 @@ const ApiDocsDetail = () => {
 
   // paramsChange 함수 정의
   const handleParamsChange = (newParams) => {
-    console.log('Updated Parameters:', newParams);
-    // 필요한 경우 상태로 저장하거나 다른 로직 추가
+    setApiDetail((prevDetail) => ({
+      ...prevDetail,
+      parameters: newParams,
+    }));
+    console.log('updated', apiDetail?.parameters);
+    // console.log('Updated Parameters:', newParams);
   };
 
   const handleRequestChange = (newRequest) => {
-    console.log('Updated Request:', newRequest);
-    // 필요할 경우 상태로 저장하거나 다른 로직 추가
+    setApiDetail((prevDetail) => ({
+      ...prevDetail,
+      request: newRequest,
+    }));
+    // console.log('Updated Request:', newRequest);
   };
 
   const handleResponseChange = (updatedResponse) => {
@@ -104,21 +137,75 @@ const ApiDocsDetail = () => {
       ...prevDetail,
       response: updatedResponse,
     }));
-    console.log('Updated Response:', updatedResponse);
+    // console.log('Updated Response:', updatedResponse);
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (apiId) {
+      publish(`/ws/pub/workspaces/${workspaceId}/docs`, {
+        type: 'DELETE',
+        message: apiId,
+      });
+    }
+    const tabIndex = openTabs.findIndex((tab) => tab.id === apiId);
+    removeTab(apiId);
+
+    if (tabIndex > 0) {
+      const previousTab = openTabs[tabIndex - 1];
+      navigate(previousTab.path);
+    } else if (tabIndex === 0 && openTabs.length > 1) {
+      const nextTab = openTabs[1];
+      navigate(nextTab.path);
+    } else if (openTabs.length === 1) {
+      navigate(`/workspace/${workspaceId}`);
+    }
+    setShowDeleteModal(false);
+  };
+
+  const handleCloseModal = () => {
+    setShowDeleteModal(false);
   };
 
   return (
     <div className='flex h-[calc(100vh -104px)]'>
-      {/* Left Section with Scrollable Content */}
       <div className='flex-1 p-8 overflow-y-auto h-[calc(100vh-104px)] sidebar-scrollbar scrollbar-gutter-stable'>
-        <div className='flex justify-between items-baseline mb-4'>
-          <h2 className='text-2xl font-bold'>{apiDetail?.name || 'Enter API name'}</h2>
+        <div className='flex items-baseline space-x-2 mb-8 justify-between'>
+          <div className='inline-flex items-baseline space-x-1'>
+            <input
+              type='text'
+              ref={categoryRef}
+              className='border-b focus:outline-none w-auto max-w-[200px] text-[18px] px-2'
+              placeholder='Enter Category'
+              value={apiDetail?.category || ''}
+              onChange={handleCategoryChange}
+            />
+            <span className='text-gray-400' style={{ margin: '0 12px' }}>
+              /
+            </span>
+
+            <input
+              type='text'
+              ref={nameRef}
+              className='text-2xl border-b focus:outline-none w-auto max-w-[250px] px-2 text-[18px]'
+              value={apiDetail?.name || ''}
+              onChange={handleNameChange}
+              placeholder='Enter API Name'
+            />
+          </div>
+
           <div className='flex space-x-4'>
             <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
               <FaSave />
               <span>Save</span>
             </button>
-            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
+            <button
+              onClick={handleDeleteClick}
+              className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
+            >
               <FaTrashAlt />
               <span>Delete</span>
             </button>
@@ -132,6 +219,27 @@ const ApiDocsDetail = () => {
             </button>
           </div>
         </div>
+
+        {/* 삭제 모달 */}
+        {showDeleteModal && (
+          <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
+            <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
+              <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
+              <p className='mb-6'>현재 API 문서를 삭제하시겠습니까?</p>
+              <div className='flex justify-end space-x-4'>
+                <button onClick={handleCloseModal} className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'>
+                  취소
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
+                >
+                  삭제
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* API Path and Description */}
         <div className='mb-4'>
@@ -206,7 +314,6 @@ const ApiDocsDetail = () => {
           </nav>
         </div>
 
-        {/* Left Section Tab Content */}
         <div>
           {activeLeftTab === 'parameters' && (
             <Parameters paramsChange={handleParamsChange} initialValues={apiDetail?.parameters} />
@@ -220,11 +327,10 @@ const ApiDocsDetail = () => {
         </div>
       </div>
 
-      {/* Right Section */}
       <div
-        className={`transition-width duration-300 p-8 mr-[50px] relative ${
+        className={`transition-width duration-300 p-8 mr-[50px] relative overflow-y-auto ${
           activeRightTab ? 'w-[500px] min-w-[500px] max-w-[500px]' : 'w-[350px] min-w-[350px] max-w-[350px]'
-        } ${activeRightTab ? 'border-l' : ''} overflow-y-scroll sidebar-scrollbar h-[775px] pb-5`}
+        } ${activeRightTab ? 'border-l' : ''} sidebar-scrollbar h-[775px] pb-5`}
       >
         {activeRightTab && (
           <button
@@ -236,7 +342,7 @@ const ApiDocsDetail = () => {
         )}
         {activeRightTab === 'summary' && (
           <Summary
-            apiDetail={apiDetail?.name}
+            apiName={apiDetail?.name}
             method={apiDetail?.method}
             methodStyles={methodStyles}
             apiUrl={apiDetail?.path}
@@ -246,14 +352,14 @@ const ApiDocsDetail = () => {
             response={apiDetail?.response}
           />
         )}
-        {activeRightTab === 'comment' && <Comments />}
+        {activeRightTab === 'comment' && <Comments docsId={apiDetail?.docsId} workspaceId={workspaceId} />}
         {activeRightTab === 'code' && (
-          <div>
-            <h4 className='font-bold'>Code Snippet</h4>
-            <pre className='bg-gray-100 p-2 rounded'>
-              <code>{`fetch('${apiDetail?.path}', { method: '${apiDetail?.method}' })`}</code>
-            </pre>
-          </div>
+          <CodeSnippet
+            path={apiDetail?.path}
+            method={apiDetail?.method}
+            parameters={apiDetail.parameters}
+            request={apiDetail.request}
+          />
         )}
         {activeRightTab === 'info' && (
           <div>
@@ -262,7 +368,6 @@ const ApiDocsDetail = () => {
         )}
       </div>
 
-      {/* Right Sidebar (50px width) */}
       <div className='absolute right-0 top-[104px] h-[calc(100vh-104px)] w-[50px] flex flex-col items-center pt-4 bg-white shadow-lg'>
         <FiMessageSquare
           className={`cursor-pointer mb-4 ${activeRightTab === 'comment' ? 'text-blue-500' : 'text-gray-500'}`}
