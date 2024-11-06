@@ -187,7 +187,7 @@ public class ApiService {
 
 
         return new ApiDetailResponseDto(
-                workspaceId.toString(),
+                api.getSpecification().getId().toString(),
                 api.getId().toString(),
                 api.getCategory(),
                 api.getName(),
