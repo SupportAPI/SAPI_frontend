@@ -1,10 +1,9 @@
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
-// STOMP에 연결하는 함수
 const connectToStomp = (onConnected) => {
   const client = new Client({
-    webSocketFactory: () => new SockJS('http://localhost:8080/ws/ws-stomp'), // 정확한 URL 설정
+    webSocketFactory: () => new SockJS('http://localhost:8080/ws/ws-stomp'),
     onConnect: () => {
       console.log('Connected to STOMP');
       if (onConnected) onConnected();
@@ -19,10 +18,10 @@ const connectToStomp = (onConnected) => {
     debug: (str) => {
       console.log(str);
     },
-    reconnectDelay: 5000, // 자동 재연결 시도 간격 설정 (5초)
+    reconnectDelay: 5000,
   });
 
-  client.activate(); // STOMP 클라이언트를 활성화하여 연결 시도
+  client.activate();
 
   return client;
 };
