@@ -47,7 +47,7 @@ const Alarm = () => {
                 className='flex flex-col gap-1 p-3 hover:bg-[#EBF3F8] border-b border-gray-100 last:border-b-0'
               >
                 <div className='flex flex-row ml-1'>
-                  <p className='text-lg text-black font-bold'>{notification.apiName}</p>
+                  <p className='text-lg text-black font-bold'>{notification.fromName}</p>
                   <p className='text-xs text-black ml-2 mt-2'>
                     {' '}
                     {new Date(notification.createdDatetime).toLocaleString('ko-KR', {

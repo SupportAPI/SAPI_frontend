@@ -4,7 +4,7 @@ import { getToken } from '../../utils/cookies';
 const base_URL = 'https://k11b305.p.ssafy.io';
 
 // 알림 목록 가져오기
-export const fetchNotifications = async (workspaceId) => {
+export const fetchNotifications = async () => {
   const accessToken = getToken();
   const response = await axios.get(`${base_URL}/api/notifications`, {
     headers: {

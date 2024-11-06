@@ -8,7 +8,7 @@ import { findComments, findIndex, findUsers } from '../../api/queries/useComment
 import { getToken } from '../../utils/cookies';
 import User2 from '../../assets/workspace/basic_image.png';
 
-const Comments = () => {
+const Comments = ({ docsId, workspaceId }) => {
   const [showOptionsDropdown, setShowOptionsDropdown] = useState(false);
   const [userSuggestions, setUserSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -78,7 +78,7 @@ const Comments = () => {
     e.stopPropagation();
     const deleteTargetId = messages.find((msg) => msg.commentId === selectedMessageId);
     stompClientRef.current.publish({
-      destination: '/ws/pub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments',
+      destination: `/ws/pub/docs/${docsId}/comments`,
       body: JSON.stringify({
         type: 'DELETE',
         message: deleteTargetId.commentId,
@@ -112,7 +112,7 @@ const Comments = () => {
     if (sending) {
       console.log(editParsedMessage);
       stompClientRef.current.publish({
-        destination: '/ws/pub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments',
+        destination: `/ws/pub/docs/${docsId}/comments`,
         body: JSON.stringify({
           type: 'UPDATE',
           message: {
@@ -214,7 +214,7 @@ const Comments = () => {
     onError: (error) => console.error('Find comments error:', error),
   });
 
-  const findUserMutation = useMutation((nickname) => findUsers(nickname), {
+  const findUserMutation = useMutation(() => findUsers(workspaceId, nickname), {
     onSuccess: (response) => {
       setUserSuggestions(response);
     },
@@ -267,7 +267,7 @@ const Comments = () => {
         console.log('Connected:', JSON.stringify(frame.headers));
 
         // 구독 시작
-        stompClientRef.current.subscribe(`/ws/sub/docs/6a0c76ad-b4f1-4148-8ebc-78e6e104b1cf/comments`, (message) => {
+        stompClientRef.current.subscribe(`/ws/sub/docs/${docsId}/comments`, (message) => {
           const parsedData = JSON.parse(message.body); // message.body 파싱 한 번만 실행
           const { type, message: receivedMessage } = parsedData;
 
@@ -409,7 +409,7 @@ const Comments = () => {
     if (sending) {
       console.log(sendParsedMessage);
       stompClientRef.current.publish({
-        destination: '/ws/pub/docs/6a0c76ad-b4f1-4148-8ebc-78e6e104b1cf/comments',
+        destination: `/ws/pub/docs/${docsId}/comments`,
         body: JSON.stringify({
           type: 'ADD',
           message: sendParsedMessage,
