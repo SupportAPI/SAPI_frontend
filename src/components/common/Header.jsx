@@ -2,25 +2,27 @@ import { useState, useEffect, useRef } from 'react';
 import { FaBell, FaUser, FaCog } from 'react-icons/fa';
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useFetchWorkspaces } from '../../api/queries/useWorkspaceQueries'; // 실제 API 훅을 사용
+import { useFetchWorkspaces } from '../../api/queries/useWorkspaceQueries';
 import Alarm from './Alarm';
 import Settings from '../../pages/Settings/Settings';
+import useAuthStore from '../../stores/useAuthStore'; // useAuthStore 가져오기
 
 const Header = () => {
   const [isWorkspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [hasNotifications, setHasNotifications] = useState(true);
-  const { workspaceId: currentWorkspaceId } = useParams(); // URL에서 workspaceId 추출
-  const workspaceName = `Workspace ${currentWorkspaceId}`; // 실제로는 API에서 가져온 이름을 사용할 수 있음
+  const { workspaceId: currentWorkspaceId } = useParams();
+  const workspaceName = `Workspace ${currentWorkspaceId}`;
 
-  const [isSettingModalOpen, setSettingModalOpen] = useState(false); // Setting 모달
+  const [isSettingModalOpen, setSettingModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const alarmRef = useRef(null);
 
   const { data: workspaces = [] } = useFetchWorkspaces('1');
+  const logout = useAuthStore((state) => state.logout); // logout 함수 가져오기
 
   const filteredWorkspaces = workspaces.filter((workspace) => workspace.id !== currentWorkspaceId);
 
@@ -44,6 +46,11 @@ const Header = () => {
       document.removeEventListener('click', handleClickOutside);
     };
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <header className='w-full h-16 bg-[#F0F5F8]/50 text-[#666666] flex items-center px-12 justify-between relative border-b select-none'>
@@ -101,7 +108,9 @@ const Header = () => {
             <div className='absolute right-0 mt-2 w-32 bg-white text-black rounded shadow-lg'>
               <ul>
                 <li className='px-4 py-2 hover:bg-gray-200 cursor-pointer'>Profile</li>
-                <li className='px-4 py-2 hover:bg-gray-200 cursor-pointer'>Logout</li>
+                <li className='px-4 py-2 hover:bg-gray-200 cursor-pointer' onClick={handleLogout}>
+                  Logout
+                </li>
               </ul>
             </div>
           )}

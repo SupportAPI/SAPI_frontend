@@ -1,37 +1,14 @@
 import { useState } from 'react';
-import { useMutation } from 'react-query';
-import { jwtDecode } from 'jwt-decode';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../api/queries/useAuthQueries';
-import useAuthStore from '../stores/useAuthStore';
-import { setToken } from '../utils/cookies';
+import useAuth from '../hooks/useAuth';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const setUserId = useAuthStore((state) => state.setUserId);
-  const navigate = useNavigate();
-
-  const loginMutation = useMutation((loginData) => login(loginData.username, loginData.password), {
-    onSuccess: (response) => {
-      const token = response.data.token;
-      setToken(token);
-
-      const decoded = jwtDecode(token);
-      const { userId } = decoded;
-      setUserId(userId);
-
-      navigate('/workspaces');
-    },
-    onError: (error) => {
-      console.error('Login failed:', error);
-      alert('Login failed. Please check your credentials.');
-    },
-  });
+  const { loginUser } = useAuth();
 
   const handleLogin = (e) => {
     e.preventDefault();
-    loginMutation.mutate({ username, password });
+    loginUser.mutate({ email, password });
   };
 
   return (
@@ -42,9 +19,9 @@ const Login = () => {
           <div>
             <input
               type='text'
-              placeholder='Username'
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder='email'
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className='w-full p-2 border border-gray-300 rounded'
             />
           </div>
@@ -60,14 +37,14 @@ const Login = () => {
           <button
             type='submit'
             className='w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors'
-            disabled={loginMutation.isLoading}
+            disabled={loginUser.isLoading}
           >
-            {loginMutation.isLoading ? 'Logging in...' : 'Login'}
+            {loginUser.isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        {loginMutation.isError && (
+        {loginUser.isError && (
           <p className='mt-4 text-red-500 text-center'>
-            {loginMutation.error.message || 'Login failed. Please try again.'}
+            {loginUser.error.message || 'Login failed. Please try again.'}
           </p>
         )}
       </div>

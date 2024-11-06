@@ -1,69 +1,143 @@
+import useAuthStore from '../../stores/useAuthStore';
+import { useState, useEffect, useRef } from 'react';
+import { useUserInfo, useMutateUserInfo } from '../../api/queries/useAPIUserQueries';
+import { useQueryClient } from 'react-query';
+import { toast } from 'react-toastify';
 import { FaPenToSquare } from 'react-icons/fa6';
-import { useState } from 'react';
+import { FaCamera } from 'react-icons/fa';
 
 const UserComponent = () => {
-  const [username, setUsername] = useState('강세현');
-  const [useremail, setUseremail] = useState('test1@naver.com');
-  const [userimage, setUserimage] = useState('/src/assets/workspace/user1.png');
-  const [userNickname, setUsernickname] = useState('팬더가좋아');
+  const userId = useAuthStore((state) => state.userId); // 자기 자신 id
+  const [userNickname, setUserNickname] = useState('');
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const queryClient = useQueryClient();
+  const nicknameInputRef = useRef(null); // 닉네임 입력란의 ref 추가
+
+  const { data: userInfo, isLoading: isUserInfoLoading } = useUserInfo(userId);
+  const { mutate, isLoading, isError, error } = useMutateUserInfo({
+    onSuccess: (data) => {
+      console.log('User info updated successfully:', data);
+      queryClient.invalidateQueries(['userInfo', userId]);
+    },
+    onError: (error) => {
+      console.error('Failed to update user info:', error);
+    },
+  });
+
+  // userInfo가 로드되었을 때 userNickname을 업데이트
+  useEffect(() => {
+    if (userInfo && userInfo.nickname) {
+      setUserNickname(userInfo.nickname);
+    }
+  }, [userInfo]);
+
+  // 닉네임 편집 상태가 활성화될 때 input에 포커스를 설정
+  useEffect(() => {
+    if (isEditingNickname && nicknameInputRef.current) {
+      nicknameInputRef.current.focus();
+    }
+  }, [isEditingNickname]);
 
   // 프로필 이미지 변경
-  const changeImage = () => {
-    setUserimage('/src/assets/workspace/user2.png');
-    return;
+  const changeImage = async (event) => {
+    const file = event.target.files[0];
+    if (file && userInfo) {
+      // userInfo가 정의된 상태에서만 mutate 호출
+      mutate({ userId, nickname: userInfo.nickname, profileImage: file });
+    }
   };
 
-  // 유저 닉네임 변경
-  const changeNickname = () => {
-    setUsernickname('커비가좋아');
-    console.log(userNickname);
-    return;
+  // 닉네임 변경 저장
+  const saveNickname = () => {
+    if (userNickname) {
+      mutate({ userId, nickname: userNickname });
+      setIsEditingNickname(false);
+      toast('닉네임이 변경되었습니다.');
+    }
   };
+
+  if (isUserInfoLoading) {
+    return <div>Loading...</div>;
+  } // 로딩 중 표시
 
   return (
     <div className='m-10'>
       <div className='flex flex-col'>
-        <div className='text-6xl mb-5'>User</div>
+        <div className='text-2xl font-semibold mb-5'>User</div>
         <div className='border'></div>
         <div className='flex flex-col justify-center items-center mt-10'>
-          {/* 여기에 relative 추가 */}
+          {/* 프로필 이미지 및 편집 버튼 */}
           <div className='relative'>
-            <img src={userimage} alt='이미지' className='border rounded-full w-64 h-64 bg-gray-100' />
-            {/* 아이콘 위치를 img의 우측 하단에 배치 */}
-            <button
-              className='absolute border rounded-full bg-blue-50 hover:bg-blue-200 bottom-3 right-3 text-3xl'
-              onClick={() => {
-                changeImage();
-              }}
+            <img
+              src={userInfo.profileImage} // 기본 이미지 추가
+              alt='이미지'
+              className='border rounded-3xl w-64 h-64 bg-gray-50 object-cover'
+            />
+            <input
+              type='file'
+              accept='image/*'
+              style={{ display: 'none' }}
+              id='profileImageUpload'
+              onChange={changeImage}
+            />
+            <label
+              htmlFor='profileImageUpload'
+              className='absolute border-2 rounded-full bg-white hover:bg-blue-200 bottom-2 right-2 text-xl'
             >
-              <FaPenToSquare className='m-3' />
-            </button>
+              <FaCamera className='m-3' />
+            </label>
           </div>
           {/* 이메일 유저이름 추가 */}
-          <div className='flex justify-between w-[80%] mt-10'>
-            <div className='w-[200px]'>
-              <div className='text-2xl'>E-MAIL</div>
-              <div className='text-xl ml-5 mt-5 border-b'>{useremail}</div>
+          <div className='flex justify-between w-[80%] mt-12'>
+            <div className='w-[200px] mr-10'>
+              <div className='text-2xl font-semibold'>E-MAIL</div>
+              <div className='ml-2 mt-5 border-b'>{userInfo?.email}</div>
             </div>
-            <div className='w-[200px]'>
-              <div className='text-2xl'>UserName</div>
-              <div className='text-xl ml-5 mt-5 border-b'>{username}</div>
-            </div>
-          </div>
-          {/* Nickname과 아이콘을 감싸는 div에 relative 추가 */}
-          <div className='flex justify-between w-[80%] mt-10'>
-            <div className='relative w-[200px]'>
-              <div className='text-2xl'>Nickname</div>
-              <div className='text-xl ml-5 mt-5 border-b'>{userNickname}</div>
-              {/* Nickname 옆에 아이콘을 배치 */}
-              <button
-                className='absolute rounded-full hover:bg-blue-200 top-[50px] right-0 text-xl'
-                onClick={() => {
-                  changeNickname();
-                }}
-              >
-                <FaPenToSquare className='m-1' />
-              </button>
+            {/* <div className='w-[200px]'>
+              <div className='text-2xl font-semibold'>UserName</div>
+              <div className='ml-2 mt-5 border-b'>{userInfo?.nickname}</div>
+            </div> */}
+
+            {/* 닉네임 편집 영역 */}
+            <div className='flex justify-between w-[200px]'>
+              <div className='relative w-[200px]'>
+                <div className='text-2xl font-semibold'>Nickname</div>
+                {/* 닉네임 편집 버튼 */}
+                {isEditingNickname ? (
+                  <div className='flex items-center'>
+                    <input
+                      type='text'
+                      ref={nicknameInputRef} // 입력란에 ref 추가
+                      value={userNickname}
+                      onChange={(e) => setUserNickname(e.target.value)}
+                      className={`ml-2 mt-5 border-b w-full outline-none ${
+                        isEditingNickname ? 'border-blue-500 text-blue-500 font-bold' : 'border-gray-300'
+                      }`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          saveNickname();
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={saveNickname}
+                      className='absolute ml-2 bg-blue-500 text-white right-0 rounded-xl px-2 py-1'
+                    >
+                      저장
+                    </button>
+                  </div>
+                ) : (
+                  <div className='flex items-center'>
+                    <div className='ml-2 mt-5 border-b w-full'>{userInfo.nickname}</div>
+                    <button
+                      className='absolute border-none rounded-full top-[45px] right-0 text-xl hover:bg-blue-200'
+                      onClick={() => setIsEditingNickname(true)}
+                    >
+                      <FaPenToSquare className='m-1' />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

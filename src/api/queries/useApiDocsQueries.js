@@ -1,55 +1,87 @@
-import { useQuery } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import axiosInstance from '../axiosInstance';
+import { useParams } from 'react-router-dom';
 
-export const fetchApiDocs = async () => {
-  // 주석을 해제하고 실제 API URL로 교체하세요.
-  // const response = await axiosInstance.get('/api/docs');
-  // return response.data;
-
-  return [
-    {
-      category: 'Clients',
-      apis: [
-        { id: '1', name: 'Signup' },
-        { id: '2', name: 'Login' },
-        { id: '3', name: 'Get Client Details' },
-        { id: '4', name: 'Update Client Info' },
-      ],
-    },
-    {
-      category: 'Projects',
-      apis: [
-        { id: '5', name: 'Project List' },
-        { id: '6', name: 'Create Project' },
-        { id: '7', name: 'Delete Project' },
-        { id: '8', name: 'Get Project Details' },
-        { id: '9', name: 'Update Project Info' },
-      ],
-    },
-  ];
+// API 목록 가져오기(navbar)
+export const fetchApiDocs = async (workspaceId) => {
+  const response = await axiosInstance.get(`/api/workspaces/${workspaceId}/docs/nav`);
+  return response.data.data;
 };
 
 export const useApiDocs = () => {
-  return useQuery('apiDocs', fetchApiDocs);
+  const { workspaceId } = useParams();
+  return useQuery(['apiDocs', workspaceId], () => fetchApiDocs(workspaceId), {
+    enabled: !!workspaceId,
+  });
+};
+
+// API 목록 가져오기 (ALL)
+export const fetchDetailApiDocs = async (workspaceId) => {
+  const response = await axiosInstance.get(`/api/workspaces/${workspaceId}/docs`);
+  console.log(response);
+  return response.data.data;
+};
+
+export const useDetailApiDocs = () => {
+  const { workspaceId } = useParams();
+  return useQuery(['detailApiDocs', workspaceId], () => fetchDetailApiDocs(workspaceId), {
+    enabled: !!workspaceId,
+  });
+};
+
+// API 문서 조회 (Detail)
+export const fetchApiDocDetail = async (workspaceId, apiId) => {
+  const response = await axiosInstance.get(`api/workspaces/${workspaceId}/apis/${apiId}`);
+  return response.data.data;
+};
+
+export const useApiDocDetail = () => {
+  const { workspaceId, apiId } = useParams();
+  return useQuery(['apiDocDetail', workspaceId, apiId], () => fetchApiDocDetail(workspaceId, apiId));
 };
 
 // 새로운 API 문서 생성
-export const createApiDoc = async (newDoc) => {
-  // 실제 API 요청을 사용하는 경우:
-  // const response = await axiosInstance.post('/api/docs', newDoc);
-  // return response.data;
+export const createApiDoc = async (workspaceId) => {
+  const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/docs`);
+  return response.data.data;
+};
+
+export const useCreateApiDoc = () => {
+  const queryClient = useQueryClient();
+  return useMutation((workspaceId) => createApiDoc(workspaceId), {
+    onSuccess: () => {
+      queryClient.invalidateQueries('apiDocs');
+      queryClient.invalidateQueries('detailApiDocs');
+    },
+    onError: (error) => {
+      console.error('Error creating API document:', error);
+    },
+  });
+};
+
+// API 문서 삭제
+export const deleteApiDoc = async (workspaceId, docId) => {
+  const response = await axiosInstance.delete(`/api/workspaces/${workspaceId}/docs/${docId}`);
+  return response.data;
+};
+
+export const useDeleteApiDoc = () => {
+  const queryClient = useQueryClient();
+  return useMutation(({ workspaceId, docId }) => deleteApiDoc(workspaceId, docId), {
+    onSuccess: () => {
+      queryClient.invalidateQueries('apiDocs');
+      queryClient.invalidateQueries('detailApiDocs');
+    },
+    onError: (error) => {
+      console.error('Error deleting API document:', error);
+    },
+  });
 };
 
 // API 문서 업데이트
 export const updateApiDoc = async (docId, updatedDoc) => {
   // 실제 API 요청을 사용하는 경우:
   // const response = await axiosInstance.put(`/api/docs/${docId}`, updatedDoc);
-  // return response.data;
-};
-
-// API 문서 삭제
-export const deleteApiDoc = async (docId) => {
-  // 실제 API 요청을 사용하는 경우:
-  // const response = await axiosInstance.delete(`/api/docs/${docId}`);
   // return response.data;
 };
 

@@ -4,31 +4,40 @@ import { BiCollapseVertical, BiExpandVertical } from 'react-icons/bi';
 import { BsThreeDots } from 'react-icons/bs';
 import { useSidebarStore } from '../../stores/useSidebarStore';
 import { useTabStore } from '../../stores/useTabStore';
-import { useApiDocs } from '../../api/queries/useApiDocsQueries';
+import { useApiDocs } from '../../api/queries/useApiDocsQueries'; // react-query로 데이터 불러오기만 사용
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { useWebSocket } from '../../contexts/WebSocketContext'; // WebSocket 가져오기
 
 const ApiDocsSidebar = () => {
-  const { data = [], isLoading, error } = useApiDocs();
+  const { data = [], error, refetch } = useApiDocs(); // refetch 함수 추가
   const { expandedCategories, toggleCategory, setAllCategories } = useSidebarStore();
   const { addTab, confirmTab } = useTabStore();
   const navigate = useNavigate();
   const { workspaceId } = useParams();
   const location = useLocation();
-
   const [activeDropdown, setActiveDropdown] = useState(null);
   const dropdownRef = useRef(null);
+  const { subscribe, publish, isConnected } = useWebSocket(); // WebSocket 메서드 추가
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedApiId, setSelectedApiId] = useState(null);
+
+  // WebSocket을 통해 ADD 이벤트를 전송
+  const handleAddApiDoc = () => {
+    if (workspaceId) {
+      publish(`/ws/pub/workspaces/${workspaceId}/docs`, { type: 'ADD', message: '' });
+      toast('새로운 API 문서가 추가되었습니다.');
+    }
+  };
 
   const handleApiClick = (apiId, apiName) => {
     if (!workspaceId) return;
-
     const path = `/workspace/${workspaceId}/apidocs/${apiId}`;
-
     addTab({
       id: apiId,
       name: apiName,
       path,
     });
-
     navigate(path);
   };
 
@@ -56,39 +65,59 @@ const ApiDocsSidebar = () => {
     e.stopPropagation();
     const link = `${window.location.origin}/workspace/${workspaceId}/apidocs/${apiId}`;
     navigator.clipboard.writeText(link).then(() => {
-      alert('Link copied to clipboard!');
+      toast('클립보드에 복사되었습니다.');
     });
     setActiveDropdown(null);
   };
 
-  const handleDelete = (e, apiId) => {
+  const handleDelete = (e, docId) => {
     e.stopPropagation();
-    alert(`API ${apiId} 삭제 요청`);
-    setActiveDropdown(null);
+    setSelectedApiId(docId);
+    setShowDeleteModal(true); // 모달 열기
   };
 
-  // 드롭다운 외부 클릭 시 닫기
+  const handleConfirmDelete = () => {
+    if (selectedApiId && workspaceId) {
+      publish(`/ws/pub/workspaces/${workspaceId}/docs`, { type: 'DELETE', message: selectedApiId });
+      toast('API 문서가 삭제되었습니다.');
+      setSelectedApiId(null);
+      setShowDeleteModal(false); // 모달 닫기
+    }
+  };
+
+  // WebSocket을 통해 ADD, DELETE 이벤트 수신 시 refetch 실행
+  useEffect(() => {
+    if (isConnected) {
+      const subscription = subscribe(`/ws/sub/workspaces/${workspaceId}/docs`, (message) => {
+        console.log('Received WebSocket message:', message);
+        refetch(); // 이벤트 수신 시 데이터 갱신
+      });
+
+      return () => {
+        subscription?.unsubscribe();
+      };
+    }
+  }, [isConnected, workspaceId, subscribe, refetch]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setActiveDropdown(null);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
-  if (isLoading) return <div className='p-4'>Loading...</div>;
   if (error) return <div className='p-4'>Failed to load data.</div>;
 
   return (
     <div className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm'>
       <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 z-10'>
         <div className='flex items-center'>
-          <FaPlus className='text-gray-600 cursor-pointer mr-2' />
+          <FaPlus className='text-gray-600 cursor-pointer mr-2' onClick={handleAddApiDoc} />
           <div className='flex items-center flex-1 bg-white rounded border'>
             <FaSearch className='text-gray-400 ml-2' />
             <input type='text' placeholder='Search' className='p-2 flex-1 bg-transparent outline-none' />
@@ -117,7 +146,32 @@ const ApiDocsSidebar = () => {
           />
         </div>
       </div>
-      <div className='flex-1 overflow-y-auto scrollbar'>
+
+      {/* 모달 */}
+      {showDeleteModal && (
+        <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
+          <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
+            <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
+            <p className='mb-6'>선택한 API 문서를 삭제하시겠습니까?</p>
+            <div className='flex justify-end space-x-4'>
+              <button
+                onClick={() => setShowDeleteModal(false)} // 취소 버튼 클릭 시 모달 닫기
+                className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirmDelete} // 확인 버튼 클릭 시 삭제
+                className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className='flex-1 overflow-y-auto sidebar-scrollbar'>
         <div>
           {data.map((category) => (
             <div key={category.category}>
@@ -138,19 +192,19 @@ const ApiDocsSidebar = () => {
               {expandedCategories[category.category] && (
                 <ul>
                   {category.apis.map((api) => {
-                    const isActive = location.pathname === `/workspace/${workspaceId}/apidocs/${api.id}`;
-                    const isDropdownActive = activeDropdown === api.id;
+                    const isActive = location.pathname === `/workspace/${workspaceId}/apidocs/${api.apiId}`;
+                    const isDropdownActive = activeDropdown === api.apiId;
                     return (
                       <li
-                        key={api.id}
+                        key={api.apiId}
                         className={`cursor-pointer w-full relative group ${
                           isActive ? 'bg-blue-100 text-blue-800 font-semibold' : ''
                         } ${isDropdownActive ? 'bg-gray-300' : 'hover:bg-gray-300'}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleApiClick(api.id, api.name);
+                          handleApiClick(api.apiId, api.name);
                         }}
-                        onDoubleClick={() => handleApiDoubleClick(api.id)}
+                        onDoubleClick={() => handleApiDoubleClick(api.apiId)}
                       >
                         <div className='pl-12 pr-4 py-2 flex justify-between items-center'>
                           {api.name}
@@ -160,7 +214,7 @@ const ApiDocsSidebar = () => {
                             }`}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDropdownToggle(api.id);
+                              handleDropdownToggle(api.apiId);
                             }}
                           />
                         </div>
@@ -171,13 +225,13 @@ const ApiDocsSidebar = () => {
                           >
                             <button
                               className='w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal'
-                              onClick={(e) => handleCopyLink(e, api.id)}
+                              onClick={(e) => handleCopyLink(e, api.apiId)}
                             >
                               Copy Link
                             </button>
                             <button
                               className='w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal'
-                              onClick={(e) => handleDelete(e, api.id)}
+                              onClick={(e) => handleDelete(e, api.docId)}
                             >
                               Delete
                             </button>

@@ -3,17 +3,13 @@ import { useTabStore } from '../../stores/useTabStore';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
-const DashboardSidebar = () => {
+const EnvironmentSidebar = () => {
   const { addTab, confirmTab } = useTabStore();
   const navigate = useNavigate();
   const location = useLocation();
   const { workspaceId } = useParams();
 
-  const paths = [
-    { id: 1, name: 'Dashboard Overview', path: `/workspace/${workspaceId}/dashboard/all` },
-    { id: 2, name: 'Dashboard Daily', path: `/workspace/${workspaceId}/dashboard/daily` },
-    { id: 3, name: 'Dashboard Status', path: `/workspace/${workspaceId}/dashboard/status` },
-  ];
+  const paths = [{ id: 1, name: 'Global', path: `/workspace/${workspaceId}/environment/global` }];
 
   const handleDashboardClick = (id) => {
     if (!workspaceId) return;
@@ -50,7 +46,7 @@ const DashboardSidebar = () => {
         <div>
           <div className='flex items-center px-2 py-1 text-[#475467] cursor-pointer'>
             <FaChevronDown className='mr-2' />
-            Dashboard
+            Environment
           </div>
           <ul className='pl-4'>
             {paths.map((p) => {
@@ -80,4 +76,4 @@ const DashboardSidebar = () => {
   );
 };
 
-export default DashboardSidebar;
+export default EnvironmentSidebar;

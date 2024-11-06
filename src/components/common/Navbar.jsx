@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { FaBook, FaFlask, FaTachometerAlt } from 'react-icons/fa';
+import { FaBook, FaListAlt, FaFlask, FaTachometerAlt } from 'react-icons/fa';
+import { TbLogout2 } from 'react-icons/tb';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = ({ onMenuClick }) => {
+  const navigate = useNavigate();
   const [selectedMenu, setSelectedMenu] = useState(null);
 
   const handleMenuClick = (menu) => {
@@ -17,16 +20,28 @@ const Navbar = ({ onMenuClick }) => {
 
   return (
     <nav className='w-20 bg-[#F0F5F8] h-full flex flex-col items-center py-4 border-r'>
-      <ul className='w-full flex-1'>
+      <ul className='flex-1 w-20'>
         <li className='flex flex-col items-center mb-4'>
           <div
             className={`flex cursor-pointer flex-col items-center justify-center w-16 h-16 p-2 rounded-lg text-[#475467] ${
-              selectedMenu === 'API Docs' ? 'bg-gray-300' : 'bg-gray-200'
+              selectedMenu === 'API Docs' ? 'bg-gray-300' : 'hover:bg-gray-200'
             }`}
             onClick={() => handleMenuClick('API Docs')}
           >
             <FaBook className='text-2xl mb-2 text-[#475467]' />
             <span className='text-[10px]'>API Docs</span>
+          </div>
+          <div className='w-14 border-b border-gray-300 mt-2'></div>
+        </li>
+        <li className='flex flex-col items-center mb-4'>
+          <div
+            className={`flex cursor-pointer flex-col items-center justify-center w-16 h-16 p-2 rounded-lg text-[#475467] ${
+              selectedMenu === 'Environment' ? 'bg-gray-300' : 'hover:bg-gray-200'
+            }`}
+            onClick={() => handleMenuClick('Environment')}
+          >
+            <FaListAlt className='text-2xl mb-2 text-[#475467]' />
+            <span className='text-[10px]'>Environment</span>
           </div>
           <div className='w-14 border-b border-gray-300 mt-2'></div>
         </li>
@@ -54,6 +69,9 @@ const Navbar = ({ onMenuClick }) => {
           </div>
         </li>
       </ul>
+      <button onClick={() => navigate('/workspaces')}>
+        <TbLogout2 className='text-3xl m-5 text-[#475467]' />
+      </button>
     </nav>
   );
 };
