@@ -10,6 +10,7 @@ import {
   fetchUserInWorkspace,
   useUserInfo,
 } from '../../api/queries/useWorkspaceQueries';
+import { toast } from 'react-toastify';
 
 const SettingMember = () => {
   const userId = useAuthStore((state) => state.userId);
@@ -29,7 +30,7 @@ const SettingMember = () => {
   const userListInWorkspace = useCallback(async () => {
     if (currentWorkspaceId) {
       const userList = await fetchUserInWorkspace(currentWorkspaceId);
-      setUserList(userList);
+      setUserList(userList.filter((user) => user.email != userInfo.email));
     }
   }, [currentWorkspaceId]);
 
@@ -130,7 +131,7 @@ const SettingMember = () => {
 
     setUseremail('');
     setEmailValid(false);
-    alert('초대가 완료되었습니다.');
+    toast('Workspace 초대가 완료되었습니다.');
   };
 
   useEffect(() => {
@@ -173,56 +174,64 @@ const SettingMember = () => {
           <div className='mt-5 max-h-[400px] overflow-y-auto sidebar-scrollbar'>
             <table className='min-w-full bg-white custom-table'>
               <tbody>
-                {userList.map((user, index) => (
-                  <tr key={user.userId} className='hover:bg-blue-100 h-[80px]'>
-                    <td className='border-b'>
-                      <img
-                        src={user.profileImage}
-                        alt={user.nickname}
-                        className='border w-12 h-12 rounded-full object-contain'
-                      />
-                    </td>
-                    <td className='border-b truncate min-w-[100px] max-w-[100px]'>{user.nickname}</td>
-                    <td className='border-b truncate min-w-[120px] max-w-[120px] pr-3'>{user.email}</td>
-                    <td className='border-b pr-3' onMouseLeave={() => setDevelopAuthId(null)}>
-                      <div className='option-button opacity-0 transition-opacity duration-200'>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleDevelopAuth(index, e);
-                          }}
-                        >
-                          <SlOptions />
-                        </button>
-                      </div>
-                      {DevelopAuthId === index && (
-                        <div
-                          ref={modalRef}
-                          style={{
-                            position: 'absolute',
-                            top: modalPosition.top,
-                            left: modalPosition.left,
-                          }}
-                          className='border-2 bg-white rounded-lg shadow-lg z-10 w-40'
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                {userList.length > 0 ? (
+                  userList.map((user, index) => (
+                    <tr key={user.userId} className='hover:bg-blue-100 h-[80px]'>
+                      <td className='border-b'>
+                        <img
+                          src={user.profileImage}
+                          alt={user.nickname}
+                          className='border w-12 h-12 rounded-full object-contain'
+                        />
+                      </td>
+                      <td className='border-b truncate min-w-[100px] max-w-[100px]'>{user.nickname}</td>
+                      <td className='border-b truncate min-w-[120px] max-w-[120px] pr-3'>{user.email}</td>
+                      <td className='border-b pr-3' onMouseLeave={() => setDevelopAuthId(null)}>
+                        <div className='option-button opacity-0 transition-opacity duration-200'>
                           <button
-                            className='w-full text-left px-4 py-2 hover:bg-blue-100'
-                            onClick={() => ChangeDevelopAuth(user.userId)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleDevelopAuth(index, e);
+                            }}
                           >
-                            권한 수정
-                          </button>
-                          <button
-                            className='w-full text-left px-4 py-2 hover:bg-red-100 text-red-500'
-                            onClick={() => DeleteUser(user.userId)}
-                          >
-                            삭제
+                            <SlOptions />
                           </button>
                         </div>
-                      )}
+                        {DevelopAuthId === index && (
+                          <div
+                            ref={modalRef}
+                            style={{
+                              position: 'absolute',
+                              top: modalPosition.top,
+                              left: modalPosition.left,
+                            }}
+                            className='border-2 bg-white rounded-lg shadow-lg z-10 w-40'
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              className='w-full text-left px-4 py-2 hover:bg-blue-100'
+                              onClick={() => ChangeDevelopAuth(user.userId)}
+                            >
+                              권한 수정
+                            </button>
+                            <button
+                              className='w-full text-left px-4 py-2 hover:bg-red-100 text-red-500'
+                              onClick={() => DeleteUser(user.userId)}
+                            >
+                              삭제
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan='4' className='text-center py-4 text-gray-500'>
+                      현재 초대된 유저가 없습니다.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
