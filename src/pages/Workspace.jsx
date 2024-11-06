@@ -1,12 +1,8 @@
-import { useParams } from 'react-router-dom';
-
 const Workspace = () => {
-  const { id: workspaceId } = useParams();
-
   return (
     <div className='p-4'>
-      <h2 className='text-2xl mb-4'>Workspace ID: {workspaceId}</h2>
-      <p>Welcome to the workspace dashboard for workspace ID {workspaceId}!</p>
+      <h2 className='text-2xl mb-4'>WebSocket Connection</h2>
+      <p>WebSocket connection initialized. Check the console for connection status.</p>
     </div>
   );
 };

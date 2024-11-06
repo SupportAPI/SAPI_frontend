@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 
-const Request = ({requestChange}) => {
-  const [requestType, setRequestType] = useState('none');
-  const [jsonData, setJsonData] = useState('{}');
-  const [formData, setFormData] = useState([{ key: '', value: '' }]);
+const Request = ({ requestChange = () => {}, initialValues }) => {
+  const [requestType, setRequestType] = useState(initialValues?.requestType || 'none');
+  const [jsonData, setJsonData] = useState(initialValues?.json || '{}');
+  const [formData, setFormData] = useState(initialValues?.formData || [{ key: '', value: '' }]);
 
   const handleRequestTypeChange = (type) => {
     setRequestType(type);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     requestChange({
       requestType,
       jsonData,
       formData,
     });
-  }, [requestType, jsonData, formData])
+  }, [requestType, jsonData, formData]);
 
   const handleJsonInputChange = (e) => {
     const { value, selectionStart } = e.target;
@@ -36,7 +36,7 @@ const Request = ({requestChange}) => {
     }
     // 자동 줄바꿈 및 들여쓰기 유지
     else if (lastChar === '\n') {
-      const previousIndentation = (value.slice(0, selectionStart).match(/(  )*$/) || [''])[0];
+      const previousIndentation = (value.slice(0, selectionStart).match(/( {2})*$/) || [''])[0];
       const indentation = previousIndentation + '  '; // 기본 들여쓰기 2칸
 
       const newValue = value.slice(0, selectionStart) + indentation + value.slice(selectionStart);
@@ -74,6 +74,8 @@ const Request = ({requestChange}) => {
       alert('유효한 JSON 형식이 아닙니다.');
     }
   };
+
+  console.log(formData);
 
   return (
     <div className='mb-4'>
@@ -123,14 +125,14 @@ const Request = ({requestChange}) => {
                   type='text'
                   className='border rounded p-2 flex-1'
                   placeholder='Key'
-                  value={field.key}
+                  value={field.formDataKey}
                   onChange={(e) => handleFormDataChange(index, 'key', e.target.value)}
                 />
                 <input
                   type='text'
                   className='border rounded p-2 flex-1'
                   placeholder='Value'
-                  value={field.value}
+                  value={field.formDataValue}
                   onChange={(e) => handleFormDataChange(index, 'value', e.target.value)}
                 />
                 <button onClick={() => handleRemoveFormData(index)} className='text-red-500 font-bold'>

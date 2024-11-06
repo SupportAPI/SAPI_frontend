@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { useApiDocs } from '../api/queries/useApiDocsQueries';
+import { useApiDocDetail } from '../api/queries/useApiDocsQueries';
 import { useNavbarStore } from '../stores/useNavbarStore';
 import { useSidebarStore } from '../stores/useSidebarStore';
 import { useTabStore } from '../stores/useTabStore';
@@ -16,23 +16,16 @@ import Summary from './docs/Summary';
 const ApiDocsDetail = () => {
   const { workspaceId, apiId } = useParams();
   const location = useLocation();
-  const { data: apiData, isLoading, error } = useApiDocs();
+  const { data: apiData, isLoading, error } = useApiDocDetail();
   const { setMenu } = useNavbarStore();
   const { expandedCategories, expandCategory } = useSidebarStore();
   const { addTab, openTabs } = useTabStore();
-  const [contentType, setContentType] = useState('');
 
-  const [apiUrl, setApiUrl] = useState('');
+  const [apiDetail, setApiDetail] = useState(apiData || null);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [method, setMethod] = useState('DELETE');
-  const [description, setDescription] = useState('');
   const [activeLeftTab, setActiveLeftTab] = useState('parameters');
   const [activeRightTab, setActiveRightTab] = useState(null);
   const dropdownRef = useRef(null);
-
-  const [params, setParams] = useState({});
-  const [request, setRequest] = useState({});
-  const [response, setResponse] = useState({});
 
   const methodStyles = {
     GET: 'text-blue-500',
@@ -46,17 +39,22 @@ const ApiDocsDetail = () => {
 
   useEffect(() => {
     if (location.pathname.includes('/apidocs')) setMenu('API Docs');
+
     if (apiData && apiId) {
-      const category = apiData.find((cat) => cat.apis.some((api) => api.id === apiId));
-      if (category && !expandedCategories[category.category]) expandCategory(category.category);
-      if (category && !openTabs.find((tab) => tab.id === apiId)) {
-        const apiDetail = category.apis.find((api) => api.id === apiId);
-        addTab({ id: apiId, name: apiDetail.name, path: `/workspace/${workspaceId}/apidocs/${apiId}` });
-        setDescription(apiDetail.description || '');
-        setApiUrl(apiDetail.path || '');
+      console.log('apiData loaded:', apiData); // 로드된 apiData 출력
+      setApiDetail(apiData);
+
+      const category = apiData.category;
+      if (category && !expandedCategories[category]) expandCategory(category);
+      if (!openTabs.find((tab) => tab.id === apiId)) {
+        addTab({ id: apiId, name: apiData.name, path: `/workspace/${workspaceId}/apidocs/${apiId}` });
       }
     }
-  }, [apiData, apiId]);
+  }, [apiData, apiId, expandCategory, addTab, setMenu, expandedCategories, openTabs, location.pathname, workspaceId]);
+
+  useEffect(() => {
+    console.log('apiDetail updated:', apiDetail); // apiDetail이 변경될 때마다 출력
+  }, [apiDetail]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -73,28 +71,40 @@ const ApiDocsDetail = () => {
   if (isLoading) return <div className='p-4'>Loading API details...</div>;
   if (error) return <div className='p-4'>Failed to load API data. Please try again later.</div>;
 
-  const apiDetail = apiData?.flatMap((category) => category.apis).find((api) => api.id === apiId);
-  if (!apiDetail) return <div className='p-4'>API not found.</div>;
-
   const handleMethodSelect = (selectedMethod) => {
-    setMethod(selectedMethod);
+    setApiDetail((prev) => ({ ...prev, method: selectedMethod }));
     setShowDropdown(false);
+  };
+
+  const handleDescriptionChange = (e) => {
+    setApiDetail((prev) => ({ ...prev, description: e.target.value }));
+  };
+
+  const handleApiUrlChange = (e) => {
+    setApiDetail((prev) => ({ ...prev, path: e.target.value }));
   };
 
   const toggleRightTab = (tab) => {
     setActiveRightTab(activeRightTab === tab ? null : tab);
   };
 
-  const handleParamsChange = (data) => {
-    setParams(data);
+  // paramsChange 함수 정의
+  const handleParamsChange = (newParams) => {
+    console.log('Updated Parameters:', newParams);
+    // 필요한 경우 상태로 저장하거나 다른 로직 추가
   };
 
-  const handleRequestChange = (data) => {
-    setRequest(data);
+  const handleRequestChange = (newRequest) => {
+    console.log('Updated Request:', newRequest);
+    // 필요할 경우 상태로 저장하거나 다른 로직 추가
   };
 
-  const handleResponseChange = (data) => {
-    setResponse(data);
+  const handleResponseChange = (updatedResponse) => {
+    setApiDetail((prevDetail) => ({
+      ...prevDetail,
+      response: updatedResponse,
+    }));
+    console.log('Updated Response:', updatedResponse);
   };
 
   return (
@@ -102,7 +112,7 @@ const ApiDocsDetail = () => {
       {/* Left Section with Scrollable Content */}
       <div className='flex-1 p-8 overflow-y-auto h-[calc(100vh-104px)] sidebar-scrollbar scrollbar-gutter-stable'>
         <div className='flex justify-between items-baseline mb-4'>
-          <h2 className='text-2xl font-bold'>{apiDetail.name || 'Enter API name'}</h2>
+          <h2 className='text-2xl font-bold'>{apiDetail?.name || 'Enter API name'}</h2>
           <div className='flex space-x-4'>
             <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
               <FaSave />
@@ -129,11 +139,13 @@ const ApiDocsDetail = () => {
           <div className='relative'>
             <div className='flex items-center space-x-2'>
               <button
-                className={`px-4 py-2 w-[150px] rounded-md border ${methodStyles[method]} border-gray-300 h-10`}
+                className={`px-4 py-2 w-[150px] rounded-md border ${
+                  methodStyles[apiDetail?.method]
+                } border-gray-300 h-10`}
                 onClick={() => setShowDropdown((prev) => !prev)}
               >
                 <div className='flex justify-between items-center'>
-                  <span>{method}</span>
+                  <span>{apiDetail?.method}</span>
                   <FiChevronDown className='ml-2' color='black' />
                 </div>
               </button>
@@ -142,8 +154,8 @@ const ApiDocsDetail = () => {
                 type='text'
                 className='border rounded px-2 py-1 flex-grow h-10'
                 placeholder='Enter URL'
-                value={apiUrl}
-                onChange={(e) => setApiUrl(e.target.value)}
+                value={apiDetail?.path || ''}
+                onChange={handleApiUrlChange}
               />
             </div>
 
@@ -172,8 +184,8 @@ const ApiDocsDetail = () => {
           <textarea
             className='border rounded w-full p-2'
             placeholder='Enter description here.'
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={apiDetail?.description || ''}
+            onChange={handleDescriptionChange}
             style={{ resize: 'none' }}
           />
         </div>
@@ -196,11 +208,15 @@ const ApiDocsDetail = () => {
 
         {/* Left Section Tab Content */}
         <div>
-          {activeLeftTab === 'parameters' && <Parameters contentType={contentType} paramsChange={handleParamsChange} />}
-          {activeLeftTab === 'request' && (
-            <Request setContentType={setContentType} requestChange={handleRequestChange} />
+          {activeLeftTab === 'parameters' && (
+            <Parameters paramsChange={handleParamsChange} initialValues={apiDetail?.parameters} />
           )}
-          {activeLeftTab === 'response' && <Response responseChange={handleResponseChange} />}
+          {activeLeftTab === 'request' && (
+            <Request requestChange={handleRequestChange} initialValues={apiDetail?.request || {}} />
+          )}
+          {activeLeftTab === 'response' && (
+            <Response responseChange={handleResponseChange} initialValues={apiDetail?.response || []} />
+          )}
         </div>
       </div>
 
@@ -208,9 +224,7 @@ const ApiDocsDetail = () => {
       <div
         className={`transition-width duration-300 p-8 mr-[50px] relative ${
           activeRightTab ? 'w-[500px] min-w-[500px] max-w-[500px]' : 'w-[350px] min-w-[350px] max-w-[350px]'
-        } ${activeRightTab ? 'border-l' : ''}
-        overflow-y-scroll sidebar-scrollbar h-[775px] pb-5
-        `}
+        } ${activeRightTab ? 'border-l' : ''} overflow-y-scroll sidebar-scrollbar h-[775px] pb-5`}
       >
         {activeRightTab && (
           <button
@@ -221,40 +235,23 @@ const ApiDocsDetail = () => {
           </button>
         )}
         {activeRightTab === 'summary' && (
-          <div>
-            {/* <h3 className='text-lg font-bold'>Summary</h3>
-            <p className='font-semibold'>{apiDetail.name || 'Enter API name'}</p>
-            <p
-              className={`my-2 ${methodStyles[method]}`}
-              style={{ border: '1px solid #ccc', padding: '8px', borderRadius: '4px', width: '100px' }}
-            >
-              {method}
-            </p>
-            <p className='my-2'>URL: {apiUrl || 'No URL provided'}</p>
-            <p>Description: {description || 'No description available'}</p> */}
-            <Summary
-              apiDetail={apiDetail.name}
-              method={method}
-              methodStyles={methodStyles}
-              apiUrl={apiUrl}
-              description={description}
-              params={params}
-              request={request}
-              response={response}
-            />
-          </div>
+          <Summary
+            apiDetail={apiDetail?.name}
+            method={apiDetail?.method}
+            methodStyles={methodStyles}
+            apiUrl={apiDetail?.path}
+            description={apiDetail?.description}
+            params={apiDetail?.parameters}
+            request={apiDetail?.request}
+            response={apiDetail?.response}
+          />
         )}
-        {activeRightTab === 'comment' && (
-          <div>
-            <h4 className='text-2xl font-bold'>Comments</h4>
-            <Comments />
-          </div>
-        )}
+        {activeRightTab === 'comment' && <Comments />}
         {activeRightTab === 'code' && (
           <div>
             <h4 className='text-2xl font-bold'>Code Snippet</h4>
             <pre className='bg-gray-100 p-2 rounded'>
-              <code>{`fetch('${apiUrl}', { method: '${method}' })`}</code>
+              <code>{`fetch('${apiDetail?.path}', { method: '${apiDetail?.method}' })`}</code>
             </pre>
           </div>
         )}

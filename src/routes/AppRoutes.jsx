@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import Layout from '../components/layout/Layout';
 import Workspace from '../pages/Workspace';
@@ -9,21 +9,17 @@ import Page404 from '../pages/404page';
 import DashboardOverview from '../pages/Dashboard/DashboardOverview';
 import DashboardDaily from '../pages/Dashboard/DashboardDaily';
 import DashboardStatus from '../pages/Dashboard/DashboardStatus';
+import useAuthStore from '../stores/useAuthStore';
 import Environment from '../pages/Environment/Environment';
+import ApiTest from '../pages/ApiTest/APItest';
 
 const AppRoutes = () => {
+  const userId = useAuthStore((state) => state.userId);
+
   return (
     <Routes>
-      <Route path='/' element={<Login />} />
-      <Route
-        path='/asd'
-        element={
-          <Layout>
-            <Login />
-          </Layout>
-        }
-      />
-      <Route path='/login' element={<Login />} />
+      <Route path='/' element={userId ? <Navigate to='/workspaces' /> : <Login />} />
+      <Route path='/login' element={userId ? <Navigate to='/workspaces' /> : <Login />} />
       <Route path='/workspaces' element={<WorkspaceSelection />} />
       <Route
         path='/workspace/:workspaceId'
@@ -81,7 +77,16 @@ const AppRoutes = () => {
           </Layout>
         }
       />
+      <Route
+        path='/workspace/:workspaceId/api-test'
+        element={
+          <Layout>
+            <ApiTest />
+          </Layout>
+        }
+      />
       <Route path='/404page' element={<Page404 />} />
+      <Route path='*' element={<Navigate to='/404page' />} />
     </Routes>
   );
 };

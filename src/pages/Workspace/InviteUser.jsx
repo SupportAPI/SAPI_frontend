@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import useAuthStore from '../../stores/useAuthStore';
 import { useFetchInviteUser, useInviteMember, useUserInfo } from '../../api/queries/useWorkspaceQueries';
 import { IoClose } from 'react-icons/io5';
+import { toast } from 'react-toastify';
 
 const InviteUser = ({ workspaceId, onClose }) => {
   // 유저 초대 상태 관리
@@ -75,7 +76,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
 
     inviteMemberMutation.mutate(requestData);
     onClose();
-    alert('초대가 완료되었습니다.');
+    toast('초대가 완료되었습니다.');
   };
 
   useEffect(() => {

@@ -2,8 +2,7 @@ import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { getToken } from '../../utils/cookies';
 
-const base_URL = 'https://k11b305.p.ssafy.io'; // 본 서버
-// const base_URL = 'http://192.168.31.219:8080'; // 세현 서버
+const base_URL = 'https://k11b305.p.ssafy.io';
 
 // 1. 워크스페이스 목록 가져오기
 export const fetchWorkspaces = async () => {

@@ -1,28 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiMoreVertical } from 'react-icons/fi';
 
-const Response = ({responseChange}) => {
-  const [statusCodes, setStatusCodes] = useState([]); // 추가된 상태 코드 목록
-  const [responses, setResponses] = useState({}); // 각 상태 코드에 대한 JSON 응답 데이터
-  const [selectedCode, setSelectedCode] = useState(null); // 현재 선택된 상태 코드
-  const [showDropdown, setShowDropdown] = useState(false); // Add 버튼의 드롭다운 상태
-  const [showActions, setShowActions] = useState(null); // 각 코드별 Three dot 메뉴 드롭다운 상태
+const Response = ({ responseChange, initialValues = { statusCodes: [], responses: {} } }) => {
+  const [statusCodes, setStatusCodes] = useState(initialValues.statusCodes || []);
+  const [responses, setResponses] = useState(initialValues.responses || {});
+  const [selectedCode, setSelectedCode] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showActions, setShowActions] = useState(null);
   const dropdownRef = useRef(null);
 
-  useEffect(()=>{
-    responseChange({      
+  useEffect(() => {
+    responseChange({
       statusCodes,
       responses,
     });
-  },[statusCodes, responses])
+  }, [statusCodes, responses]);
 
   // 상태 코드 추가 함수
   const handleAddStatusCode = (code) => {
     if (!statusCodes.includes(code)) {
-      const updatedStatusCodes = [...statusCodes, code].sort((a, b) => a - b); // 숫자 순으로 정렬
+      const updatedStatusCodes = [...statusCodes, code].sort((a, b) => a - b);
       setStatusCodes(updatedStatusCodes);
       setResponses({ ...responses, [code]: '' });
-      setSelectedCode(code); // 새로 추가한 상태 코드로 선택
+      setSelectedCode(code);
     }
     setShowDropdown(false);
   };
@@ -35,14 +35,14 @@ const Response = ({responseChange}) => {
     });
   };
 
-  // 상태 코드 삭제
+  // 상태 코드 삭제 함수
   const handleDeleteStatusCode = (code) => {
     setStatusCodes(statusCodes.filter((status) => status !== code));
     const updatedResponses = { ...responses };
     delete updatedResponses[code];
     setResponses(updatedResponses);
     setSelectedCode(null);
-    setShowActions(null); // 드롭다운 닫기
+    setShowActions(null);
   };
 
   const toggleDropdown = () => setShowDropdown((prev) => !prev);
@@ -66,7 +66,7 @@ const Response = ({responseChange}) => {
   }, []);
 
   const commonStatusCodes = ['200', '404', '500', '201', '400', '401', '403', '502'];
-  const availableStatusCodes = commonStatusCodes.filter((code) => !statusCodes.includes(code)).sort((a, b) => a - b); // 숫자 순 정렬
+  const availableStatusCodes = commonStatusCodes.filter((code) => !statusCodes.includes(code)).sort((a, b) => a - b);
 
   return (
     <div className='p-4'>
@@ -82,7 +82,7 @@ const Response = ({responseChange}) => {
                 onClick={() => setSelectedCode(code)}
               >
                 {code}
-                {/* Three dot 버튼 (호버 시에만 표시, 버튼 안쪽에 위치) */}
+                {/* Three dot 버튼 (호버 시에만 표시) */}
                 <span
                   className='absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer hidden group-hover:block'
                   onClick={(e) => {
@@ -106,7 +106,7 @@ const Response = ({responseChange}) => {
           ))}
         </div>
 
-        {/* Add 버튼 (우측 고정) */}
+        {/* Add 버튼 */}
         <div className='relative'>
           <button onClick={toggleDropdown} className='bg-blue-500 text-white px-4 py-2 rounded w-[100px]'>
             Add <span className='ml-1'>▼</span>

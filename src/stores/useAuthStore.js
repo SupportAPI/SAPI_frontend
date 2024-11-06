@@ -1,9 +1,13 @@
 import { create } from 'zustand';
+import { removeToken } from '../utils/cookies';
 
 const useAuthStore = create((set) => ({
   userId: null,
   setUserId: (userId) => set({ userId }),
-  clearUserId: () => set({ userId: null }),
+  logout: () => {
+    set({ userId: null });
+    removeToken();
+  },
 }));
 
 export default useAuthStore;
