@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import axiosInstance from '../axiosInstance';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
-import { getToken } from '../../utils/cookies';
 
 // API 목록 가져오기(navbar)
 export const fetchApiDocs = async (workspaceId) => {
@@ -33,38 +31,14 @@ export const useDetailApiDocs = () => {
 
 // API 문서 조회 (Detail)
 export const fetchApiDocDetail = async (workspaceId, apiId) => {
-  const accessToken = getToken();
-
-  const response = await axiosInstance.get(`/api/workspaces/${workspaceId}/apis/${apiId}`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
+  const response = await axiosInstance.get(`api/workspaces/${workspaceId}/apis/${apiId}`);
   return response.data.data;
 };
 
-// React Query 훅 정의
 export const useApiDocDetail = () => {
-  return useQuery('apiDocDetail', fetchApiDocDetail);
+  const { workspaceId, apiId } = useParams();
+  return useQuery(['apiDocDetail', workspaceId, apiId], () => fetchApiDocDetail(workspaceId, apiId));
 };
-
-// // API 문서 조회 (Detail)
-// export const fetchApiDocDetail = async (workspaceId, apiId) => {
-//   const accessToken = getToken();
-//   const response = await axios.get(`http://192.168.31.66:8080/api/workspaces/${workspaceId}/apis/${apiId}`, {
-//     headers: {
-//       Authorization: `Bearer ${accessToken}`,
-//     },
-//   });
-//   console.log(response.data.data);
-//   return response.data.data;
-// };
-
-// export const useApiDocDetail = (workspaceId, apiId) => {
-//   console.log(workspaceId, apiId);
-//   return useQuery('apiDocDetail', fetchApiDocDetail(workspaceId, apiId));
-// };
 
 // 새로운 API 문서 생성
 export const createApiDoc = async (workspaceId) => {
