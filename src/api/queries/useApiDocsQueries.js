@@ -18,7 +18,6 @@ export const useApiDocs = () => {
 // API 목록 가져오기 (ALL)
 export const fetchDetailApiDocs = async (workspaceId) => {
   const response = await axiosInstance.get(`/api/workspaces/${workspaceId}/docs`);
-  console.log(response);
   return response.data.data;
 };
 
@@ -38,6 +37,17 @@ export const fetchApiDocDetail = async (workspaceId, apiId) => {
 export const useApiDocDetail = () => {
   const { workspaceId, apiId } = useParams();
   return useQuery(['apiDocDetail', workspaceId, apiId], () => fetchApiDocDetail(workspaceId, apiId));
+};
+
+// 워크스페이스 카테고리 조회
+export const fetchWorkspaceCategory = async (workspaceId) => {
+  const response = await axiosInstance.get(`api/workspaces/${workspaceId}/categories`);
+  return response.data.data;
+};
+
+export const useWorkspaceCategory = () => {
+  const { workspaceId } = useParams();
+  return useQuery(['categories', workspaceId], () => fetchWorkspaceCategory(workspaceId));
 };
 
 // 새로운 API 문서 생성
