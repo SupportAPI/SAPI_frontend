@@ -53,13 +53,10 @@ const ApiDocsDetail = () => {
     }
   }, [apiData, apiId, expandCategory, addTab, setMenu, expandedCategories, openTabs, location.pathname, workspaceId]);
 
-<<<<<<< HEAD
   // useEffect(() => {
   //   console.log('apiDetail updated:', apiDetail); // apiDetail이 변경될 때마다 출력
   // }, [apiDetail]);
 
-=======
->>>>>>> 5a923362ab44d73e8480e6a726977719d29f5240
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -100,7 +97,6 @@ const ApiDocsDetail = () => {
     setActiveRightTab(activeRightTab === tab ? null : tab);
   };
 
-<<<<<<< HEAD
   // paramsChange 함수 정의
   const handleParamsChange = (newParams) => {
     setApiDetail((prevDetail) => ({
@@ -118,21 +114,13 @@ const ApiDocsDetail = () => {
     }));
     // console.log('Updated Request:', newRequest);
   };
-=======
-  const handleParamsChange = (newParams) => {};
-
-  const handleRequestChange = (newRequest) => {};
->>>>>>> 5a923362ab44d73e8480e6a726977719d29f5240
 
   const handleResponseChange = (updatedResponse) => {
     setApiDetail((prevDetail) => ({
       ...prevDetail,
       response: updatedResponse,
     }));
-<<<<<<< HEAD
     // console.log('Updated Response:', updatedResponse);
-=======
->>>>>>> 5a923362ab44d73e8480e6a726977719d29f5240
   };
 
   console.log(apiDetail);
