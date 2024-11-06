@@ -12,15 +12,15 @@ import {
 } from '../../api/queries/useWorkspaceQueries';
 
 const SettingMember = () => {
-  const userId = useAuthStore((state) => state.userId); // 자기 자신 id
+  const userId = useAuthStore((state) => state.userId);
   const [DevelopAuthId, setDevelopAuthId] = useState(null);
   const [useremail, setUseremail] = useState('');
   const [isemailvalid, setEmailValid] = useState(true);
   const [emailErrormessage, setEmailErrorMessage] = useState('이메일 양식이 잘못되었습니다.');
-  const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 }); // 모달 위치 상태
+  const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const modalRef = useRef();
   const buttonRef = useRef(null);
-  const { workspaceId: currentWorkspaceId } = useParams(); // URL에서 workspaceId 추출
+  const { workspaceId: currentWorkspaceId } = useParams();
   const { data: userInfo } = useUserInfo(userId);
   const [userList, setUserList] = useState([]);
   const { refetch } = useFetchInviteUser(useremail);
@@ -35,7 +35,7 @@ const SettingMember = () => {
 
   useEffect(() => {
     userListInWorkspace();
-  }, [userListInWorkspace]); // userListInWorkspace를 의존성 배열에 추가
+  }, [userListInWorkspace]);
 
   // Delete 버튼 토글 함수
   const toggleDevelopAuth = (index, e) => {
@@ -43,8 +43,8 @@ const SettingMember = () => {
       setDevelopAuthId(null);
     } else {
       setDevelopAuthId(index);
-      buttonRef.current = e.target; // 클릭한 버튼 요소를 참조로 저장
-      updateModalPosition(); // 위치 초기 설정
+      buttonRef.current = e.target;
+      updateModalPosition();
     }
   };
 
@@ -103,7 +103,6 @@ const SettingMember = () => {
 
   // 사용자 이메일 양식 정상여부확인 먼저
   const ValidUserEmail = () => {
-    // 이메일 미 입력 시
     if (useremail === '') {
       setEmailErrorMessage('이메일을 입력해주세요.');
       setEmailValid(false);
@@ -129,8 +128,8 @@ const SettingMember = () => {
 
     inviteMemberMutation.mutate(requestData);
 
-    setUseremail(''); // 입력 필드 초기화
-    setEmailValid(false); // 버튼 비활성화
+    setUseremail('');
+    setEmailValid(false);
     alert('초대가 완료되었습니다.');
   };
 
@@ -141,13 +140,13 @@ const SettingMember = () => {
   return (
     <div className='m-10' onClick={handleClickOutside}>
       <div className='flex flex-col'>
-        <div className='text-2xl font-semibold mb-5'>Member</div>
+        <div className='text-2xl mb-5'>Member</div>
         <div className='border'></div>
         <div className='flex flex-col mt-8 m-4'>
           {/* 유저 추가 기능 */}
           <div className='flex items-center mb-2'>
             <MdOutlineMail className='mr-2 text-xl' />
-            <div className='text-2xl'> Email Address</div>
+            <div className='text-xl'> Email Address</div>
           </div>
           <div className='flex justify-between items-center'>
             <input
@@ -162,10 +161,9 @@ const SettingMember = () => {
                 }
               }}
             />
-            {/* Invite 버튼 나중에 추가로 기능 삽입하기 (form 형식 구현할 것) */}
             <button
               onClick={() => ValidUserEmail()}
-              className={`w-20 h-14 ml-3 border rounded-lg bg-green-500 hover:bg-green-600`}
+              className={`w-20 h-14 ml-3 rounded-lg bg-green-500 hover:bg-green-600`}
             >
               Invite
             </button>
