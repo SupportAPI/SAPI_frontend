@@ -108,7 +108,7 @@ public class TokenProvider {
 		return new UsernamePasswordAuthenticationToken(principal, "", principal.getAuthorities());
 	}
 
-	private Claims getJws(String token) {
+	public Claims getJws(String token) {
 		try {
 			return Jwts.parserBuilder().setSigningKey(getSecretKey())
 				.build().parseClaimsJws(token).getBody();

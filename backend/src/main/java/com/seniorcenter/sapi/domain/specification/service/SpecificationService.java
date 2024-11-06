@@ -11,6 +11,7 @@ import com.seniorcenter.sapi.domain.specification.presentation.dto.response.Spec
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
+import com.seniorcenter.sapi.global.aws.ApiLambdaService;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
@@ -20,6 +21,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -35,33 +37,37 @@ public class SpecificationService {
     private final WorkspaceRepository workspaceRepository;
     private final ApiRepository apiRepository;
     private final UserUtils userUtils;
+    private final ApiLambdaService apiLambdaService;
 
     @Transactional
-    public void createSpecification(SpecificationMessage message) {
-        String tempLambdaId = "1"; // 임시 lambda ID
+    public void createSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
         Api api = Api.createApi();
         apiRepository.save(api);
-        UUID workspaceId = message.workspaceUUID();
-        Workspace workspace = workspaceRepository.findById(workspaceId)
+        Workspace workspace = workspaceRepository.findById(worksapceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
-        Specification specification = Specification.createSpecification(tempLambdaId, api.getId(), workspace);
+        Specification specification = Specification.createSpecification(api.getId(), workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
-        sendOriginMessageToAll(message);
+        sendOriginMessageToAll(message, worksapceId);
     }
 
     @Transactional
-    public void removeSpecification(SpecificationMessage message) {
-        UUID specificationId = UUID.fromString(message.message());
+    public void removeSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
+        UUID specificationId = UUID.fromString((String) message.message());
         Specification specification = specificationRepository.findById(specificationId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
         if (specification == null) {
-            sendErrorMessageToUser("존재하지 않는 API 명세 UUID입니다.", message.workspaceUUID());
+            sendErrorMessageToUser("존재하지 않는 API 명세 UUID입니다.", worksapceId);
         } else {
             specificationRepository.delete(specification);
-            sendOriginMessageToAll(message);
+            sendOriginMessageToAll(message, worksapceId);
         }
+    }
+
+    @Transactional
+    public void updateSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
+
     }
 
     @Transactional
@@ -69,8 +75,8 @@ public class SpecificationService {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         return specifications.stream()
                 .map(specification -> {
-                    Api api = apiRepository.findById(specification.getApiId());
-                    return new SpecificationResponseDto(api,specification);
+                    Api api = apiRepository.findById(specification.getConfirmedApiId());
+                    return new SpecificationResponseDto(api, specification);
                 }).collect(Collectors.toList());
     }
 
@@ -78,14 +84,14 @@ public class SpecificationService {
     public List<SpecificationCategoryResponseDto> getSpecificationsIdAndNamesByWorkspaceId(UUID workspaceId) {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
 
-        Map<String,Integer> categoryMap = new HashMap<>();
+        Map<String, Integer> categoryMap = new HashMap<>();
         AtomicInteger categoryIndex = new AtomicInteger();
         List<SpecificationCategoryResponseDto> categoryResponseDtos = new ArrayList<>();
         specifications.stream()
                 .map(specification -> {
-                    Api api = apiRepository.findById(specification.getApiId());
-                    if(!categoryMap.containsKey(api.getCategory())) {
-                        categoryMap.put(api.getCategory(), categoryIndex.incrementAndGet()-1);
+                    Api api = apiRepository.findById(specification.getConfirmedApiId());
+                    if (!categoryMap.containsKey(api.getCategory())) {
+                        categoryMap.put(api.getCategory(), categoryIndex.incrementAndGet() - 1);
                         categoryResponseDtos.add(new SpecificationCategoryResponseDto(api.getCategory(), new ArrayList<>()));
                         System.out.println(categoryMap.get(api.getCategory()));
                     }
@@ -102,14 +108,14 @@ public class SpecificationService {
         if (user != null) {
             messagingTemplate.convertAndSendToUser(
                     String.valueOf(user.getId()),
-                    "/ws/sub/workspace/" + workspaceUUID + "/specification/errors",
+                    "/ws/sub/workspaces/" + workspaceUUID + "/docs/errors",
                     errorMessage
             );
         }
     }
 
-    public void sendOriginMessageToAll(SpecificationMessage message) {
-        messagingTemplate.convertAndSend("/ws/sub/specification/workspace/" + message.workspaceUUID(), message);
+    public void sendOriginMessageToAll(SpecificationMessage message, UUID worksapceUUId) {
+        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + worksapceUUId + "/docs", message);
     }
 
     @Transactional
@@ -119,7 +125,7 @@ public class SpecificationService {
         apiRepository.save(api);
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
-        Specification specification = Specification.createSpecification(tempLambdaId, api.getId(), workspace);
+        Specification specification = Specification.createSpecification(api.getId(), workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
         return specification.getId();
@@ -137,11 +143,13 @@ public class SpecificationService {
         Specification specification = specificationRepository.findById(specificationId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
         Api api = apiRepository.findTopBySpecificationIdOrderByCreatedDateDesc(specificationId).orElseThrow();
-        specification.updateApiUUID(api.getId());
+        specification.updateConfirmedApiId(api.getId());
         Api newApi = Api.createApi();
         apiRepository.save(newApi);
         newApi.updateSpecification(specification);
         newApi.updateApi(api);
+
+        apiLambdaService.createLambda(specificationId);
         return new SpecificationResponseDto(api, specification);
     }
 

@@ -6,7 +6,7 @@ spring:
     password: ${MYSQL_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
@@ -44,3 +44,9 @@ cloud:
       auto: false
     stack:
       auto: false
+    lambda:
+      access-key: ${AWS_LAMBDA_ACCESS_KEY}
+      secret-key: ${AWS_LAMBDA_SECRET_KEY}
+      region: ap-northeast-2
+      account-id: ${AWS_LAMBDA_ACCOUNT_ID}
+      role: ${AWS_LAMBDA_ROLE}
