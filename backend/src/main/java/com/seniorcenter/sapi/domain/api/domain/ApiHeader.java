@@ -25,16 +25,28 @@ public class ApiHeader extends BaseTimeEntity {
     private String description;
 
     @Builder
-    public ApiHeader(Api api) {
+    public ApiHeader(Api api, String headerKey, String headerValue, String description) {
         this.api = api;
-        this.headerKey = "";
-        this.headerValue = "";
-        this.description = "";
+        this.headerKey = headerKey;
+        this.headerValue = headerValue;
+        this.description = description;
     }
 
     public static ApiHeader createApiHeader(Api api) {
         return ApiHeader.builder()
                 .api(api)
+                .headerKey("")
+                .headerValue("")
+                .description("")
+                .build();
+    }
+
+    public static ApiHeader copyApiHeader(Api api, ApiHeader originHeader) {
+        return ApiHeader.builder()
+                .api(api)
+                .headerKey(originHeader.getHeaderKey())
+                .headerValue(originHeader.getHeaderValue())
+                .description(originHeader.getDescription())
                 .build();
     }
 }

@@ -1,10 +1,8 @@
 package com.seniorcenter.sapi.domain.specification.service;
 
-import com.seniorcenter.sapi.domain.api.domain.Api;
-import com.seniorcenter.sapi.domain.api.domain.ApiBody;
+import com.seniorcenter.sapi.domain.api.domain.*;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
-import com.seniorcenter.sapi.domain.api.domain.repository.ApiBodyRepository;
-import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
+import com.seniorcenter.sapi.domain.api.domain.repository.*;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.domain.specification.domain.SpecificationMessage;
 import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
@@ -42,6 +40,10 @@ public class SpecificationService {
     private final UserUtils userUtils;
     private final ApiLambdaService apiLambdaService;
     private final ApiBodyRepository apiBodyRepository;
+    private final ApiCookieRepository apiCookieRepository;
+    private final ApiHeaderRepository apiHeaderRepository;
+    private final ApiQueryParameterRepository apiQueryParameterRepository;
+    private final ApiResponseRepository apiResponseRepository;
 
     @Transactional
     public void createSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
@@ -83,7 +85,8 @@ public class SpecificationService {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         return specifications.stream()
                 .map(specification -> {
-                    Api api = apiRepository.findById(specification.getConfirmedApiId());
+                    Api api = apiRepository.findById(specification.getConfirmedApiId())
+                            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
                     return new SpecificationResponseDto(api, specification);
                 }).collect(Collectors.toList());
     }
@@ -97,7 +100,8 @@ public class SpecificationService {
         List<SpecificationCategoryResponseDto> categoryResponseDtos = new ArrayList<>();
         specifications.stream()
                 .map(specification -> {
-                    Api api = apiRepository.findById(specification.getConfirmedApiId());
+                    Api api = apiRepository.findById(specification.getConfirmedApiId())
+                            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
                     if (!categoryMap.containsKey(api.getCategory())) {
                         categoryMap.put(api.getCategory(), categoryIndex.incrementAndGet() - 1);
                         categoryResponseDtos.add(new SpecificationCategoryResponseDto(api.getCategory(), new ArrayList<>()));
@@ -150,15 +154,40 @@ public class SpecificationService {
     public SpecificationResponseDto confirmSpecificationApiId(UUID specificationId) {
         Specification specification = specificationRepository.findById(specificationId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
-        Api api = apiRepository.findTopBySpecificationIdOrderByCreatedDateDesc(specificationId).orElseThrow();
-        specification.updateConfirmedApiId(api.getId());
+        Api originApi = apiRepository.findTopBySpecificationIdOrderByCreatedDateDesc(specificationId).orElseThrow();
+        specification.updateConfirmedApiId(originApi.getId());
         Api newApi = Api.createApi();
         apiRepository.save(newApi);
         newApi.updateSpecification(specification);
-        newApi.updateApi(api);
+        newApi.updateApi(originApi);
+
+        List<ApiHeader> newHeaders = originApi.getHeaders().stream()
+                .map(header -> ApiHeader.copyApiHeader(newApi, header))
+                .collect(Collectors.toList());
+        apiHeaderRepository.saveAll(newHeaders);
+
+        List<ApiCookie> newCookies = originApi.getCookies().stream()
+                .map(cookie -> ApiCookie.copyApiCookie(newApi, cookie))
+                .collect(Collectors.toList());
+        apiCookieRepository.saveAll(newCookies);
+
+        List<ApiQueryParameter> newQueryParameter = originApi.getQueryParameters().stream()
+                .map(queryParameter -> ApiQueryParameter.copyApiQueryParameter(newApi, queryParameter))
+                .collect(Collectors.toList());
+        apiQueryParameterRepository.saveAll(newQueryParameter);
+
+        List<ApiBody> newBodies = originApi.getBodies().stream()
+                .map(body -> ApiBody.copyBody(newApi, body))
+                .collect(Collectors.toList());
+        apiBodyRepository.saveAll(newBodies);
+
+        List<ApiResponse> newResponses = originApi.getResponses().stream()
+                        .map(response -> ApiResponse.copyApiResponse(newApi, response))
+                                .collect(Collectors.toList());
+        apiResponseRepository.saveAll(newResponses);
 
         apiLambdaService.createLambda(specificationId);
-        return new SpecificationResponseDto(api, specification);
+        return new SpecificationResponseDto(originApi, specification);
     }
 
 }
