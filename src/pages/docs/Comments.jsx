@@ -189,14 +189,15 @@ const Comments = ({ docsId, workspaceId }) => {
     }
   }, [showOptionsDropdown]);
 
-  const indexMutation = useMutation(() => findIndex(), {
+  const indexMutation = useMutation(() => findIndex(docsId), {
     onSuccess: (response) => {
       if (response !== undefined) setInitIndex(response);
     },
+
     onError: (error) => console.error('Index fetch error:', error),
   });
 
-  const findInitMutation = useMutation(() => findComments(initIndex, 5), {
+  const findInitMutation = useMutation(() => findComments(initIndex, 5, docsId), {
     onSuccess: (response) => {
       console.log(response);
       setMessages((prevMessages) => [...prevMessages, ...response]);
@@ -205,7 +206,7 @@ const Comments = ({ docsId, workspaceId }) => {
     onError: (error) => console.error('Find comments error:', error),
   });
 
-  const findMutation = useMutation(() => findComments(index, 5), {
+  const findMutation = useMutation(() => findComments(index, 5, docsId), {
     onSuccess: (response) => {
       console.log(response);
       setMessages((prevMessages) => [...prevMessages, ...response]);
@@ -314,6 +315,7 @@ const Comments = ({ docsId, workspaceId }) => {
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
     connect();
+    console.log(docsId);
     indexMutation.mutate();
     return () => {
       stompClientRef.current.disconnect();
