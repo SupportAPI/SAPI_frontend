@@ -3,7 +3,6 @@ package com.seniorcenter.sapi.domain.api.domain;
 import com.seniorcenter.sapi.domain.api.domain.enums.AuthenticationType;
 import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
 import com.seniorcenter.sapi.domain.api.domain.enums.HttpMethod;
-import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.global.database.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -77,9 +76,7 @@ public class Api extends BaseTimeEntity {
     }
 
     public static Api createApi() {
-        Api api = builder().build();
-        ApiBody.createApiBody(api, ParameterType.JSON);
-        return api;
+        return builder().build();
     }
 
     public void updateApi(Api api) {
