@@ -5,7 +5,7 @@ import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
 import java.util.List;
 
 public record ApiDetailResponseDto(
-        String docsId,
+        String docId,
         String apiId,
         String category,
         String name,
