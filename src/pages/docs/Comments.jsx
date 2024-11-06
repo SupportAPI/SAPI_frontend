@@ -267,7 +267,7 @@ const Comments = () => {
         console.log('Connected:', JSON.stringify(frame.headers));
 
         // 구독 시작
-        stompClientRef.current.subscribe(`/ws/sub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, (message) => {
+        stompClientRef.current.subscribe(`/ws/sub/docs/6a0c76ad-b4f1-4148-8ebc-78e6e104b1cf/comments`, (message) => {
           const parsedData = JSON.parse(message.body); // message.body 파싱 한 번만 실행
           const { type, message: receivedMessage } = parsedData;
 
@@ -409,7 +409,7 @@ const Comments = () => {
     if (sending) {
       console.log(sendParsedMessage);
       stompClientRef.current.publish({
-        destination: '/ws/pub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments',
+        destination: '/ws/pub/docs/6a0c76ad-b4f1-4148-8ebc-78e6e104b1cf/comments',
         body: JSON.stringify({
           type: 'ADD',
           message: sendParsedMessage,
