@@ -56,7 +56,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		membershipRepository.save(membership);
 
 		return new WorkspaceInfoResponseDto(workspace.getId(),
-			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain());
+			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
+			workspace.getIsCompleted());
 	}
 
 	@Override
@@ -64,7 +65,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		Workspace workspace = workSpaceRepository.findById(workspaceId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
 		WorkspaceInfoResponseDto workspaceInfoResponseDto = new WorkspaceInfoResponseDto(workspace.getId(),
-			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain());
+			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
+			workspace.getIsCompleted());
 		return workspaceInfoResponseDto;
 	}
 
@@ -81,7 +83,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 					workspace.getProjectName(),
 					workspace.getDescription(),
 					workspace.getMainImage(),
-					workspace.getDomain()
+					workspace.getDomain(),
+					workspace.getIsCompleted()
 				);
 			})
 			.collect(Collectors.toList());
@@ -100,7 +103,13 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
 		Workspace workspace = workSpaceRepository.findById(workspaceId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
-		String mainImageUrl = s3UploadUtil.saveFile(mainImage);
+
+		String mainImageUrl = "";
+		if (mainImage != null && !mainImage.isEmpty()) {
+			mainImageUrl = s3UploadUtil.saveFile(mainImage);
+		} else {
+			mainImageUrl = workspace.getMainImage();
+		}
 
 		workspace.updateWorkspace(requestDto, mainImageUrl);
 	}

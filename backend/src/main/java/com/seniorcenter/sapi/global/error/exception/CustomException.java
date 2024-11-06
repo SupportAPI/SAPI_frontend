@@ -9,6 +9,7 @@ public enum CustomException {
 
 	/* 400 BAD_REQUEST : 잘못된 요청 */
 	WRONG_TYPE_EXCEPTION(400, "잘못된 형식의 데이터입니다."),
+	MISSING_PARAMS(400,"필수 파라미터가 누락되었습니다."),
 	S3_UPLOAD_EXCEPTION(400, "파일 업로드를 실패했습니다."),
     FILE_PROCESSING_EXCEPTION(400, "파일 처리 중 오류가 발생했습니다."),
 	VERIFICATION_CODE_EXPIRED(400, "인증번호가 만료되었습니다"),
@@ -16,6 +17,7 @@ public enum CustomException {
 	INVALID_FORMAT(400,"입력 형태가 올바르지 않습니다."),
 	NOT_ALLOWED_INVITE_SELF(400, "자신을 워크스페이스에 초대할 수 없습니다."),
 	FAIL_TO_SEND_NOTIFICATION(400, "알림 전송이 실패했습니다."),
+	FAIL_SECESSION_BY_MAINTAINER(400, "관리자는 워크스페이스 탈퇴가 불가합니다. 다른 멤버에게 관리자 역할을 부여해주세요."),
 
 	/* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
 	NOT_FOUND_SESSION_EXCEPTION(401, "세션이 존재하지 않습니다."),
@@ -24,7 +26,7 @@ public enum CustomException {
 	NOT_VALID_JWT_EXCEPTION(401, "토큰이 유효하지 않습니다."),
 
 	/* 403 FORBIDDEN : 리소스에 대한 접근이 금지됨 */
-	ACCESS_DENIED_EXCEPTION(403, "권한이 없습니다"),
+	ACCESS_DENIED_EXCEPTION(403, "권한이 없습니다."),
 
 	/* 404 NOT_FOUND : 리소스를 찾을 수 없음 */
 	NOT_FOUND_USER_EXCEPTION(404, "해당하는 정보의 사용자를 찾을 수 없습니다."),

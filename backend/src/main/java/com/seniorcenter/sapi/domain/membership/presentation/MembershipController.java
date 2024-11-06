@@ -1,4 +1,4 @@
-package com.seniorcenter.sapi.domain.membership.presentation.dto;
+package com.seniorcenter.sapi.domain.membership.presentation;
 
 import java.util.List;
 import java.util.UUID;
@@ -64,5 +64,15 @@ public class MembershipController {
 	public void updateMembershipAuthority(@PathVariable Long membershipId,
 		@RequestBody UpdateMembershipAuthorityRequestDto updateMembershipAuthorityRequestDto) {
 		membershipService.updateMembershipAuthority(updateMembershipAuthorityRequestDto, membershipId);
+	}
+
+	@DeleteMapping("/resign")
+	public void resign(@RequestParam UUID workspaceId) {
+		membershipService.resign(workspaceId);
+	}
+
+	@DeleteMapping("/exile")
+	public void exile(Long userId, UUID workspaceId) {
+		membershipService.exile(userId, workspaceId);
 	}
 }
