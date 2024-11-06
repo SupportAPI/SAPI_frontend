@@ -1,5 +1,7 @@
 import AppRoutes from './routes/AppRoutes';
-import useAuth from './hooks/useAuth';
+import useAuthStore from './stores/useAuthStore';
+import { jwtDecode } from 'jwt-decode';
+import Cookies from 'js-cookie';
 import { ToastContainer, toast, cssTransition } from 'react-toastify';
 import { AiOutlineClose } from 'react-icons/ai';
 import 'react-toastify/dist/ReactToastify.css';
@@ -11,7 +13,14 @@ const fadeOut = cssTransition({
 });
 
 const App = () => {
-  useAuth();
+  const setUserId = useAuthStore((state) => state.setUserId);
+  const none = useState(null);
+
+  // useEffect(() => {
+  //   const eventSource = new EventSourcePolyfill('${baseUrl}/api/notifications/connect', {
+  //     headers: {},
+  //   });
+  // }, [none]);
 
   const notify = () => {
     toast(
