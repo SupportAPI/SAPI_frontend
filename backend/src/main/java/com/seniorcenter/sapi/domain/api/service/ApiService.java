@@ -131,15 +131,11 @@ public class ApiService {
 
         ApiDetailResponseDto.Request request = new ApiDetailResponseDto.Request(
                 api.getBodyType(),
-                "",
                 api.getBodies().stream()
                         .filter(body -> body.getParameterType() == ParameterType.JSON)
                         .map(body -> new ApiDetailResponseDto.Request.JsonData(
                                 body.getId().toString(),
-                                body.getBodyKey(),
-                                body.getBodyValue(),
-                                body.getParameterType().name(),
-                                body.getDescription()
+                                body.getBodyValue()
                         )).findFirst()
                         .orElse(null),
                 api.getBodies().stream()

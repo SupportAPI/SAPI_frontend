@@ -49,16 +49,12 @@ public record ApiDetailResponseDto(
 
     public record Request(
             BodyType bodyType,
-            String none,
             JsonData json,
             List<FormData> formData
     ) {
         public record JsonData(
                 String jsonDataId,
-                String jsonDataKey,
-                String jsonDataValue,
-                String jsonDataType,
-                String jsonDataDescription
+                String jsonDataValue
         ) {}
 
         public record FormData(
