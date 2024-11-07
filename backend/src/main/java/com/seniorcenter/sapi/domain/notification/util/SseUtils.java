@@ -118,9 +118,8 @@ public class SseUtils {
 				.name("notification")
 				.data(data, MediaType.APPLICATION_JSON));
 		} catch (IOException e) {
-			log.error(e.getMessage());
+			log.warn("SSE 전송 중 오류 (Broken Pipe): {}", e.getMessage());
 			emitterRepository.deleteById(emitterId);
-			throw new MainException(CustomException.FAIL_TO_SEND_NOTIFICATION);
 		}
 	}
 }
