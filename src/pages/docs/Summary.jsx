@@ -96,10 +96,10 @@ const Summary = ({ apiName, method, methodStyles, apiUrl, description, params, r
       <hr className='border-t border-gray-300 mb-3' />
 
       {/* Response */}
-      {statusCodes.length === 0 ? (
+      {response?.length === 0 ? (
         <p className='text-[#666666]'>No Response</p>
       ) : (
-        statusCodes.map((code, index) => (
+        statusCodes?.map((code, index) => (
           <>
             <p className='text-xl text-[#666666] mt-5 mb-2'>{code}</p>
             <div className='text-[#666666] bg-gray-100 p-2 rounded-md' style={{ whiteSpace: 'pre-wrap' }}>
