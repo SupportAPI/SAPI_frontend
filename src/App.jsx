@@ -1,15 +1,13 @@
+import { useEffect } from 'react';
 import AppRoutes from './routes/AppRoutes';
-import useAuthStore from './stores/useAuthStore';
-import { jwtDecode } from 'jwt-decode';
-import Cookies from 'js-cookie';
-import { useState, useEffect } from 'react';
+import useAuth from './hooks/useAuth';
 import { ToastContainer, toast, cssTransition } from 'react-toastify';
-import { AiOutlineClose } from 'react-icons/ai';
 import { EventSourcePolyfill } from 'event-source-polyfill';
-import 'react-toastify/dist/ReactToastify.css';
-import 'animate.css';
+import { AiOutlineClose } from 'react-icons/ai';
 import { getToken } from './utils/cookies';
 import { useAlarmStore } from './stores/useAlarmStore';
+import 'react-toastify/dist/ReactToastify.css';
+import 'animate.css';
 
 const fadeOut = cssTransition({
   enter: 'animate__animated animate__fadeIn',
@@ -17,8 +15,8 @@ const fadeOut = cssTransition({
 });
 
 const App = () => {
-  const setUserId = useAuthStore((state) => state.setUserId);
-  const none = useState(null);
+  useAuth();
+
   const accessToken = getToken();
   const baseUrl = 'https://k11b305.p.ssafy.io';
   const { setReceived } = useAlarmStore();
