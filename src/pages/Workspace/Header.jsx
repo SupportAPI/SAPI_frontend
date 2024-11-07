@@ -12,6 +12,7 @@ const Header = ({ onSettingsClick }) => {
   // 알람에 대한 정보
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const alarmRef = useRef(null);
+  const profileRef = useRef(null);
 
   // 로그아웃
   const logout = useAuthStore((state) => state.logout); // logout 함수 가져오기
@@ -25,6 +26,9 @@ const Header = ({ onSettingsClick }) => {
   const handleClickOutside = (event) => {
     if (alarmRef.current && !alarmRef.current.contains(event.target)) {
       setIsNotificationOpen(false);
+    }
+    if (profileRef.current && !profileRef.current.contains(event.target)) {
+      setProfileDropdownOpen(false);
     }
   };
 
@@ -62,7 +66,7 @@ const Header = ({ onSettingsClick }) => {
         <FaCog className='text-2xl cursor-pointer' onClick={onSettingsClick} />
 
         {/* 프로필 아이콘 및 드롭다운 */}
-        <div className='relative'>
+        <div className='relative' ref={profileRef}>
           <FaUser className='text-2xl cursor-pointer' onClick={() => setProfileDropdownOpen((prev) => !prev)} />
           {isProfileDropdownOpen && (
             <div className='absolute right-0 mt-2 w-32 bg-white text-black rounded shadow-lg'>
