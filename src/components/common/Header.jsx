@@ -20,6 +20,7 @@ const Header = () => {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const alarmRef = useRef(null);
+  const profileRef = useRef(null);
 
   const { data: workspaces = [] } = useFetchWorkspaces('1');
   const logout = useAuthStore((state) => state.logout); // logout 함수 가져오기
@@ -38,6 +39,9 @@ const Header = () => {
     }
     if (alarmRef.current && !alarmRef.current.contains(event.target)) {
       setIsNotificationOpen(false);
+    }
+    if (profileRef.current && !profileRef.current.contains(event.target)) {
+      setProfileDropdownOpen(false);
     }
   };
 
@@ -109,7 +113,7 @@ const Header = () => {
         {isSettingModalOpen && <Settings onClose={() => setSettingModalOpen(false)} />}
 
         {/* 프로필 아이콘 및 드롭다운 */}
-        <div className='relative'>
+        <div className='relative' ref={profileRef}>
           <FaUser className='text-2xl cursor-pointer' onClick={() => setProfileDropdownOpen((prev) => !prev)} />
           {isProfileDropdownOpen && (
             <div className='absolute right-0 mt-2 w-32 bg-white text-black rounded shadow-lg'>
