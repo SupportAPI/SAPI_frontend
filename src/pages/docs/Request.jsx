@@ -3,8 +3,8 @@ import { FaPlus } from 'react-icons/fa';
 import Editor from '@monaco-editor/react';
 
 const Request = ({ requestChange = () => {}, initialValues }) => {
-  const [requestType, setRequestType] = useState(initialValues?.bodyType || 'none');
-  const [jsonData, setJsonData] = useState(initialValues?.json?.jsonDataValue || '{}');
+  const [bodyType, setRequestType] = useState(initialValues?.bodyType || 'none');
+  const [json, setJsonData] = useState(initialValues?.json?.jsonDataValue || '{}');
   const [formData, setFormData] = useState(initialValues?.formData || []);
 
   const handleRequestTypeChange = (type) => {
@@ -13,11 +13,11 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
 
   useEffect(() => {
     requestChange({
-      bodyType: requestType,
+      bodyType: bodyType,
       json: {
         jsonDataId: initialValues?.json?.jsonDataId || '',
         jsonDataKey: initialValues?.json?.jsonDataKey || 'json',
-        jsonDataValue: jsonData,
+        jsonDataValue: json,
         jsonDataType: initialValues?.json?.jsonDataType || 'JSON',
         jsonDataDescription: initialValues?.json?.jsonDataDescription || null,
       },
@@ -29,7 +29,7 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
         formDataDescription: data.formDataDescription || null,
       })),
     });
-  }, [requestType, jsonData, formData]);
+  }, [bodyType, json, formData]);
 
   const handleAddFormData = () => {
     setFormData([
@@ -50,7 +50,7 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
 
   const handleFormatJson = () => {
     try {
-      const parsed = JSON.parse(jsonData);
+      const parsed = JSON.parse(json);
       setJsonData(JSON.stringify(parsed, null, 2));
     } catch (error) {
       alert('유효한 JSON 형식이 아닙니다.');
@@ -61,23 +61,23 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
     <div className='pt-4'>
       <label className='block text-[18px] font-semibold h-8'>Request</label>
       <select
-        value={requestType}
+        value={bodyType}
         onChange={(e) => handleRequestTypeChange(e.target.value)}
         className='border rounded px-2 py-1 w-full h-10'
       >
-        <option value='none'>None</option>
-        <option value='json'>JSON</option>
-        <option value='form-data'>Form-Data</option>
+        <option value='NONE'>None</option>
+        <option value='JSON'>JSON</option>
+        <option value='FORM-DATA'>Form-Data</option>
       </select>
 
       {/* JSON 입력 (JSON 선택 시만 표시) */}
-      {requestType === 'json' && (
+      {bodyType === 'JSON' && (
         <div className='mb-4'>
           <label className='block text-[16px] font-semibold mb-2'>JSON Data</label>
           <Editor
             height='200px'
             language='json'
-            value={jsonData}
+            value={json}
             onChange={(value) => setJsonData(value || '{}')}
             options={{
               automaticLayout: true,
@@ -100,7 +100,7 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
       )}
 
       {/* Form-Data 입력 (Form-Data 선택 시만 표시) */}
-      {requestType === 'form-data' && (
+      {bodyType === 'FORM-DATA' && (
         <div className='mb-4'>
           <label className='block text-[16px] font-semibold mb-2'>Form-Data</label>
           <div className='space-y-2'>
