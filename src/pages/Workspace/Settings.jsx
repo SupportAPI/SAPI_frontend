@@ -20,10 +20,10 @@ const Settings = ({ onClose }) => {
     <div className='fixed flex justify-center items-center inset-0 bg-black bg-opacity-30 z-50' onClick={onClose}>
       {/* 모달 크기 정의 */}
       <div
-        className='flex flex-col items-center bg-white border-none rounded-2xl w-[800px] h-[900px] min-w-[800px]'
+        className='flex flex-col items-center bg-white border-none rounded-2xl w-[900px] h-[700px] border rounded-lg'
         onClick={(e) => e.stopPropagation()}
       >
-        <header className='flex justify-between items-center w-full h-[10%] text-xl bg-[#f0f5f8] border-none rounded-t-2xl'>
+        <header className='flex justify-between items-center w-full h-[80px] text-xl bg-[#f0f5f8] border-none rounded-t-2xl'>
           <div className='text-3xl ml-10'>
             <div>Settings</div>
           </div>
@@ -34,7 +34,7 @@ const Settings = ({ onClose }) => {
 
         <div className='flex w-full h-full border-none rounded-2xl'>
           {/* 왼쪽에 목록 넣는 곳 */}
-          <div className='w-[300px] border-r p-6 border rounded-b-2xl'>
+          <div className='w-[250px] border-r p-6 border rounded-b-2xl'>
             {/* Account 항목 */}
             <div className='flex flex-col'>
               <p className='text-2xl font-medium ml-2 mb-3'>Account</p>
@@ -77,7 +77,7 @@ const Settings = ({ onClose }) => {
             </div>
           </div>
           {/* 오른쪽에 컴포넌트 넣을 곳 */}
-          <div className='w-[700px]'>{changeComponent}</div>
+          <div className='w-[650px] h-[620px]'>{changeComponent}</div>
         </div>
       </div>
     </div>

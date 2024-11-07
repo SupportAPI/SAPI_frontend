@@ -7,7 +7,6 @@ import {
   useFetchAutoUserSearch,
 } from '../../api/queries/useWorkspaceQueries';
 import { IoClose } from 'react-icons/io5';
-import { toast } from 'react-toastify';
 
 const InviteUser = ({ workspaceId, onClose }) => {
   // 유저 초대 상태 관리
@@ -114,7 +113,6 @@ const InviteUser = ({ workspaceId, onClose }) => {
 
     inviteMemberMutation.mutate(requestData);
     onClose();
-    toast('초대가 완료되었습니다.');
   };
 
   // 자동 이메일 검증

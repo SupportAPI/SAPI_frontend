@@ -11,7 +11,6 @@ import {
   useUserInfo,
   useFetchAutoUserSearch,
 } from '../../api/queries/useWorkspaceQueries';
-import { toast } from 'react-toastify';
 
 const SettingMember = () => {
   const userId = useAuthStore((state) => state.userId);
@@ -31,9 +30,7 @@ const SettingMember = () => {
   const userListInWorkspace = useCallback(async () => {
     if (currentWorkspaceId) {
       const userList = await fetchUserInWorkspace(currentWorkspaceId);
-      console.log(userList);
       setUserList(userList.filter((user) => user.email != userInfo.email));
-      console.log(userInfo);
     }
   }, [currentWorkspaceId]);
 
@@ -134,7 +131,6 @@ const SettingMember = () => {
 
     setUseremail('');
     setEmailValid(false);
-    toast('Workspace 초대가 완료되었습니다.');
   };
 
   useEffect(() => {
