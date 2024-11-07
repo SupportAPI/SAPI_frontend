@@ -28,10 +28,12 @@ const Comments = ({ docsId, workspaceId }) => {
   const [selectedMessageId, setSelectedMessageId] = useState(null); // 드롭다운에서 선택된 메시지 ID
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const [sendContent, setSendContent] = useState('');
-  const [sendParsedMessage, setSendParsedMessage] = useState([]); // 메시지 작성 중의 파싱된 메시지 배열
   const [editContent, setEditContent] = useState(''); // 수정 중인 콘텐츠
   const [editParsedMessage, setEditParsedMessage] = useState([]); // 수정 중의 파싱된 메시지 배열
+
+  const [sendContent, setSendContent] = useState(''); // 사용자 입력 텍스트
+  const [internalMessage, setInternalMessage] = useState(''); // 내부 저장 메시지 형식: [닉네임:아이디]
+  const [taggedUsers, setTaggedUsers] = useState([]); // 태그된 유저 리스트
 
   const [sending, setSending] = useState(false);
 
@@ -266,7 +268,7 @@ const Comments = ({ docsId, workspaceId }) => {
   // pathvariable
   const connect = () => {
     // accessToken을 URL에 포함
-    const socket = new SockJS(`http://192.168.31.219:8080/ws/ws-stomp?accessToken=${accessToken}`);
+    const socket = new SockJS(`https://k11b305.p.ssafy.io/ws/ws-stomp?accessToken=${accessToken}`);
     stompClientRef.current = Stomp.over(socket); // stompClientRef에 STOMP client를 저장
 
     stompClientRef.current.connect(
@@ -354,36 +356,108 @@ const Comments = ({ docsId, workspaceId }) => {
     };
   }, [handleScroll]);
 
+  // 입력 필드에서 내용 삭제 시 태그된 유저와 내부 메시지 업데이트
+  // 메시지 전송 함수
+  const sendMessage = () => {
+    if (stompClientRef.current && stompClientRef.current.connected && internalMessage) {
+      const parsedMessage = parseMessage(internalMessage || sendContent);
+      stompClientRef.current.publish({
+        destination: `/ws/pub/docs/${docsId}/comments`,
+        body: JSON.stringify({
+          type: 'ADD',
+          message: parsedMessage,
+        }),
+      });
+      setSendContent('');
+      setInternalMessage('');
+      setTaggedUsers([]);
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    }
+  };
+
+  console.log(internalMessage);
+
+  // 입력 필드에서 내용 삭제 시 태그된 유저와 내부 메시지 업데이트
   const handleInput = (e) => {
     const textarea = e.target;
     const content = textarea.value;
+
+    console.log('입력함', content);
+
+    // 입력이 추가된 경우
+    if (content.length > sendContent.length) {
+      const newText = content.slice(sendContent.length);
+
+      console.log('새로들어온', newText);
+
+      // newText가 일반 텍스트인 경우, [닉네임:아이디] 형식이 변형되지 않도록 처리
+      let newInternalMessage = newText.replace(/@(\w+)/g, (match, nickname) => {
+        const taggedUser = taggedUsers
+          .slice()
+          .reverse()
+          .find((user) => user.nickname === nickname);
+        return taggedUser ? `[${nickname}:${taggedUser.userId}]` : match;
+      });
+
+      console.log('기존메세지', internalMessage);
+      console.log('들어옴', newInternalMessage);
+
+      // 기존 `internalMessage`에 새로운 텍스트를 안전하게 추가
+      setInternalMessage(internalMessage + newInternalMessage);
+    }
+
+    // 입력이 삭제된 경우
+    else if (content.length < sendContent.length) {
+      // `content`의 길이에 맞춰 `sendContent`를 자르기
+      const lastIndex = internalMessage.lastIndexOf('[');
+      let modifiedText = internalMessage;
+
+      // 2. `[닉네임:아이디]` 형식을 찾아서 제거
+      if (lastIndex !== -1) {
+        const substring = internalMessage.slice(lastIndex);
+        const match = substring.match(/^\[(.*?):(.*?)\]/);
+
+        if (match) {
+          // `[닉네임:아이디]` 부분 제거
+          modifiedText = internalMessage.slice(0, lastIndex) + internalMessage.slice(lastIndex + match[0].length);
+        }
+      }
+
+      // 3. `@` 뒤에 있는 문장을 찾아 추출하고, `modifiedText`에 붙이기
+      const atIndex = content.indexOf('@');
+      if (atIndex !== -1) {
+        const afterAtText = content.slice(atIndex + 1).trim();
+        modifiedText += ` ${afterAtText}`;
+      }
+
+      setInternalMessage(modifiedText);
+    }
+
+    // 최종적으로 `content`를 `sendContent`에 저장
     setSendContent(content);
-    textarea.style.height = 'auto';
-    textarea.style.height = `${textarea.scrollHeight}px`;
 
-    const cursorPosition = textarea.selectionStart;
-    const lastChar = content[cursorPosition - 1]?.normalize('NFC');
-
+    // '@' 입력 시 유저 검색 시작
     const atIndex = content.lastIndexOf('@');
-    if (atIndex !== -1 && cursorPosition > atIndex && /^[가-힣]$/.test(lastChar)) {
-      const searchQuery = content.substring(atIndex + 1, cursorPosition);
-      console.log('searchQuery', searchQuery);
+    if (atIndex !== -1) {
+      const searchQuery = content.slice(atIndex + 1);
       if (searchQuery) {
         findUserMutation.mutate(searchQuery);
-
         const { top, left } = textarea.getBoundingClientRect();
         const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
-
-        // 부모 컨테이너 기준으로 상대 위치를 계산
         setDropdownPosition({
           top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
           left: left - containerLeft + scrollContainerRef.current.scrollLeft,
         });
         setShowDropdown(true);
+      } else {
+        setShowDropdown(false);
       }
     } else {
       setShowDropdown(false);
     }
+
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
   };
 
   const showUserInfo = (e, nickname, profileImage, userId) => {
@@ -422,75 +496,29 @@ const Comments = ({ docsId, workspaceId }) => {
   };
 
   // 유저 선택 시 처리 - 일반 메시지와 수정 모드 구분
-  const handleSelectUser = (nickname, userId, isEditing = false) => {
-    const content = isEditing ? editContent : sendContent;
-    const atIndex = content.lastIndexOf('@');
-    const newContent = `${content.substring(0, atIndex)}@${nickname} `;
+  const handleSelectUser = (nickname, userId, isEditing) => {
+    const atIndex = sendContent.lastIndexOf('@');
+    const newContent = `${sendContent.substring(0, atIndex)}@${nickname} `;
+    const newInternalMessage = `${internalMessage.substring(0, atIndex)}[${nickname}:${userId}] `;
 
-    if (isEditing) {
-      setEditContent(newContent);
-      const textBefore = content.substring(0, atIndex);
-      setEditParsedMessage((prevParsed) => [
-        ...prevParsed,
-        { type: 'TEXT', value: textBefore },
-        { type: 'USER', value: userId },
-      ]);
-    } else {
-      setSendContent(newContent);
-      const textBefore = content.substring(0, atIndex);
-      setSendParsedMessage((prevParsed) => [
-        ...prevParsed,
-        { type: 'TEXT', value: textBefore },
-        { type: 'USER', value: userId },
-      ]);
-    }
+    setSendContent(newContent);
+    setInternalMessage(newInternalMessage);
 
+    // 태그된 유저 추가
+    setTaggedUsers((prevUsers) => [...prevUsers, { nickname, userId }]);
     setShowDropdown(false);
   };
 
-  const sendMessage = () => {
-    if (stompClientRef.current && stompClientRef.current.connected) {
-      if (sendContent) {
-        const parsedMessage = [];
-
-        // `@` 기호의 마지막 위치 찾기
-        const lastAtIndex = sendContent.lastIndexOf('@');
-
-        if (lastAtIndex !== -1) {
-          // `@` 기호 이후 첫 번째 공백 위치 찾기
-          const spaceIndex = sendContent.indexOf(' ', lastAtIndex);
-
-          // 남은 텍스트: 공백 뒤의 텍스트만 추출
-          const remainingText = spaceIndex !== -1 ? sendContent.substring(spaceIndex + 1) : '';
-
-          // 기존 파싱된 메시지에 남은 텍스트 추가
-          setSendParsedMessage((prevParsed) => [...prevParsed, { type: 'TEXT', value: remainingText }]);
-        } else {
-          // `@`가 없을 때 전체 텍스트를 `TEXT`로 추가
-          setSendParsedMessage([{ type: 'TEXT', value: sendContent }]);
-        }
-
-        setSending(true);
+  // 메시지 파싱 함수
+  const parseMessage = (messageText) => {
+    return messageText.split(/(\[.*?:.*?\])/).map((part) => {
+      const match = part.match(/\[(.*?):(.*?)\]/);
+      if (match) {
+        return { type: 'USER', value: match[2] }; // userId
       }
-    }
+      return { type: 'TEXT', value: part };
+    });
   };
-
-  useEffect(() => {
-    if (sending) {
-      console.log('메세지보내기직전!', sendParsedMessage);
-      stompClientRef.current.publish({
-        destination: `/ws/pub/docs/${docsId}/comments`,
-        body: JSON.stringify({
-          type: 'ADD',
-          message: sendParsedMessage,
-        }),
-      });
-      setSending(false);
-      setSendContent('');
-      setSendParsedMessage([]);
-      if (textareaRef.current) textareaRef.current.style.height = 'auto';
-    }
-  }, [sendParsedMessage]);
 
   const handleUserClick = (nickname, userId) => {
     // isEditing이 true이면 수정 모드에서 handleSelectUser 호출

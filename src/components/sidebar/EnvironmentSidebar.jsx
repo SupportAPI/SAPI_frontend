@@ -68,6 +68,7 @@ const EnvironmentSidebar = () => {
               );
             })}
           </ul>
+          <div className='mt-2 border border-text-gray-600'></div>
         </div>
       </div>
     </div>
