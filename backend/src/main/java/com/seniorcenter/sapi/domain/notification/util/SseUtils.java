@@ -8,11 +8,14 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import com.seniorcenter.sapi.domain.api.domain.Api;
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.notification.domain.Notification;
 import com.seniorcenter.sapi.domain.notification.domain.NotificationMessageBody;
 import com.seniorcenter.sapi.domain.notification.domain.NotificationType;
 import com.seniorcenter.sapi.domain.notification.domain.repository.EmitterRepository;
 import com.seniorcenter.sapi.domain.notification.domain.repository.NotificationRepository;
+import com.seniorcenter.sapi.domain.notification.presentation.dto.response.ApiNotificationResponseDto;
 import com.seniorcenter.sapi.domain.notification.presentation.dto.response.NotificationResponseDto;
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
@@ -32,6 +35,7 @@ public class SseUtils {
 	private final EmitterRepository emitterRepository;
 	private final NotificationRepository notificationRepository;
 	private final WorkspaceRepository workspaceRepository;
+	private final ApiRepository apiRepository;
 	private final UserUtils userUtils;
 
 	private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
@@ -77,11 +81,24 @@ public class SseUtils {
 		);
 	}
 
+	public void sendApiNotification(User receiver, UUID fromId, UUID workspaceId, NotificationType notificationType) {
+		Notification notification = notificationRepository.save(createNotification(receiver, fromId, notificationType));
+		String userId = String.valueOf(receiver.getId());
+
+		ApiNotificationResponseDto responseDto = new ApiNotificationResponseDto(notification.getId(), fromId,
+			workspaceId, notification.getFromName(), notification.getMessage(), notificationType.getType(),
+			notification.getCreatedDate());
+
+		Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByUserId(userId);
+		sseEmitters.forEach(
+			(key, emitter) -> {
+				emitterRepository.saveEventCache(key, notification);
+				sendToClient(emitter, key, responseDto);
+			}
+		);
+	}
+
 	private Notification createNotification(User receiver, UUID fromId, NotificationType notificationType) {
-		/*
-			TODO: WORKSPACE_INVITE 외의 Type인 경우 apiId로 apiRepository에서 api를 가져온 뒤, api 명을 메시지에 추가
-				  WORKSPACE_INVITE Type인 경우 invitedId로 workspaceRepository에서 workspace를 가져온 뒤, workspace 명을 메시지에 추가
-		 */
 		Notification notification;
 
 		if (notificationType.equals(NotificationType.WORKSPACE_INVITE)) {
@@ -90,8 +107,9 @@ public class SseUtils {
 			String message = workspace.getProjectName() + selectNotificationMessageBody(notificationType);
 			notification = Notification.createNotification(receiver, fromId, workspace.getProjectName(), message, notificationType);
 		} else {
-			String message = "임시API명" + selectNotificationMessageBody(notificationType);
-			notification = Notification.createNotification(receiver, fromId, "임시API명", message, notificationType);
+			Api api = apiRepository.findById(fromId).orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+			String message = api.getName() + selectNotificationMessageBody(notificationType);
+			notification = Notification.createNotification(receiver, fromId, api.getName(), message, notificationType);
 		}
 
 		return notification;
