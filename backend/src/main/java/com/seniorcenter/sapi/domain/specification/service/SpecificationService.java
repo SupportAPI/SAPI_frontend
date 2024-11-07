@@ -9,6 +9,7 @@ import com.seniorcenter.sapi.domain.specification.domain.repository.Specificatio
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationCategoryResponseDto;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationIdNameResponseDto;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationResponseDto;
+import com.seniorcenter.sapi.domain.statistics.service.StatisticsService;
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
@@ -44,6 +45,7 @@ public class SpecificationService {
     private final ApiHeaderRepository apiHeaderRepository;
     private final ApiQueryParameterRepository apiQueryParameterRepository;
     private final ApiResponseRepository apiResponseRepository;
+    private final StatisticsService statisticsService;
 
     @Transactional
     public void createSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
@@ -187,6 +189,9 @@ public class SpecificationService {
         apiResponseRepository.saveAll(newResponses);
 
         apiLambdaService.createLambda(specificationId);
+
+        statisticsService.updateStatistics(specificationId);
+
         return new SpecificationResponseDto(originApi, specification);
     }
 
