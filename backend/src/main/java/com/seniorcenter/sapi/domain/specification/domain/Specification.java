@@ -41,7 +41,7 @@ public class Specification extends BaseTimeEntity {
     @JoinColumn(name = "workspace_id")
     private Workspace workspace;
 
-    @OneToOne
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "manager_id")
     private User manager;
 
