@@ -61,7 +61,7 @@ const ApiTest = () => {
   };
 
   const handleRowClick = (apiId) => {
-    navigate(`/workspace/${workspaceId}/apidocs/${apiId}`);
+    navigate(`/workspace/${workspaceId}/api-test/${apiId}`);
   };
 
   const handleDeleteSelected = () => {
@@ -137,7 +137,7 @@ const ApiTest = () => {
       // 2초 후에 현재 docId의 복사 상태를 false로 되돌림
       setTimeout(() => {
         setCopiedStatus((prev) => ({ ...prev, [docId]: false }));
-      }, 2000);
+      }, 1000);
     });
   };
 
@@ -306,7 +306,7 @@ const ApiTest = () => {
                         className='text-xl ml-2'
                         onClick={(e) => {
                           e.stopPropagation();
-                          copyApiPath(api.path);
+                          copyApiPath(api.docId, api.path);
                         }}
                       >
                         {copiedStatus[api.docId] ? <IoCopy /> : <IoCopyOutline />}
