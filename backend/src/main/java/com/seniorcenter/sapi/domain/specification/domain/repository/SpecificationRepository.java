@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface SpecificationRepository extends JpaRepository<Specification, Long> {
+public interface SpecificationRepository extends JpaRepository<Specification, UUID> {
     List<Specification> findSpecificationsByWorkspaceId(UUID workSpaceId);
 
     Optional<Specification> findById(UUID specificationUUID);
