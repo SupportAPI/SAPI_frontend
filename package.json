@@ -24,6 +24,7 @@
     "animate.css": "^4.1.1",
     "axios": "^1.7.7",
     "codemirror": "^6.0.1",
+    "event-source-polyfill": "^1.0.31",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
     "monaco-editor": "^0.52.0",
