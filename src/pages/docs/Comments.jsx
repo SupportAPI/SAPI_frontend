@@ -168,7 +168,7 @@ const Comments = ({ docsId, workspaceId }) => {
     const textarea = e.target;
     const content = textarea.value;
 
-    // 입력이 추가된 경우sk
+    // 입력이 추가된 경우
     if (content.length > editContent.length) {
       const newText = content.slice(editContent.length);
 
@@ -187,30 +187,34 @@ const Comments = ({ docsId, workspaceId }) => {
 
     // 입력이 삭제된 경우
     else if (content.length < editContent.length) {
-      // `content`의 길이에 맞춰 `sendContent`를 자르기
-      const lastIndex = editInternalMessage.lastIndexOf('[');
+
+      const lastChar = editInternalMessage.slice(-1);
       let modifiedText = editInternalMessage;
 
-      // 2. `[닉네임:아이디]` 형식을 찾아서 제거
-      if (lastIndex !== -1) {
-        const substring = editInternalMessage.slice(lastIndex);
-        const match = substring.match(/^\[(.*?):(.*?)\]/);
-
-        if (match) {
-          // `[닉네임:아이디]` 부분 제거
-          modifiedText =
-            editInternalMessage.slice(0, lastIndex) + editInternalMessage.slice(lastIndex + match[0].length);
+      if (lastChar === ']') {
+        // `]`가 마지막 문자일 경우 `[닉네임:아이디]` 형식을 찾아서 제거
+        const lastIndex = editInternalMessage.lastIndexOf('[');
+    
+        if (lastIndex !== -1) {
+          const substring = editInternalMessage.slice(lastIndex);
+          const match = substring.match(/^\[(.*?):(.*?)\]/);
+    
+          if (match) {
+            // `[닉네임:아이디]` 부분 제거
+            modifiedText = editInternalMessage.slice(0, lastIndex);
+          }
         }
+          const lastAtIndex = content.lastIndexOf('@');
+        if (lastAtIndex !== -1) { 
+          modifiedText += content.slice(lastAtIndex);
+          setEditInternalMessage(modifiedText);
+        }
+      }else {
+      // `]`가 아닌 다른 문자가 나오면 끝 문자만 제거
+        modifiedText = editInternalMessage.slice(0, -1);
       }
-
-      // 3. `@` 뒤에 있는 문장을 찾아 추출하고, `modifiedText`에 붙이기
-      const atIndex = content.indexOf('@');
-      if (atIndex !== -1) {
-        const afterAtText = content.slice(atIndex + 1).trim();
-        modifiedText += ` ${afterAtText}`;
-      }
-
-      setEditInternalMessage(modifiedText);
+      
+      setEditContent(content);
     }
 
     // 최종적으로 `content`를 `sendContent`에 저장
