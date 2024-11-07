@@ -11,6 +11,8 @@ import User2 from '../../assets/workspace/basic_image.png';
 const Comments = ({ docsId, workspaceId }) => {
   const [showOptionsDropdown, setShowOptionsDropdown] = useState(false);
   const [userSuggestions, setUserSuggestions] = useState([]);
+  const [user, setUser] = useState({});
+  const [showUser, setShowUser] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [initIndex, setInitIndex] = useState(-1);
@@ -20,6 +22,7 @@ const Comments = ({ docsId, workspaceId }) => {
   const textareaRef = useRef(null);
   const setRef = useRef(null);
   const deleteRef = useRef(null);
+  const infoRef = useRef(null);
   const [optionsDropdownPosition, setOptionsDropdownPosition] = useState({ top: 0, left: 0 });
   const [editingMessageId, setEditingMessageId] = useState(null); // 수정 중인 메시지 ID
   const [selectedMessageId, setSelectedMessageId] = useState(null); // 드롭다운에서 선택된 메시지 ID
@@ -164,6 +167,9 @@ const Comments = ({ docsId, workspaceId }) => {
     if (deleteRef.current && !deleteRef.current.contains(event.target)) {
       setShowDeleteModal(false);
     }
+    if (infoRef.current && !infoRef.current.contains(event.target)) {
+      setShowUser(false);
+    }
   };
 
   // 드롭다운 열렸을 때 스크롤 방지
@@ -215,9 +221,10 @@ const Comments = ({ docsId, workspaceId }) => {
     onError: (error) => console.error('Find comments error:', error),
   });
 
-  const findUserMutation = useMutation(() => findUsers(workspaceId, nickname), {
+  const findUserMutation = useMutation((searchQuery) => findUsers(workspaceId, searchQuery), {
     onSuccess: (response) => {
       setUserSuggestions(response);
+      console.log('코멘트태그', response);
     },
     onError: (error) => console.error('User fetch error:', error),
   });
@@ -360,14 +367,57 @@ const Comments = ({ docsId, workspaceId }) => {
     const atIndex = content.lastIndexOf('@');
     if (atIndex !== -1 && cursorPosition > atIndex && /^[가-힣]$/.test(lastChar)) {
       const searchQuery = content.substring(atIndex + 1, cursorPosition);
+      console.log('searchQuery', searchQuery);
       if (searchQuery) {
         findUserMutation.mutate(searchQuery);
+
         const { top, left } = textarea.getBoundingClientRect();
-        setDropdownPosition({ top: top + window.scrollY, left: left + window.scrollX });
+        const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
+
+        // 부모 컨테이너 기준으로 상대 위치를 계산
+        setDropdownPosition({
+          top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
+          left: left - containerLeft + scrollContainerRef.current.scrollLeft,
+        });
         setShowDropdown(true);
       }
     } else {
       setShowDropdown(false);
+    }
+  };
+
+  const showUserInfo = (e, nickname, profileImage, userId) => {
+    e.stopPropagation(); // 이벤트 전파 중단
+
+    // `e`와 `e.target`이 존재하는지 확인
+    if (!e || !e.target) {
+      console.error('이벤트 또는 이벤트 타겟이 정의되지 않았습니다.');
+      return;
+    }
+
+    console.log('정보 뜰 준비 완!');
+
+    const targetElement = e.target;
+
+    // `targetElement`가 `span`인지 확인하고 `scrollContainerRef.current`가 존재하는지 확인
+    if (targetElement.tagName === 'SPAN' && scrollContainerRef.current) {
+      const { top, left } = targetElement.getBoundingClientRect();
+      const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
+
+      setUser({
+        userId: userId,
+        nickname: nickname,
+        profileImage: profileImage,
+      });
+
+      // 부모 컨테이너 기준으로 상대 위치를 계산
+      setDropdownPosition({
+        top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
+        left: left - containerLeft + scrollContainerRef.current.scrollLeft,
+      });
+      setShowUser(true);
+    } else {
+      console.error('targetElement가 span이 아니거나 scrollContainerRef가 초기화되지 않았습니다.');
     }
   };
 
@@ -383,7 +433,7 @@ const Comments = ({ docsId, workspaceId }) => {
       setEditParsedMessage((prevParsed) => [
         ...prevParsed,
         { type: 'TEXT', value: textBefore },
-        { type: 'USER', value: { userId, nickname } },
+        { type: 'USER', value: userId },
       ]);
     } else {
       setSendContent(newContent);
@@ -391,7 +441,7 @@ const Comments = ({ docsId, workspaceId }) => {
       setSendParsedMessage((prevParsed) => [
         ...prevParsed,
         { type: 'TEXT', value: textBefore },
-        { type: 'USER', value: { userId, nickname } },
+        { type: 'USER', value: userId },
       ]);
     }
 
@@ -401,7 +451,25 @@ const Comments = ({ docsId, workspaceId }) => {
   const sendMessage = () => {
     if (stompClientRef.current && stompClientRef.current.connected) {
       if (sendContent) {
-        setSendParsedMessage((prevParsed) => [...prevParsed, { type: 'TEXT', value: sendContent }]);
+        const parsedMessage = [];
+
+        // `@` 기호의 마지막 위치 찾기
+        const lastAtIndex = sendContent.lastIndexOf('@');
+
+        if (lastAtIndex !== -1) {
+          // `@` 기호 이후 첫 번째 공백 위치 찾기
+          const spaceIndex = sendContent.indexOf(' ', lastAtIndex);
+
+          // 남은 텍스트: 공백 뒤의 텍스트만 추출
+          const remainingText = spaceIndex !== -1 ? sendContent.substring(spaceIndex + 1) : '';
+
+          // 기존 파싱된 메시지에 남은 텍스트 추가
+          setSendParsedMessage((prevParsed) => [...prevParsed, { type: 'TEXT', value: remainingText }]);
+        } else {
+          // `@`가 없을 때 전체 텍스트를 `TEXT`로 추가
+          setSendParsedMessage([{ type: 'TEXT', value: sendContent }]);
+        }
+
         setSending(true);
       }
     }
@@ -409,7 +477,7 @@ const Comments = ({ docsId, workspaceId }) => {
 
   useEffect(() => {
     if (sending) {
-      console.log(sendParsedMessage);
+      console.log('메세지보내기직전!', sendParsedMessage);
       stompClientRef.current.publish({
         destination: `/ws/pub/docs/${docsId}/comments`,
         body: JSON.stringify({
@@ -432,6 +500,9 @@ const Comments = ({ docsId, workspaceId }) => {
       handleSelectUser(nickname, userId, false);
     }
   };
+
+  console.log('데이터', userSuggestions);
+  console.log('드롭다운', showDropdown);
 
   return (
     <div
@@ -490,6 +561,9 @@ const Comments = ({ docsId, workspaceId }) => {
                           key={index}
                           className='font-bold text-blue-500 cursor-pointer'
                           style={{ display: 'inline' }}
+                          onClick={(e) =>
+                            showUserInfo(e, part.value.nickname, part.value.profileImage, part.value.userId)
+                          } // 래퍼 함수로 감싸기
                         >
                           @{part.value.nickname}
                         </span>
@@ -565,24 +639,49 @@ const Comments = ({ docsId, workspaceId }) => {
           </li>
         </ul>
       )}
-      {showDropdown && (
+      {showDropdown && userSuggestions && userSuggestions.length > 0 && (
         <ul
           style={{
-            bottom: `calc(100% - ${dropdownPosition.top - 3}px)`,
-            left: `calc(100% - ${dropdownPosition.left + 25}px)`,
+            position: 'absolute',
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
           }}
-          className='absolute bg-[#EDF7FF] border border-gray-300 w-56 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
+          className='bg-[#EDF7FF] border border-gray-300 w-56 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
         >
           {userSuggestions.map((user) => (
             <li
-              key={user.id}
-              onClick={() => handleUserClick(user.nickname, user.id)}
-              className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center justify-content'
+              key={user.userId}
+              onClick={() => handleUserClick(user.nickname, user.userId)}
+              className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center'
             >
-              <img className='w-[40px] h-[40px] rounded-full mr-5 ml-3' src={User2} alt='Profile' />
+              <img
+                className='w-[50px] h-[50px] rounded-full mr-5 ml-3 object-contain'
+                src={user.profileImage || User2}
+                alt='Profile'
+              />
               {user.nickname}
             </li>
           ))}
+        </ul>
+      )}
+      {showUser && user && (
+        <ul
+          style={{
+            position: 'absolute',
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+          }}
+          className='bg-[#EDF7FF] border border-gray-300 w-36 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
+          ref={infoRef}
+        >
+          <li key={user.userId} className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center'>
+            <img
+              className='w-[50px] h-[50px] rounded-full mr-5 ml-3 object-contain'
+              src={user.profileImage || User2}
+              alt='Profile'
+            />
+            {user.nickname}
+          </li>
         </ul>
       )}
     </div>
