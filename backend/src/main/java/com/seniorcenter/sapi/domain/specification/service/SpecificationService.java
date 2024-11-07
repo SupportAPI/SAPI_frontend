@@ -3,6 +3,8 @@ package com.seniorcenter.sapi.domain.specification.service;
 import com.seniorcenter.sapi.domain.api.domain.*;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.*;
+import com.seniorcenter.sapi.domain.notification.domain.NotificationType;
+import com.seniorcenter.sapi.domain.notification.util.SseUtils;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.domain.specification.domain.SpecificationMessage;
 import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
@@ -46,6 +48,7 @@ public class SpecificationService {
     private final ApiQueryParameterRepository apiQueryParameterRepository;
     private final ApiResponseRepository apiResponseRepository;
     private final StatisticsService statisticsService;
+    private final SseUtils sseUtils;
 
     @Transactional
     public void createSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
@@ -191,6 +194,11 @@ public class SpecificationService {
         apiLambdaService.createLambda(specificationId);
 
         statisticsService.updateStatistics(specificationId);
+
+        if (specification.getManager() != null) {
+            sseUtils.sendApiNotification(specification.getManager(), originApi.getId(),
+                specification.getWorkspace().getId(), NotificationType.API_CONFIRM);
+        }
 
         return new SpecificationResponseDto(originApi, specification);
     }
