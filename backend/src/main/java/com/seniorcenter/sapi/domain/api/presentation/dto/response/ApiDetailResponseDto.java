@@ -2,6 +2,7 @@ package com.seniorcenter.sapi.domain.api.presentation.dto.response;
 
 import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record ApiDetailResponseDto(
@@ -17,7 +18,9 @@ public record ApiDetailResponseDto(
         String managerProfileImage,
         Parameters parameters,
         Request request,
-        List<Response> response
+        List<Response> response,
+        LocalDateTime createdDate,
+        LocalDateTime lastModifyDate
 ) {
     public record Parameters(
             String authType,
