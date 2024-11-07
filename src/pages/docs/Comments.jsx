@@ -29,7 +29,7 @@ const Comments = ({ docsId, workspaceId }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [editContent, setEditContent] = useState(''); // 수정 중인 콘텐츠
-  const [editParsedMessage, setEditParsedMessage] = useState([]); // 수정 중의 파싱된 메시지 배열
+  const [editInternalMessage, setEditInternalMessage] = useState(''); // 수정 중의 파싱된 메시지 배열
 
   const [sendContent, setSendContent] = useState(''); // 사용자 입력 텍스트
   const [internalMessage, setInternalMessage] = useState(''); // 내부 저장 메시지 형식: [닉네임:아이디]
@@ -65,7 +65,6 @@ const Comments = ({ docsId, workspaceId }) => {
   const handleCancelEdit = () => {
     setEditingMessageId(null);
     setEditContent('');
-    setEditParsedMessage([]); // 수정 중 파싱된 메시지 초기화
   };
 
   const handleCancelDelete = () => {
@@ -92,73 +91,153 @@ const Comments = ({ docsId, workspaceId }) => {
     setShowDeleteModal(false);
   };
 
+  // useEffect(() => {
+  //   if (sending) {
+  //     console.log(editParsedMessage);
+  //     stompClientRef.current.publish({
+  //       destination: `/ws/pub/docs/${docsId}/comments`,
+  //       body: JSON.stringify({
+  //         type: 'UPDATE',
+  //         message: {
+  //           commentId: selectedMessageId,
+  //           message: editParsedMessage,
+  //         },
+  //       }),
+  //     });
+  //     setSending(false);
+  //     setEditingMessageId(null); // 수정 모드 종료
+  //     setEditContent(''); // 수정 필드 초기화
+  //   }
+  // }, [editParsedMessage]);
+
   // 수정 버튼 클릭 핸들러
   const handleEditClick = () => {
     const messageToEdit = messages.find((msg) => msg.commentId === selectedMessageId);
+    console.log(messageToEdit);
     if (messageToEdit) {
       setEditingMessageId(selectedMessageId);
-      setEditContent(messageToEdit.comment[0]?.value || ''); // 현재 메시지 내용을 입력 필드에 설정
-      setEditParsedMessage([]); // 편집 상태 초기화
+
+      let newEditContent = '';
+      let newEditInternalMessage = '';
+
+      messageToEdit.comment.forEach((part) => {
+        if (part.type === 'USER') {
+          // type이 USER인 경우
+          newEditContent += `@${part.value.nickname} `;
+          newEditInternalMessage += `[${part.value.nickname}:${part.value.userId}] `;
+        } else if (part.type === 'TEXT') {
+          // type이 TEXT인 경우
+          newEditContent += part.value;
+          newEditInternalMessage += part.value;
+        }
+      });
+      setEditContent(newEditContent.trim()); // 최종 editContent 설정
+      setEditInternalMessage(newEditInternalMessage.trim()); // 최종 editInternalMessage 설정
     }
     setShowOptionsDropdown(false); // 옵션 드롭다운 닫기
   };
 
+  console.log(editInternalMessage);
+
   // 수정 내용 저장 핸들러
   const handleSaveEdit = () => {
-    if (stompClientRef.current && stompClientRef.current.connected) {
-      if (editContent) {
-        setEditParsedMessage((prevParsed) => [...prevParsed, { type: 'TEXT', value: editContent }]);
-        setSending(true);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (sending) {
-      console.log(editParsedMessage);
+    if (stompClientRef.current && stompClientRef.current.connected && editInternalMessage) {
+      console.log('수정1', editInternalMessage);
+      console.log('수정2', editContent);
+      const parsedMessage = parseMessage(editInternalMessage || editContent);
+      console.log(parsedMessage);
       stompClientRef.current.publish({
         destination: `/ws/pub/docs/${docsId}/comments`,
         body: JSON.stringify({
           type: 'UPDATE',
           message: {
-            commentId: selectedMessageId,
-            message: editParsedMessage,
+            commentId: editingMessageId,
+            message: parsedMessage,
           },
         }),
       });
-      setSending(false);
-      setEditingMessageId(null); // 수정 모드 종료
-      setEditContent(''); // 수정 필드 초기화
-      setEditParsedMessage([]); // 편집 상태 초기화
+      setEditContent('');
+      setEditInternalMessage('');
+      setTaggedUsers([]);
+      setEditingMessageId(null);
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
     }
-  }, [editParsedMessage]);
+  };
 
   const handleEditInput = (e) => {
     const textarea = e.target;
     const content = textarea.value;
+
+    // 입력이 추가된 경우sk
+    if (content.length > editContent.length) {
+      const newText = content.slice(editContent.length);
+
+      // newText가 일반 텍스트인 경우, [닉네임:아이디] 형식이 변형되지 않도록 처리
+      let newInternalMessage = newText.replace(/@(\w+)/g, (match, nickname) => {
+        const taggedUser = taggedUsers
+          .slice()
+          .reverse()
+          .find((user) => user.nickname === nickname);
+        return taggedUser ? `[${nickname}:${taggedUser.userId}]` : match;
+      });
+
+      // 기존 `internalMessage`에 새로운 텍스트를 안전하게 추가
+      setEditInternalMessage(editInternalMessage + newInternalMessage);
+    }
+
+    // 입력이 삭제된 경우
+    else if (content.length < editContent.length) {
+      // `content`의 길이에 맞춰 `sendContent`를 자르기
+      const lastIndex = editInternalMessage.lastIndexOf('[');
+      let modifiedText = editInternalMessage;
+
+      // 2. `[닉네임:아이디]` 형식을 찾아서 제거
+      if (lastIndex !== -1) {
+        const substring = editInternalMessage.slice(lastIndex);
+        const match = substring.match(/^\[(.*?):(.*?)\]/);
+
+        if (match) {
+          // `[닉네임:아이디]` 부분 제거
+          modifiedText =
+            editInternalMessage.slice(0, lastIndex) + editInternalMessage.slice(lastIndex + match[0].length);
+        }
+      }
+
+      // 3. `@` 뒤에 있는 문장을 찾아 추출하고, `modifiedText`에 붙이기
+      const atIndex = content.indexOf('@');
+      if (atIndex !== -1) {
+        const afterAtText = content.slice(atIndex + 1).trim();
+        modifiedText += ` ${afterAtText}`;
+      }
+
+      setEditInternalMessage(modifiedText);
+    }
+
+    // 최종적으로 `content`를 `sendContent`에 저장
     setEditContent(content);
-    textarea.style.height = 'auto';
-    textarea.style.height = `${textarea.scrollHeight}px`;
 
-    const cursorPosition = textarea.selectionStart;
-    const lastChar = content[cursorPosition - 1]?.normalize('NFC');
-
+    // '@' 입력 시 유저 검색 시작
     const atIndex = content.lastIndexOf('@');
-    if (atIndex !== -1 && cursorPosition > atIndex && /^[가-힣]$/.test(lastChar)) {
-      const searchQuery = content.substring(atIndex + 1, cursorPosition);
+    if (atIndex !== -1) {
+      const searchQuery = content.slice(atIndex + 1);
       if (searchQuery) {
-        // 사용자 검색 결과에 따라 handleSelectUser 호출 준비
-        findUserMutation.mutate(searchQuery, {
-          onSuccess: (response) => {
-            setUserSuggestions(response);
-            setDropdownPosition({ top: top + window.scrollY, left: left + window.scrollX });
-            setShowDropdown(true);
-          },
+        findUserMutation.mutate(searchQuery);
+        const { top, left } = textarea.getBoundingClientRect();
+        const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
+          left: left - containerLeft + scrollContainerRef.current.scrollLeft,
         });
+        setShowDropdown(true);
+      } else {
+        setShowDropdown(false);
       }
     } else {
       setShowDropdown(false);
     }
+
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
   };
 
   // 드롭다운 바깥 선택 시 꺼짐
@@ -375,20 +454,14 @@ const Comments = ({ docsId, workspaceId }) => {
     }
   };
 
-  console.log(internalMessage);
-
   // 입력 필드에서 내용 삭제 시 태그된 유저와 내부 메시지 업데이트
   const handleInput = (e) => {
     const textarea = e.target;
     const content = textarea.value;
 
-    console.log('입력함', content);
-
     // 입력이 추가된 경우
     if (content.length > sendContent.length) {
       const newText = content.slice(sendContent.length);
-
-      console.log('새로들어온', newText);
 
       // newText가 일반 텍스트인 경우, [닉네임:아이디] 형식이 변형되지 않도록 처리
       let newInternalMessage = newText.replace(/@(\w+)/g, (match, nickname) => {
@@ -398,9 +471,6 @@ const Comments = ({ docsId, workspaceId }) => {
           .find((user) => user.nickname === nickname);
         return taggedUser ? `[${nickname}:${taggedUser.userId}]` : match;
       });
-
-      console.log('기존메세지', internalMessage);
-      console.log('들어옴', newInternalMessage);
 
       // 기존 `internalMessage`에 새로운 텍스트를 안전하게 추가
       setInternalMessage(internalMessage + newInternalMessage);
@@ -497,12 +567,19 @@ const Comments = ({ docsId, workspaceId }) => {
 
   // 유저 선택 시 처리 - 일반 메시지와 수정 모드 구분
   const handleSelectUser = (nickname, userId, isEditing) => {
-    const atIndex = sendContent.lastIndexOf('@');
-    const newContent = `${sendContent.substring(0, atIndex)}@${nickname} `;
-    const newInternalMessage = `${internalMessage.substring(0, atIndex)}[${nickname}:${userId}] `;
-
-    setSendContent(newContent);
-    setInternalMessage(newInternalMessage);
+    if (!isEditing) {
+      const atIndex = sendContent.lastIndexOf('@');
+      const newContent = `${sendContent.substring(0, atIndex)}@${nickname} `;
+      const newInternalMessage = `${internalMessage.substring(0, atIndex)}[${nickname}:${userId}] `;
+      setSendContent(newContent);
+      setInternalMessage(newInternalMessage);
+    } else {
+      const atIndex = editContent.lastIndexOf('@');
+      const newContent = `${editContent.substring(0, atIndex)}@${nickname} `;
+      const newInternalMessage = `${editInternalMessage.substring(0, atIndex)}[${nickname}:${userId}] `;
+      setEditContent(newContent);
+      setEditInternalMessage(newInternalMessage);
+    }
 
     // 태그된 유저 추가
     setTaggedUsers((prevUsers) => [...prevUsers, { nickname, userId }]);
