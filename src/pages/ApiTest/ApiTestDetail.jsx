@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IoCopyOutline } from 'react-icons/io5';
 import { ResizableBox } from 'react-resizable';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
@@ -6,13 +6,25 @@ import { FaSave } from 'react-icons/fa';
 import 'react-resizable/css/styles.css';
 import ApiTestParameters from './ApiTestParameters';
 import ApiTestBody from './APitestBody';
+import { useNavbarStore } from '../../stores/useNavbarStore';
+import { useSidebarStore } from '../../stores/useSidebarStore';
+import { useTabStore } from '../../stores/useTabStore';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 
 const ApiTestDetail = () => {
+  const [apiData, setApiData] = useState([{ category: 'Uncategorized', name: 'New API' }]);
+  const [apiDetail, setApiDetail] = useState(1);
   const [apimethod, setApimethod] = useState('POST');
   const [apiname, setApiname] = useState('API NAME');
   const [apiUrl, setApiUrl] = useState('/api/memberships/membershipid/role');
   const [activeTabContent, setActiveTabContent] = useState('Parameters'); // 기본 탭을 'Parameters'로 설정
   const [activeTabResult, setActiveTabResult] = useState('Body'); // 기본 탭을 'Parameters'로 설정
+
+  const { expandedCategories, expandCategory } = useSidebarStore();
+  const { addTab, openTabs, removeTab } = useTabStore();
+  const { setMenu } = useNavbarStore();
+  const { workspaceId, apiId } = useParams();
+  const location = useLocation();
 
   const handleCopyAddress = () => {
     // Address 카피할 수 있는 기능 추가할 것
@@ -44,6 +56,18 @@ const ApiTestDetail = () => {
         return null;
     }
   };
+
+  useEffect(() => {
+    if (location.pathname.includes('/api-test')) setMenu('API Test');
+    if (apiData && apiId) {
+      setApiDetail(apiData);
+      const category = apiData.category;
+      if (category && !expandedCategories[category]) expandCategory(category);
+      if (!openTabs.find((tab) => tab.id === apiId)) {
+        addTab({ id: apiId, name: apiData.name, path: `/workspace/${workspaceId}/api-test/${apiId}` });
+      }
+    }
+  }, [apiData, apiId, expandCategory, addTab, setMenu, expandedCategories, openTabs, location.pathname, workspaceId]);
 
   return (
     <div className='flex h-full'>

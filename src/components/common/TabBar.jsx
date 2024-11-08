@@ -88,7 +88,7 @@ const TabBar = () => {
           </div>
         );
       })}
-      {openTabs.length === 0 && <div className='flex bg-white border-b h-10'>There is no active tab</div>}
+      {openTabs.length === 0 && <div className='flex bg-white border-b h-10'></div>}
     </div>
   );
 };
