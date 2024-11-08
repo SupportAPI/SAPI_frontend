@@ -1,6 +1,7 @@
 package com.seniorcenter.sapi.domain.api.presentation.dto.response;
 
 import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
+import com.seniorcenter.sapi.domain.category.presentation.dto.response.CategoryResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.List;
 public record ApiDetailResponseDto(
         String docId,
         String apiId,
-        String category,
+        CategoryResponseDto category,
         String name,
         String method,
         String path,
