@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaChevronDown, FaChevronRight, FaPlus, FaSearch, FaBars } from 'react-icons/fa';
+import { FaChevronDown, FaChevronRight, FaPlus, FaSearch, FaBars, FaTimes } from 'react-icons/fa';
 import { BiCollapseVertical, BiExpandVertical } from 'react-icons/bi';
 import { BsThreeDots } from 'react-icons/bs';
 import { useSidebarStore } from '../../stores/useSidebarStore';
 import { useTabStore } from '../../stores/useTabStore';
-import { useApiDocs } from '../../api/queries/useApiDocsQueries'; // react-query로 데이터 불러오기만 사용
+import { useApiDocs } from '../../api/queries/useApiDocsQueries';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useWebSocket } from '../../contexts/WebSocketContext'; // WebSocket 가져오기
+import { useWebSocket } from '../../contexts/WebSocketContext';
 
 const ApiDocsSidebar = () => {
-  const { data = [], error, refetch } = useApiDocs(); // refetch 함수 추가
+  const { data = [], error, refetch } = useApiDocs();
   const { expandedCategories, toggleCategory, setAllCategories } = useSidebarStore();
   const { addTab, confirmTab } = useTabStore();
   const navigate = useNavigate();
@@ -18,11 +18,13 @@ const ApiDocsSidebar = () => {
   const location = useLocation();
   const [activeDropdown, setActiveDropdown] = useState(null);
   const dropdownRef = useRef(null);
-  const { subscribe, publish, isConnected } = useWebSocket(); // WebSocket 메서드 추가
+  const { subscribe, publish, isConnected } = useWebSocket();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedApiId, setSelectedApiId] = useState(null);
 
-  // WebSocket을 통해 ADD 이벤트를 전송
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredData, setFilteredData] = useState(data);
+
   const handleAddApiDoc = () => {
     if (workspaceId) {
       publish(`/ws/pub/workspaces/${workspaceId}/docs`, { type: 'ADD', message: '' });
@@ -73,7 +75,7 @@ const ApiDocsSidebar = () => {
   const handleDelete = (e, docId) => {
     e.stopPropagation();
     setSelectedApiId(docId);
-    setShowDeleteModal(true); // 모달 열기
+    setShowDeleteModal(true);
   };
 
   const handleConfirmDelete = () => {
@@ -81,16 +83,15 @@ const ApiDocsSidebar = () => {
       publish(`/ws/pub/workspaces/${workspaceId}/docs`, { type: 'DELETE', message: selectedApiId });
       toast('API 문서가 삭제되었습니다.');
       setSelectedApiId(null);
-      setShowDeleteModal(false); // 모달 닫기
+      setShowDeleteModal(false);
     }
   };
 
-  // WebSocket을 통해 ADD, DELETE 이벤트 수신 시 refetch 실행
   useEffect(() => {
     if (isConnected) {
       const subscription = subscribe(`/ws/sub/workspaces/${workspaceId}/docs`, (message) => {
         console.log('Received WebSocket message:', message);
-        refetch(); // 이벤트 수신 시 데이터 갱신
+        refetch();
       });
 
       return () => {
@@ -111,6 +112,29 @@ const ApiDocsSidebar = () => {
     };
   }, []);
 
+  // 검색어에 맞게 데이터 필터링
+  useEffect(() => {
+    if (searchTerm) {
+      // 검색어가 있을 때 필터링
+      const filtered = data
+        .map((category) => ({
+          ...category,
+          apis: category.apis.filter((api) => api.name.toLowerCase().includes(searchTerm.toLowerCase())),
+        }))
+        .filter((category) => category.apis.length > 0);
+
+      // 상태가 변경될 때만 업데이트
+      if (JSON.stringify(filtered) !== JSON.stringify(filteredData)) {
+        setFilteredData(filtered);
+      }
+    } else {
+      // 검색어가 없을 때 전체 데이터를 사용
+      if (JSON.stringify(data) !== JSON.stringify(filteredData)) {
+        setFilteredData(data);
+      }
+    }
+  }, [searchTerm, data]);
+
   if (error) return <div className='p-4'>Failed to load data.</div>;
 
   return (
@@ -118,9 +142,18 @@ const ApiDocsSidebar = () => {
       <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 z-10'>
         <div className='flex items-center'>
           <FaPlus className='text-gray-600 cursor-pointer mr-2' onClick={handleAddApiDoc} />
-          <div className='flex items-center flex-1 bg-white rounded border'>
+          <div className='flex items-center flex-1 bg-white rounded border relative'>
             <FaSearch className='text-gray-400 ml-2' />
-            <input type='text' placeholder='Search' className='p-2 flex-1 bg-transparent outline-none' />
+            <input
+              type='text'
+              placeholder='Search by State'
+              className='p-2 flex-1 bg-transparent outline-none'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <FaTimes className='text-gray-400 cursor-pointer absolute right-2' onClick={() => setSearchTerm('')} />
+            )}
           </div>
         </div>
       </div>
@@ -147,7 +180,6 @@ const ApiDocsSidebar = () => {
         </div>
       </div>
 
-      {/* 모달 */}
       {showDeleteModal && (
         <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
           <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
@@ -155,13 +187,13 @@ const ApiDocsSidebar = () => {
             <p className='mb-6'>선택한 API 문서를 삭제하시겠습니까?</p>
             <div className='flex justify-end space-x-4'>
               <button
-                onClick={() => setShowDeleteModal(false)} // 취소 버튼 클릭 시 모달 닫기
+                onClick={() => setShowDeleteModal(false)}
                 className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'
               >
                 취소
               </button>
               <button
-                onClick={handleConfirmDelete} // 확인 버튼 클릭 시 삭제
+                onClick={handleConfirmDelete}
                 className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
               >
                 삭제
@@ -173,7 +205,7 @@ const ApiDocsSidebar = () => {
 
       <div className='flex-1 overflow-y-auto sidebar-scrollbar'>
         <div>
-          {data.map((category) => (
+          {filteredData.map((category) => (
             <div key={category.category}>
               <div
                 className='flex items-center px-4 py-1 text-[#475467] cursor-pointer h-10 hover:bg-gray-300'
