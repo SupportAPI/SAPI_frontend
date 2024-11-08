@@ -46,6 +46,7 @@ public class SpecificationService {
     private final ApiCookieRepository apiCookieRepository;
     private final ApiHeaderRepository apiHeaderRepository;
     private final ApiQueryParameterRepository apiQueryParameterRepository;
+    private final ApiPathVariableRepository apiPathVariableRepository;
     private final ApiResponseRepository apiResponseRepository;
     private final StatisticsService statisticsService;
     private final SseUtils sseUtils;
@@ -179,6 +180,11 @@ public class SpecificationService {
                 .map(queryParameter -> ApiQueryParameter.copyApiQueryParameter(newApi, queryParameter))
                 .collect(Collectors.toList());
         apiQueryParameterRepository.saveAll(newQueryParameter);
+
+        List<ApiPathVariable> newPathVariable = originApi.getPathVariables().stream()
+            .map(pathVariable -> ApiPathVariable.copyApiPathVariable(newApi, pathVariable))
+            .collect(Collectors.toList());
+        apiPathVariableRepository.saveAll(newPathVariable);
 
         List<ApiBody> newBodies = originApi.getBodies().stream()
                 .map(body -> ApiBody.copyBody(newApi, body))
