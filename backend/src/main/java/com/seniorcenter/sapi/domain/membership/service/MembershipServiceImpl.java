@@ -65,7 +65,7 @@ public class MembershipServiceImpl implements MembershipService {
 				Membership membership = Membership.createMembership(invitedUser, workspace, Role.MEMBER,
 					InviteStatus.PENDING);
 				memberships.add(membership);
-				sseUtils.send(invitedUser, workspaceId, NotificationType.WORKSPACE_INVITE);
+				sseUtils.send(invitedUser, workspaceId, workspaceId, NotificationType.WORKSPACE_INVITE);
 			}
 		}
 		membershipRepository.saveAll(memberships);
