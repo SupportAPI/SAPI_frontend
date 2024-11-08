@@ -40,7 +40,7 @@ public class ApiRepositoryCustomImpl implements ApiRepositoryCustom{
 				specification.serverStatus
 			))
 			.from(specification)
-			.join(specification.manager, user)
+			.leftJoin(specification.manager, user)
 			.join(specification.apis, api)
 			.where(specification.workspace.id.eq(workspaceId)
 				.and(api.id.eq(specification.confirmedApiId)))
