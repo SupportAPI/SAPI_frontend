@@ -1,8 +1,7 @@
 package com.seniorcenter.sapi.domain.occupation.service;
 
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.AddRequestDto;
-import com.seniorcenter.sapi.domain.api.presentation.dto.request.RemoveRequestDto;
-import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiStringResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
 import com.seniorcenter.sapi.domain.occupation.presentation.dto.OccupationResponseDto;
@@ -44,11 +43,11 @@ public class OccupationService {
         return new OccupationResponseDto(addRequestDto.id(), user.getId());
     }
 
-    public ApiIdResponseDto removeOccupaction(UUID workspaceId, ApiMessage message) {
+    public ApiStringResponseDto removeOccupaction(UUID workspaceId, ApiMessage message) {
         String hashKey = workspaceId.toString();
-        RemoveRequestDto removeRequestDto = keyValueUtils.remove(message);
+        ApiStringResponseDto removeRequestDto = keyValueUtils.removeAndReturnString(message);
         redisUtil.deleteData(hashKey, removeRequestDto.id().toString());
-        return new ApiIdResponseDto(removeRequestDto.id());
+        return new ApiStringResponseDto(removeRequestDto.id().toString());
     }
 
 }

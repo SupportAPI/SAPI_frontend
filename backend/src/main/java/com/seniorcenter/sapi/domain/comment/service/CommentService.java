@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -89,7 +90,7 @@ public class CommentService {
 
     public Long getCommentId(UUID docId) {
         Comment comment = commentRepository.findFirstBySpecificationIdOrderByCreatedDateDesc(docId);
-        if(comment == null) return -1L;
+        if (comment == null) return -1L;
         return comment.getId();
     }
 
@@ -114,7 +115,7 @@ public class CommentService {
         String modifiedMessage = makeCommentText(messages);
         comment.updateComment(modifiedMessage);
         CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
-        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", new CommentMessage(MessageType.UPDATE,commentResponseDto));
+        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", new CommentMessage(MessageType.UPDATE, commentResponseDto));
     }
 
     @Transactional
@@ -182,7 +183,7 @@ public class CommentService {
     public void createAndSendComment(CommentMessage message, UUID docId, Principal principal) {
         Comment comment = createComment(message, docId, principal);
         CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
-        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", new CommentMessage(MessageType.ADD,commentResponseDto));
+        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", new CommentMessage(MessageType.ADD, commentResponseDto));
     }
 
     public String makeCommentText(List<CommentPart> messages) {
@@ -191,7 +192,14 @@ public class CommentService {
             if (part.type().equals(CommentType.TEXT)) {
                 resultText += part.value() + splitText;
             } else if (part.type().equals(CommentType.USER)) {
-                resultText += userSpecifier + part.value() + splitText;
+                Optional<User> user = userRepository.findById(Long.valueOf(part.value()));
+                if (!user.isPresent()) {
+                    resultText += "@" + part.nickname() + "-" + part.value() + splitText;
+                } else if (!part.nickname().equals(user.get().getNickname())) {
+                    resultText += part.value() + splitText;
+                } else {
+                    resultText += userSpecifier + part.value() + splitText;
+                }
             }
         }
         return resultText;

@@ -111,7 +111,6 @@ public class SpecificationService {
                     if (!categoryMap.containsKey(api.getCategory())) {
                         categoryMap.put(api.getCategory(), categoryIndex.incrementAndGet() - 1);
                         categoryResponseDtos.add(new SpecificationCategoryResponseDto(api.getCategory(), new ArrayList<>()));
-                        System.out.println(categoryMap.get(api.getCategory()));
                     }
                     categoryResponseDtos.get(categoryMap.get(api.getCategory()))
                             .apis().add(new SpecificationIdNameResponseDto(api.getId(), specification.getId(), api.getName()));
