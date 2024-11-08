@@ -9,6 +9,9 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.CategoryUtils;
+import com.seniorcenter.sapi.domain.category.domain.Category;
+import com.seniorcenter.sapi.domain.category.domain.repository.CategoryRepository;
+import com.seniorcenter.sapi.domain.category.presentation.dto.response.CategoryResponseDto;
 import com.seniorcenter.sapi.domain.category.service.CategoryService;
 import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepository;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
@@ -44,6 +47,7 @@ public class ApiService {
     private final ObjectMapper objectMapper;
     private final UserUtils userUtils;
     private final CategoryUtils categoryUtils;
+    private final CategoryRepository categoryRepository;
 
     @Transactional
     public void createApi(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
@@ -226,6 +230,10 @@ public class ApiService {
                 })
                 .toList();
 
+        // 카테고리 설정
+        Category category = categoryRepository.findByName(api.getCategory())
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));;
+
         // Manager 정보 설정
         String managerEmail = (api.getSpecification().getManager() != null) ? api.getSpecification().getManager().getEmail() : "";
         String managerNickname = (api.getSpecification().getManager() != null) ? api.getSpecification().getManager().getNickname() : "";
@@ -235,7 +243,7 @@ public class ApiService {
         return new ApiDetailResponseDto(
                 api.getSpecification().getId().toString(),
                 api.getId().toString(),
-                api.getCategory(),
+                new CategoryResponseDto(category),
                 api.getName(),
                 api.getMethod().name(),
                 api.getPath(),
