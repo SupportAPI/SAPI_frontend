@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMembershipColorRequestDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,7 +64,7 @@ public class MembershipServiceImpl implements MembershipService {
 			if (existingMembership.isEmpty()) {
 				User invitedUser = userUtils.getUserById(userId);
 				Membership membership = Membership.createMembership(invitedUser, workspace, Role.MEMBER,
-					InviteStatus.PENDING);
+					InviteStatus.PENDING, "#808080");
 				memberships.add(membership);
 				sseUtils.send(invitedUser, workspaceId, workspaceId, NotificationType.WORKSPACE_INVITE);
 			}
@@ -132,6 +133,19 @@ public class MembershipServiceImpl implements MembershipService {
 
 		updatedMembership.updateAuthority(requestDto.readAuthority(), requestDto.updateAuthority(),
 			requestDto.saveAuthority(), requestDto.deleteAuthority());
+	}
+
+	@Override
+	public void updateMembershipColor(UpdateMembershipColorRequestDto requestDto, Long membershipId) {
+		User user = userUtils.getUserFromSecurityContext();
+		Membership updatedMembership = membershipRepository.findById(membershipId)
+				.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_MEMBERSHIP));
+
+		if(!user.getId().equals(updatedMembership.getUser().getId())){
+			throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
+		}
+
+		updatedMembership.updateColor(requestDto.color());
 	}
 
 	@Override

@@ -54,7 +54,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		Workspace workspace = Workspace.createWorkspace(requestDto, mainImageUrl);
 		workSpaceRepository.save(workspace);
 
-		Membership membership = Membership.createMembership(user, workspace, Role.MAINTAINER, InviteStatus.ACCEPTED);
+		Membership membership = Membership.createMembership(user, workspace, Role.MAINTAINER, InviteStatus.ACCEPTED, "#808080");
 		membership.updateAuthorityForMaintainer();
 		membershipRepository.save(membership);
 
