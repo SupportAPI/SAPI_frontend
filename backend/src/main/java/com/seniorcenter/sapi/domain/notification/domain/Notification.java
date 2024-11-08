@@ -39,6 +39,9 @@ public class Notification extends BaseTimeEntity {
 	private UUID fromId;
 
 	@Column
+	private UUID workspaceId;
+
+	@Column
 	private String fromName;
 
 	@Column(nullable = false)
@@ -49,18 +52,20 @@ public class Notification extends BaseTimeEntity {
 	private NotificationType type;
 
 	@Builder
-	private Notification(User user, UUID fromId, String fromName, String message, NotificationType type) {
+	private Notification(User user, UUID fromId, UUID workspaceId, String fromName, String message, NotificationType type) {
 		this.user = user;
 		this.fromId = fromId;
+		this.workspaceId = workspaceId;
 		this.fromName = fromName;
 		this.message = message;
 		this.type = type;
 	}
 
-	public static Notification createNotification(User user, UUID fromId, String fromName, String message, NotificationType type) {
+	public static Notification createNotification(User user, UUID fromId, UUID workspaceId, String fromName, String message, NotificationType type) {
 		return Notification.builder()
 			.user(user)
 			.fromId(fromId)
+			.workspaceId(workspaceId)
 			.fromName(fromName)
 			.message(message)
 			.type(type)
