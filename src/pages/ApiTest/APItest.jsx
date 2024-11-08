@@ -1,53 +1,49 @@
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { useDetailApiDocs, useDeleteApiDoc, useCreateApiDoc } from '../../api/queries/useApiDocsQueries';
+import { useFetchApiList } from '../../api/queries/useApiTestQueries';
 import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useTabStore } from '../../stores/useTabStore';
-import { FaCheck, FaTimes, FaTrashAlt, FaPlus, FaShareAlt, FaDownload } from 'react-icons/fa';
+import { FaCheck, FaTimes } from 'react-icons/fa';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 import { IoCopyOutline, IoCopy } from 'react-icons/io5';
 import { RiDropdownList } from 'react-icons/ri';
 import { toast } from 'react-toastify';
 
 const ApiTest = () => {
-  const { data = [], isLoading, error } = useDetailApiDocs();
   const { workspaceId } = useParams();
   const location = useLocation();
+  const { addTab, openTabs } = useTabStore();
+  const { data: dataTest = [], isLoading, error } = useFetchApiList(workspaceId);
   const navigate = useNavigate();
   const { setMenu } = useNavbarStore();
-  const { addTab, openTabs } = useTabStore();
-
-  const { mutate: deleteApiDoc } = useDeleteApiDoc();
-  const { mutate: createApiDoc } = useCreateApiDoc();
 
   const [selectedItems, setSelectedItems] = useState({});
   const [isAllSelected, setIsAllSelected] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
-    if (location.pathname === `/workspace/${workspaceId}/apidocs/all`) {
-      setMenu('API Docs');
+    if (location.pathname === `/workspace/${workspaceId}/api-test`) {
       const existingTab = openTabs.find((tab) => tab.path === location.pathname);
       if (!existingTab) {
         addTab({
-          id: 'all',
-          name: 'API Overview',
+          id: 'api-test',
+          name: 'API Test',
           path: location.pathname,
         });
       }
     }
-  }, [location, workspaceId, setMenu, addTab, openTabs]);
+  }, [location, workspaceId, addTab, openTabs]);
 
   useEffect(() => {
-    const allSelected = data.every((api) => selectedItems[api.docId]);
+    const allSelected = dataTest.every((api) => selectedItems[api.id]);
     setIsAllSelected(allSelected);
-  }, [selectedItems, data]);
+  }, [selectedItems, dataTest]);
 
   const toggleSelectAll = () => {
     const newSelectedState = !isAllSelected;
     const newSelectedItems = {};
-    data.forEach((api) => {
-      newSelectedItems[api.docId] = newSelectedState;
+    dataTest.forEach((api) => {
+      newSelectedItems[api.id] = newSelectedState;
     });
     setSelectedItems(newSelectedItems);
     setIsAllSelected(newSelectedState);
@@ -60,28 +56,15 @@ const ApiTest = () => {
     }));
   };
 
-  const handleRowClick = (apiId) => {
-    navigate(`/workspace/${workspaceId}/apidocs/${apiId}`);
-  };
-
-  const handleDeleteSelected = () => {
-    setShowDeleteModal(true);
-  };
-
-  const handleConfirmDelete = () => {
-    Object.keys(selectedItems).forEach((apiId) => {
-      if (selectedItems[apiId]) {
-        deleteApiDoc({ workspaceId, apiId });
-      }
+  const handleRowClick = (apiId, apiName) => {
+    if (!workspaceId) return;
+    const path = `/workspace/${workspaceId}/api-test/${apiId}`;
+    addTab({
+      id: apiId,
+      name: apiName,
+      path,
     });
-    setSelectedItems({});
-    setShowDeleteModal(false);
-  };
-
-  const handleAddApiDoc = () => {
-    if (workspaceId) {
-      createApiDoc(workspaceId);
-    }
+    navigate(path);
   };
 
   // -------------------------------------------------------여기서 부터 작성함
@@ -125,8 +108,7 @@ const ApiTest = () => {
   const [copiedStatus, setCopiedStatus] = useState({});
   // API 주소를 복사할 수 있는 함수
   const copyApiPath = (docId, path) => {
-    path = 'Path'; // 일단 임시로 설정
-    path = `안녕 난 ${docId} 번의 ${path} 야`;
+    path = `임시 Path: ${docId}`;
     // 실제 복사 동작 (예: 클립보드 복사)
     navigator.clipboard.writeText(path).then(() => {
       // 복사 상태를 현재 docId에 대해 true로 설정
@@ -137,7 +119,7 @@ const ApiTest = () => {
       // 2초 후에 현재 docId의 복사 상태를 false로 되돌림
       setTimeout(() => {
         setCopiedStatus((prev) => ({ ...prev, [docId]: false }));
-      }, 2000);
+      }, 1000);
     });
   };
 
@@ -147,33 +129,9 @@ const ApiTest = () => {
   if (error) return <div className='p-4'>Failed to load data.</div>;
 
   return (
-    <div className='px-8 py-8 overflow-x-auto overflow-y-auto'>
+    <div className='px-8 py-8 overflow-x-auto overflow-y-auto max-w-[1200px]'>
       <div className='flex justify-between items-baseline mb-4'>
         <h2 className='text-2xl font-bold'>API Test</h2>
-        <div className='flex space-x-4'>
-          <button
-            onClick={handleAddApiDoc}
-            className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
-          >
-            <FaPlus />
-            <span>Add</span>
-          </button>
-          <button
-            onClick={handleDeleteSelected}
-            className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
-          >
-            <FaTrashAlt />
-            <span>Delete</span>
-          </button>
-          <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-            <FaDownload />
-            <span>Export</span>
-          </button>
-          <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-            <FaShareAlt />
-            <span>Share</span>
-          </button>
-        </div>
       </div>
 
       {/* 개발환경 설정 및 검색 및 테스트 실행 버튼이 있는 공간 */}
@@ -224,117 +182,94 @@ const ApiTest = () => {
         </button>
       </div>
 
-      {/* 모달 */}
-      {showDeleteModal && (
-        <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
-          <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
-            <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
-            <p className='mb-6'>선택한 API 문서를 삭제하시겠습니까?</p>
-            <div className='flex justify-end space-x-4'>
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'
-              >
-                취소
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className='overflow-x-auto mx-auto border border-gray-300 rounded-lg'>
-        <table className='w-full min-w-[1200px] table-fixed' style={{ borderSpacing: 0 }}>
+        <table className='w-full min-w-[900px] table-fixed' style={{ borderSpacing: 0 }}>
           <thead>
             <tr className='bg-gray-100 h-12'>
               <th className='p-4 text-center font-medium w-[5%]'>
                 <input
                   type='checkbox'
-                  className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500'
+                  className='border form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500 text-center'
                   checked={isAllSelected}
                   onChange={toggleSelectAll}
                 />
               </th>
-              <th className='p-4 text-left font-medium w-[10%]'>Category</th>
-              <th className='p-4 text-left font-medium w-[20%]'>API Name</th>
-              <th className='p-4 text-left font-medium w-[10%]'>HTTP</th>
-              <th className='p-4 text-left font-medium w-[25%]'>API Path</th>
-              <th className='p-4 text-center font-medium w-[15%]'>Manager</th>
-              <th className='p-4 text-center font-medium w-[5%]'>LS</th>
-              <th className='p-4 text-center font-medium w-[5%]'>SS</th>
-              <th className='p-4 text-center font-medium w-[10%]'>Detail</th>
+              <th className='border p-4 w-[18%] text-center'>Category</th>
+              <th className='border p-4 w-[12%] text-center'>API Name</th>
+              <th className='border p-4 w-[10%] text-center'>HTTP</th>
+              <th className='border p-4 w-[25%] text-center'>API Path</th>
+              <th className='border p-4 w-[11%] text-center'>Manager</th>
+              <th className='border p-4 w-[7%] text-center'>LS</th>
+              <th className='border p-4 w-[7%] text-center'>SS</th>
+              <th className='border p-4 w-[10%] text-center'>Detail</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((api) => {
-              const isSelected = !!selectedItems[api.docId];
-              const isDetailVisible = expandedDetails[api.docId]; // 상세 표시 여부 확인
+            {dataTest.map((api, index) => {
+              const isSelected = !!selectedItems[api.id];
+              const isDetailVisible = expandedDetails[api.id]; // 상세 표시 여부 확인
               return (
-                <>
+                <React.Fragment key={api.id || index}>
                   <tr
-                    key={api.docId}
                     className={`text-[14px] cursor-pointer ${
                       isSelected ? 'bg-indigo-50 hover:bg-indigo-100' : 'hover:bg-gray-50'
                     }`}
                   >
-                    <td className='p-4 text-center'>
+                    <td className='p-4 text-center border'>
                       <input
                         type='checkbox'
                         className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500'
                         checked={isSelected}
                         onClick={(e) => e.stopPropagation()}
-                        onChange={() => handleCheckboxChange(api.docId)}
+                        onChange={() => handleCheckboxChange(api.id)}
                       />
                     </td>
-                    <td className='p-4' onClick={() => handleRowClick(api.docId)}>
+                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
                       {api.category || 'Uncategorized'}
                     </td>
-                    <td className='p-4' onClick={() => handleRowClick(api.docId)}>
+                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
                       {api.name || 'Unnamed API'}
                     </td>
-                    <td className='p-4' onClick={() => handleRowClick(api.docId)}>
+                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
                       {api.method || 'GET'}
                     </td>
-                    <td className='p-4 flex justify-between items-center' onClick={() => handleRowClick(api.docId)}>
-                      {api.path || `/api/${api.name.toLowerCase().replace(/\s+/g, '-')}`}
-                      <button
-                        className='text-xl ml-2'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyApiPath(api.path);
-                        }}
-                      >
-                        {copiedStatus[api.docId] ? <IoCopy /> : <IoCopyOutline />}
-                      </button>
+                    <td className='p-4 border relative truncate' onClick={() => handleRowClick(api.id, api.name)}>
+                      <div className='w-full pr-4 truncate'>
+                        {api.path || 'N/A'}
+                        <button
+                          className='text-xl ml-2 absolute right-3'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            copyApiPath(api.id, api.path);
+                          }}
+                        >
+                          {copiedStatus[api.id] ? <IoCopy /> : <IoCopyOutline />}
+                        </button>
+                      </div>
                     </td>
-                    <td className='p-4 text-center' onClick={() => handleRowClick(api.docId)}>
+                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
                       {api.manager_id || 'N/A'}
                     </td>
-                    <td className='p-4 text-center' onClick={() => handleRowClick(api.docId)}>
-                      {api.localStatus === 'PENDING' ? (
+                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
+                      {api.localTest === 'PENDING' ? (
                         <FaTimes className='text-red-600 mx-auto' />
                       ) : (
                         <FaCheck className='text-green-600 mx-auto' />
                       )}
                     </td>
-                    <td className='p-4 text-center' onClick={() => handleRowClick(api.docId)}>
-                      {api.serverStatus === 'PENDING' ? (
+                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
+                      {api.serverTest === 'PENDING' ? (
                         <FaTimes className='text-red-600 mx-auto' />
                       ) : (
                         <FaCheck className='text-green-600 mx-auto' />
                       )}
                     </td>
-                    <td className='p-4 text-center'>
+                    <td className='p-4 border text-center'>
                       <button
                         className='p-1 text-xl'
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleDetail(api.docId); // 상세 표시 상태 토글
+                          toggleDetail(api.id); // 상세 표시 상태 토글
                         }}
                       >
                         {isDetailVisible ? <RiDropdownList /> : <RiDropdownList />}
@@ -342,29 +277,29 @@ const ApiTest = () => {
                     </td>
                   </tr>
                   {isDetailVisible && (
-                    <tr>
+                    <tr key={`${api.id}-details`}>
                       <td colSpan='9' className='p-4 bg-gray-50'>
-                        <div className='flex flex-wrap lg:justify-center justify-start items-center w-full gap-4 lg:gap-10'>
+                        <div className='flex justify-center items-center w-full gap-4'>
                           {/* Your Response */}
-                          <div className='flex flex-col w-full max-w-[600px] space-y-2'>
-                            <div className='font-bold text-xl text-left'>Your Response</div>
+                          <div className='flex flex-col w-full max-w-[500px] space-y-2'>
+                            <div className='font-bold text-xl text-left'>My Response</div>
                             <div className='p-5 border border-black rounded-xl h-[500px] bg-white'>
-                              내용을 넣어주세요
+                              Test를 진행해주세요.
                             </div>
                           </div>
 
                           {/* Server Response */}
-                          <div className='flex flex-col w-full max-w-[600px] space-y-2'>
-                            <div className='font-bold text-xl text-left'>Server Response</div>
+                          <div className='flex flex-col w-full max-w-[500px] space-y-2'>
+                            <div className='font-bold text-xl text-left'>Mock Response</div>
                             <div className='p-5 border border-black rounded-xl h-[500px] bg-white'>
-                              내용을 넣어주세요
+                              Test를 진행해주세요.
                             </div>
                           </div>
                         </div>
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               );
             })}
           </tbody>
