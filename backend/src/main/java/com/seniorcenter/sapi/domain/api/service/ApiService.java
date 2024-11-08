@@ -6,6 +6,7 @@ import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.CategoryUtils;
 import com.seniorcenter.sapi.domain.category.service.CategoryService;
@@ -248,5 +249,9 @@ public class ApiService {
                 api.getCreatedDate(),
                 lastModifyDate.get()
         );
+    }
+
+    public List<ApiTestResponseDto> getConfirmedApisByWorkspaceId(UUID workspaceId) {
+        return apiRepository.findConfirmedApisByWorkspaceId(workspaceId);
     }
 }
