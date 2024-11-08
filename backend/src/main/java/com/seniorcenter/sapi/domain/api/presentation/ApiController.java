@@ -1,5 +1,6 @@
 package com.seniorcenter.sapi.domain.api.presentation;
 
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateApiDetailRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestDetailResponseDto;
@@ -38,5 +39,11 @@ public class ApiController {
     @GetMapping("/workspace/{workspaceId}/api-test/{apiId}")
     public ApiTestDetailResponseDto getTestApi(@PathVariable("workspaceId") UUID workspaceId, @PathVariable("apiId") UUID apiId) {
         return apiService.getTestApiByApiId(workspaceId, apiId);
+    }
+
+    @PatchMapping("/workspace/{workspaceId}/api-test/{apiId}")
+    public void updateTestApi(@PathVariable("workspaceId") UUID workspaceId, @PathVariable("apiId") UUID apiId,
+        @RequestBody UpdateApiDetailRequestDto requestDto) {
+        apiService.updateTestApi(workspaceId, apiId, requestDto);
     }
 }

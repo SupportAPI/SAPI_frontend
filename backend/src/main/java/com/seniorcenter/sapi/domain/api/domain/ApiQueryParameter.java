@@ -49,4 +49,8 @@ public class ApiQueryParameter extends BaseTimeEntity {
                 .description(originQueryParameter.getDescription())
                 .build();
     }
+
+    public void updateApiQueryParameterValue(String paramValue) {
+        this.paramValue = paramValue;
+    }
 }
