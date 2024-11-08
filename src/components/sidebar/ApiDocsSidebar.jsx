@@ -133,7 +133,7 @@ const ApiDocsSidebar = () => {
         setFilteredData(data);
       }
     }
-  }, [searchTerm, data]);
+  }, [searchTerm, data, filteredData]);
 
   if (error) return <div className='p-4'>Failed to load data.</div>;
 

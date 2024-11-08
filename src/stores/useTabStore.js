@@ -5,9 +5,10 @@ export const useTabStore = create((set) => ({
 
   addTab: (tab) =>
     set((state) => {
-      const existingTab = state.openTabs.find((t) => t.id === tab.id);
+      // `type`과 `id`가 모두 같은 탭이 있는지 확인
+      const existingTab = state.openTabs.find((t) => t.id === tab.id && t.type === tab.type);
       if (existingTab) {
-        // 이미 열려 있는 탭이 있다면 상태 변경 없이 반환
+        // 이미 열려 있는 동일한 탭이 있다면 그대로 반환
         return state;
       }
 
@@ -26,13 +27,17 @@ export const useTabStore = create((set) => ({
       };
     }),
 
-  confirmTab: (tabId) =>
+  confirmTab: (tabId, tabType) =>
     set((state) => ({
-      openTabs: state.openTabs.map((tab) => (tab.id === tabId ? { ...tab, confirmed: true } : tab)),
+      openTabs: state.openTabs.map((tab) =>
+        tab.id === tabId && tab.type === tabType ? { ...tab, confirmed: true } : tab
+      ),
     })),
 
-  removeTab: (tabId) =>
+  removeTab: (tabId, tabType) =>
     set((state) => ({
-      openTabs: state.openTabs.filter((tab) => tab.id !== tabId),
+      openTabs: state.openTabs.filter((tab) => !(tab.id === tabId && tab.type === tabType)),
     })),
+
+  removeAllTabs: () => set({ openTabs: [] }),
 }));
