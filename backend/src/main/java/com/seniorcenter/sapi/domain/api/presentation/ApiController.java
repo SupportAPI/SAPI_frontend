@@ -37,6 +37,6 @@ public class ApiController {
 
     @GetMapping("/workspace/{workspaceId}/api-test/{apiId}")
     public ApiTestDetailResponseDto getTestApi(@PathVariable("workspaceId") UUID workspaceId, @PathVariable("apiId") UUID apiId) {
-        return null;
+        return apiService.getTestApiByApiId(workspaceId, apiId);
     }
 }
