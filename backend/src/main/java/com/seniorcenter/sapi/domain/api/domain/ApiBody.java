@@ -58,5 +58,9 @@ public class ApiBody extends BaseTimeEntity {
                 .description(originBody.getDescription())
                 .build();
     }
+
+    public void updateBodyValue(String bodyValue) {
+        this.bodyValue = bodyValue;
+    }
 }
 

@@ -49,4 +49,8 @@ public class ApiCookie extends BaseTimeEntity {
                 .description(originCookie.getDescription())
                 .build();
     }
+
+    public void updateCookieValue(String cookieValue) {
+        this.cookieValue = cookieValue;
+    }
 }

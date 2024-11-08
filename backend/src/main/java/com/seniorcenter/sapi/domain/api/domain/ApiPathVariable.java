@@ -55,4 +55,8 @@ public class ApiPathVariable {
 			.description(originApiPathVariable.getDescription())
 			.build();
 	}
+
+	public void updateApiPathVariableValue(String variableValue) {
+		this.variableValue = variableValue;
+	}
 }
