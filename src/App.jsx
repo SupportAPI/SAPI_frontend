@@ -32,7 +32,6 @@ const App = () => {
       try {
         // JSON 형식이 아닌 경우 예외 처리
         const data = JSON.parse(event.data);
-        setReceived(true);
         if (data.message !== 'EventStream Created.') {
           toast(
             <div className='flex flex-col'>
@@ -45,6 +44,7 @@ const App = () => {
               closeButton: <CloseButton />,
             }
           );
+          setReceived(true);
         }
         console.log(data);
       } catch (error) {

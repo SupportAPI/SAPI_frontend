@@ -38,7 +38,7 @@ const Alarm = () => {
     setNotifications(notifications.filter((notification) => notification.id !== id));
   };
 
-  const alarmClickRouting = (apiId, type) => {
+  const alarmClickRouting = (apiId, workspaceId, type) => {
     if (type === 'WORKSPACE_INVITE') {
       setIsSettingModalOpen(true); // 먼저 모달을 열어 ref를 설정
       setTimeout(() => {
@@ -47,6 +47,8 @@ const Alarm = () => {
         }
       }, 0); // 짧은 지연을 둬서 Settings가 렌더링되도록 함
     } else {
+      const path = `/workspace/${workspaceId}/apidocs/${apiId}`;
+      navigate(path);
     }
   };
 
@@ -68,7 +70,9 @@ const Alarm = () => {
               <div
                 key={notification.id}
                 className='flex flex-col gap-1 p-3 hover:bg-[#EBF3F8] border-b border-gray-100 last:border-b-0'
-                onClick={() => alarmClickRouting(notification.fromId, notification.notificationType)}
+                onClick={() =>
+                  alarmClickRouting(notification.fromId, notification.workspaceId, notification.notificationType)
+                }
               >
                 <div className='flex flex-row ml-1'>
                   <p className='text-lg text-black font-bold'>{notification.fromName}</p>
