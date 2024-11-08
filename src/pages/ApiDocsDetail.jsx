@@ -14,6 +14,7 @@ import Response from './docs/Response';
 import Comments from './docs/Comments';
 import Summary from './docs/Summary';
 import CodeSnippet from './docs/CodeSnippet';
+import Info from './docs/Info';
 
 const ApiDocsDetail = () => {
   const { workspaceId, apiId } = useParams();
@@ -361,9 +362,10 @@ const ApiDocsDetail = () => {
           />
         )}
         {activeRightTab === 'info' && (
-          <div>
-            <h4 className='font-bold'>info</h4>
-          </div>
+          <Info
+            createdData = {apiDetail?.createdDate}
+            lastModifiedDate = {apiDetail?.lastModifyDate}
+          />
         )}
       </div>
 
