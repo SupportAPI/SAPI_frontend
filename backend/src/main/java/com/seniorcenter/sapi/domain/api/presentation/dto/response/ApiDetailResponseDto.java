@@ -74,6 +74,6 @@ public record ApiDetailResponseDto(
             String responseCode,
             String responseDescription,
             String responseContentType,
-            String ReponseBodyData
+            String ResponseBodyData
     ) {}
 }
