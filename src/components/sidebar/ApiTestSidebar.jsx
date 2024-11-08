@@ -1,37 +1,71 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaChevronDown, FaChevronRight, FaPlus, FaSearch, FaBars } from 'react-icons/fa';
+import { FaChevronDown, FaChevronRight, FaSearch, FaBars, FaTimes } from 'react-icons/fa';
 import { BiCollapseVertical, BiExpandVertical } from 'react-icons/bi';
 import { BsThreeDots } from 'react-icons/bs';
 import { useSidebarStore } from '../../stores/useSidebarStore';
 import { useTabStore } from '../../stores/useTabStore';
-import { useApiDocs, useCreateApiDoc, useDeleteApiDoc } from '../../api/queries/useApiDocsQueries';
+import { useFetchApiList } from '../../api/queries/useApiTestQueries';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 const ApiTestSidebar = () => {
-  const { data = [], error } = useApiDocs();
   const { expandedCategories, toggleCategory, setAllCategories } = useSidebarStore();
   const { addTab, confirmTab } = useTabStore();
   const navigate = useNavigate();
   const { workspaceId } = useParams();
+  const { data: dataTest = [], error } = useFetchApiList(workspaceId);
   const location = useLocation();
   const [activeDropdown, setActiveDropdown] = useState(null);
   const dropdownRef = useRef(null);
-  const { mutate: createApiDoc } = useCreateApiDoc();
-  const { mutate: deleteApiDoc } = useDeleteApiDoc();
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedApiId, setSelectedApiId] = useState(null);
+  const [groupedData, setGroupedData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredData, setFilteredData] = useState([]);
 
-  const handleAddApiDoc = () => {
-    if (workspaceId) {
-      createApiDoc(workspaceId);
-    }
+  const groupDataByCategory = (data) => {
+    const grouped = data.reduce((acc, item) => {
+      const { category } = item;
+      if (!acc[category]) {
+        acc[category] = { category, apis: [] };
+      }
+      acc[category].apis.push(item);
+      return acc;
+    }, {});
+
+    return Object.values(grouped);
   };
+
+  useEffect(() => {
+    if (dataTest.length > 0) {
+      const grouped = groupDataByCategory(dataTest);
+      setGroupedData(grouped);
+      setFilteredData(grouped);
+    }
+  }, [dataTest]);
+
+  useEffect(() => {
+    const filterData = () => {
+      if (!searchTerm) {
+        setFilteredData(groupedData);
+        return;
+      }
+
+      const filtered = groupedData
+        .map((categoryData) => ({
+          ...categoryData,
+          apis: categoryData.apis.filter((api) => api.name.toLowerCase().includes(searchTerm.toLowerCase())),
+        }))
+        .filter((categoryData) => categoryData.apis.length > 0);
+
+      setFilteredData(filtered);
+    };
+
+    filterData();
+  }, [searchTerm, groupedData]);
 
   const handleApiClick = (apiId, apiName) => {
     if (!workspaceId) return;
-    const path = `/workspace/${workspaceId}/api-test`;
+    const path = `/workspace/${workspaceId}/api-test/${apiId}`;
     addTab({
       id: apiId,
       name: apiName,
@@ -40,22 +74,22 @@ const ApiTestSidebar = () => {
     navigate(path);
   };
 
-  const handleAddTap = (apiId, apiName) => {
-    if (!workspaceId) return;
-    const path = `/workspace/${workspaceId}/apidocs/${apiId}`;
-    addTab({
-      id: apiId,
-      name: apiName,
-      path,
-    });
-  };
-
   const handleApiDoubleClick = (apiId) => {
     confirmTab(apiId);
   };
 
   const handleCategoryToggle = (category) => {
     toggleCategory(category);
+  };
+
+  const handleAllApiClick = () => {
+    const path = `/workspace/${workspaceId}/api-test`;
+    addTab({
+      id: 'api-test',
+      name: 'API Test',
+      path,
+    });
+    navigate(path);
   };
 
   const handleAllApiDoubleClick = () => {
@@ -68,26 +102,11 @@ const ApiTestSidebar = () => {
 
   const handleCopyLink = (e, apiId) => {
     e.stopPropagation();
-    const link = `${window.location.origin}/workspace/${workspaceId}/apidocs/${apiId}`;
+    const link = `${window.location.origin}/workspace/${workspaceId}/api-test/${apiId}`;
     navigator.clipboard.writeText(link).then(() => {
       toast('클립보드에 복사되었습니다.');
     });
     setActiveDropdown(null);
-  };
-
-  const handleDelete = (e, docId) => {
-    e.stopPropagation();
-    setSelectedApiId(docId);
-    setShowDeleteModal(true); // 모달 열기
-  };
-
-  const handleConfirmDelete = () => {
-    if (selectedApiId && workspaceId) {
-      deleteApiDoc({ workspaceId, docId: selectedApiId });
-      toast('삭제되었습니다.');
-      setSelectedApiId(null);
-      setShowDeleteModal(false); // 모달 닫기
-    }
   };
 
   useEffect(() => {
@@ -108,17 +127,25 @@ const ApiTestSidebar = () => {
     <div className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm'>
       <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 z-10'>
         <div className='flex items-center'>
-          <FaPlus className='text-gray-600 cursor-pointer mr-2' onClick={handleAddApiDoc} />
-          <div className='flex items-center flex-1 bg-white rounded border'>
+          <div className='flex items-center flex-1 bg-white rounded border relative'>
             <FaSearch className='text-gray-400 ml-2' />
-            <input type='text' placeholder='Search' className='p-2 flex-1 bg-transparent outline-none' />
+            <input
+              type='text'
+              placeholder='Search'
+              className='p-2 flex-1 bg-transparent outline-none'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <FaTimes className='text-gray-400 cursor-pointer absolute right-2' onClick={() => setSearchTerm('')} />
+            )}
           </div>
         </div>
       </div>
       <div className='flex justify-between items-center px-4 mb-2 h-10'>
         <div
           className='flex items-center cursor-pointer hover:bg-gray-200'
-          onClick={() => handleApiClick('api-test', 'API Test')}
+          onClick={handleAllApiClick}
           onDoubleClick={handleAllApiDoubleClick}
         >
           <FaBars className='text-gray-500 mr-2' />
@@ -126,77 +153,52 @@ const ApiTestSidebar = () => {
         </div>
         <div className='flex space-x-2'>
           <BiExpandVertical
-            onClick={() => setAllCategories(data, true)}
+            onClick={() => setAllCategories(dataTest, true)}
             className='text-blue-600 cursor-pointer hover:text-blue-800'
             title='Expand All'
           />
           <BiCollapseVertical
-            onClick={() => setAllCategories(data, false)}
+            onClick={() => setAllCategories(dataTest, false)}
             className='text-blue-600 cursor-pointer hover:text-blue-800'
             title='Collapse All'
           />
         </div>
       </div>
 
-      {/* 모달 */}
-      {showDeleteModal && (
-        <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
-          <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
-            <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
-            <p className='mb-6'>선택한 API 문서를 삭제하시겠습니까?</p>
-            <div className='flex justify-end space-x-4'>
-              <button
-                onClick={() => setShowDeleteModal(false)} // 취소 버튼 클릭 시 모달 닫기
-                className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'
-              >
-                취소
-              </button>
-              <button
-                onClick={handleConfirmDelete} // 확인 버튼 클릭 시 삭제
-                className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className='flex-1 overflow-y-auto sidebar-scrollbar'>
         <div>
-          {data.map((category) => (
-            <div key={category.category}>
+          {filteredData.map((categoryData) => (
+            <div key={categoryData.category}>
               <div
                 className='flex items-center px-4 py-1 text-[#475467] cursor-pointer h-10 hover:bg-gray-300'
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleCategoryToggle(category.category);
+                  handleCategoryToggle(categoryData.category);
                 }}
               >
-                {expandedCategories[category.category] ? (
+                {expandedCategories[categoryData.category] ? (
                   <FaChevronDown className='mr-2' />
                 ) : (
                   <FaChevronRight className='mr-2' />
                 )}
-                {category.category}
+                {categoryData.category}
               </div>
-              {expandedCategories[category.category] && (
+              {expandedCategories[categoryData.category] && (
                 <ul>
-                  {category.apis.map((api) => {
-                    const isActive = location.pathname === `/workspace/${workspaceId}/apidocs/${api.apiId}`;
-                    const isDropdownActive = activeDropdown === api.apiId;
+                  {categoryData.apis.map((api) => {
+                    const isActive = location.pathname === `/workspace/${workspaceId}/apidocs/${api.id}`;
+                    const isDropdownActive = activeDropdown === api.id;
                     return (
                       <li
-                        // key={api.apiId}
                         key={api.id}
                         className={`cursor-pointer w-full relative group ${
                           isActive ? 'bg-blue-100 text-blue-800 font-semibold' : ''
                         } ${isDropdownActive ? 'bg-gray-300' : 'hover:bg-gray-300'}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleAddTap(api.apiId, api.name);
+                          handleApiClick(api.id, api.name);
                         }}
-                        onDoubleClick={() => handleApiDoubleClick(api.apiId)}
+                        onDoubleClick={() => handleApiDoubleClick(api.id)}
                       >
                         <div className='pl-12 pr-4 py-2 flex justify-between items-center'>
                           {api.name}
@@ -206,7 +208,7 @@ const ApiTestSidebar = () => {
                             }`}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDropdownToggle(api.apiId);
+                              handleDropdownToggle(api.id);
                             }}
                           />
                         </div>
@@ -217,15 +219,9 @@ const ApiTestSidebar = () => {
                           >
                             <button
                               className='w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal'
-                              onClick={(e) => handleCopyLink(e, api.apiId)}
+                              onClick={(e) => handleCopyLink(e, api.id)}
                             >
                               Copy Link
-                            </button>
-                            <button
-                              className='w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal'
-                              onClick={(e) => handleDelete(e, api.docId)}
-                            >
-                              Delete
                             </button>
                           </div>
                         )}
