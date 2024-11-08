@@ -2,7 +2,13 @@ package com.seniorcenter.sapi.domain.api.service;
 
 import com.seniorcenter.sapi.domain.api.domain.*;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiBodyRepository;
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiCookieRepository;
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiHeaderRepository;
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiPathVariableRepository;
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiQueryParameterRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateApiDetailRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestDetailResponseDto;
@@ -41,24 +47,27 @@ import java.util.stream.Collectors;
 public class ApiService {
 
     private final ApiRepository apiRepository;
-    private final SimpMessageSendingOperations messagingTemplate;
     private final SpecificationRepository specificationRepository;
     private final MembershipRepository membershipRepository;
-    private final CategoryService categoryService;
-    private final UserUtils userUtils;
     private final CategoryRepository categoryRepository;
+    private final ApiHeaderRepository apiHeaderRepository;
+    private final ApiPathVariableRepository apiPathVariableRepository;
+    private final ApiQueryParameterRepository apiQueryParameterRepository;
+    private final ApiCookieRepository apiCookieRepository;
+    private final ApiBodyRepository apiBodyRepository;
+    private final CategoryService categoryService;
     private final ApiQueryParameterService apiQueryParameterService;
     private final ApiCookieService apiCookieService;
     private final ApiHeaderService apiHeaderService;
     private final ApiPathService apiPathService;
     private final OccupationService occupationService;
+    private final SimpMessageSendingOperations messagingTemplate;
     private final ValueUtils valueUtils;
+    private final UserUtils userUtils;
 
     @Transactional
     public void createApi(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
         User user = userUtils.getUserFromSecurityPrincipal(principal);
-//        Api api = apiRepository.findById(apiId)
-//                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
         Object result = null;
         if (message.apiType().equals(ApiType.CATEGORY)) {
@@ -425,5 +434,55 @@ public class ApiService {
             parameters,
             request
         );
+    }
+
+    public void updateTestApi(UUID workspaceId, UUID apiId, UpdateApiDetailRequestDto requestDto) {
+        requestDto.parameters().headers().forEach(headerDto -> {
+            apiHeaderRepository.findById(Long.parseLong(headerDto.headerId()))
+                .ifPresent(header -> {
+                    header.updateApiHeaderValue(headerDto.headerValue());
+                    apiHeaderRepository.save(header);
+                });
+        });
+
+        requestDto.parameters().pathVariables().forEach(pathVariableDto -> {
+            apiPathVariableRepository.findById(Long.parseLong(pathVariableDto.pathVariableId()))
+                .ifPresent(pathVariable -> {
+                    pathVariable.updateApiPathVariableValue(pathVariableDto.pathVariableValue());
+                    apiPathVariableRepository.save(pathVariable);
+                });
+        });
+
+        requestDto.parameters().queryParameters().forEach(queryParameterDto -> {
+            apiQueryParameterRepository.findById(Long.parseLong(queryParameterDto.queryParameterId()))
+                .ifPresent(queryParameter -> {
+                    queryParameter.updateApiQueryParameterValue(queryParameterDto.queryParameterValue());
+                    apiQueryParameterRepository.save(queryParameter);
+                });
+        });
+
+        requestDto.parameters().cookies().forEach(cookieDto -> {
+            apiCookieRepository.findById(Long.parseLong(cookieDto.cookieId()))
+                .ifPresent(cookie -> {
+                    cookie.updateCookieValue(cookieDto.cookieValue());
+                    apiCookieRepository.save(cookie);
+                });
+        });
+
+        if (requestDto.request().json() != null) {
+            apiBodyRepository.findById(Long.parseLong(requestDto.request().json().jsonDataId()))
+                .ifPresent(body -> {
+                    body.updateBodyValue(requestDto.request().json().jsonDataValue());
+                    apiBodyRepository.save(body);
+                });
+        }
+
+        requestDto.request().formData().forEach(formDataDto -> {
+            apiBodyRepository.findById(Long.parseLong(formDataDto.formDataId()))
+                .ifPresent(body -> {
+                    body.updateBodyValue(formDataDto.formDataValue());
+                    apiBodyRepository.save(body);
+                });
+        });
     }
 }
