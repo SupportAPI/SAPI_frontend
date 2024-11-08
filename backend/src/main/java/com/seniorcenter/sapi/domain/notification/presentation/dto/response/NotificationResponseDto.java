@@ -6,6 +6,7 @@ import java.util.UUID;
 public record NotificationResponseDto(
 	Long id,
 	UUID fromId,
+	UUID workspaceId,
 	String fromName,
 	String message,
 	String notificationType,
