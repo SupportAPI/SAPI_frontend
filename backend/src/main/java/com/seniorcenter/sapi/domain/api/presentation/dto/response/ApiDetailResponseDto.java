@@ -1,13 +1,15 @@
 package com.seniorcenter.sapi.domain.api.presentation.dto.response;
 
 import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
+import com.seniorcenter.sapi.domain.category.presentation.dto.response.CategoryResponseDto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record ApiDetailResponseDto(
         String docId,
         String apiId,
-        String category,
+        CategoryResponseDto category,
         String name,
         String method,
         String path,
@@ -17,7 +19,9 @@ public record ApiDetailResponseDto(
         String managerProfileImage,
         Parameters parameters,
         Request request,
-        List<Response> response
+        List<Response> response,
+        LocalDateTime createdDate,
+        LocalDateTime lastModifyDate
 ) {
     public record Parameters(
             String authType,
@@ -71,6 +75,6 @@ public record ApiDetailResponseDto(
             String responseCode,
             String responseDescription,
             String responseContentType,
-            String ReponseBodyData
+            String ResponseBodyData
     ) {}
 }

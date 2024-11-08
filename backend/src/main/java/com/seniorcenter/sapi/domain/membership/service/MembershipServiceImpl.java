@@ -46,12 +46,12 @@ public class MembershipServiceImpl implements MembershipService {
 		UUID workspaceId = requestDto.workspaceId();
 		Workspace workspace = workspaceRepository.findById(workspaceId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
-		Membership maintainerMembership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
-			.orElseThrow(() -> new MainException(CustomException.ACCESS_DENIED_EXCEPTION));
+		// Membership maintainerMembership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
+		// 	.orElseThrow(() -> new MainException(CustomException.ACCESS_DENIED_EXCEPTION));
 
-		if (!maintainerMembership.getRole().getRole().equals(Role.MAINTAINER.getRole())) {
-			throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
-		}
+		// if (!maintainerMembership.getRole().getRole().equals(Role.MAINTAINER.getRole())) {
+		// 	throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
+		// }
 
 		List<Membership> memberships = new ArrayList<>();
 		for (Long userId : requestDto.userIds()) {
@@ -65,7 +65,7 @@ public class MembershipServiceImpl implements MembershipService {
 				Membership membership = Membership.createMembership(invitedUser, workspace, Role.MEMBER,
 					InviteStatus.PENDING);
 				memberships.add(membership);
-				sseUtils.send(invitedUser, workspaceId, NotificationType.WORKSPACE_INVITE);
+				sseUtils.send(invitedUser, workspaceId, workspaceId, NotificationType.WORKSPACE_INVITE);
 			}
 		}
 		membershipRepository.saveAll(memberships);

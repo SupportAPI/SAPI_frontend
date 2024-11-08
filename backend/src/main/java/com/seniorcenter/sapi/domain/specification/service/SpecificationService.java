@@ -3,12 +3,15 @@ package com.seniorcenter.sapi.domain.specification.service;
 import com.seniorcenter.sapi.domain.api.domain.*;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.*;
+import com.seniorcenter.sapi.domain.notification.domain.NotificationType;
+import com.seniorcenter.sapi.domain.notification.util.SseUtils;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.domain.specification.domain.SpecificationMessage;
 import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationCategoryResponseDto;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationIdNameResponseDto;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationResponseDto;
+import com.seniorcenter.sapi.domain.statistics.service.StatisticsService;
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
@@ -44,6 +47,8 @@ public class SpecificationService {
     private final ApiHeaderRepository apiHeaderRepository;
     private final ApiQueryParameterRepository apiQueryParameterRepository;
     private final ApiResponseRepository apiResponseRepository;
+    private final StatisticsService statisticsService;
+    private final SseUtils sseUtils;
 
     @Transactional
     public void createSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
@@ -187,6 +192,14 @@ public class SpecificationService {
         apiResponseRepository.saveAll(newResponses);
 
         apiLambdaService.createLambda(specificationId);
+
+        statisticsService.updateStatistics(specificationId);
+
+        if (specification.getManager() != null) {
+            sseUtils.sendApiNotification(specification.getManager(), originApi.getId(),
+                specification.getWorkspace().getId(), NotificationType.API_CONFIRM);
+        }
+
         return new SpecificationResponseDto(originApi, specification);
     }
 

@@ -5,7 +5,11 @@ import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
+import com.seniorcenter.sapi.domain.category.domain.Category;
+import com.seniorcenter.sapi.domain.category.domain.repository.CategoryRepository;
+import com.seniorcenter.sapi.domain.category.presentation.dto.response.CategoryResponseDto;
 import com.seniorcenter.sapi.domain.api.util.ValueUtils;
 import com.seniorcenter.sapi.domain.category.service.CategoryService;
 import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepository;
@@ -23,8 +27,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,6 +45,7 @@ public class ApiService {
     private final MembershipRepository membershipRepository;
     private final CategoryService categoryService;
     private final UserUtils userUtils;
+    private final CategoryRepository categoryRepository;
     private final ApiQueryParameterService apiQueryParameterService;
     private final ApiCookieService apiCookieService;
     private final ApiHeaderService apiHeaderService;
@@ -157,69 +164,127 @@ public class ApiService {
         Api api = apiRepository.findByIdAndWorkspaceId(apiId, workspaceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
+        AtomicReference<LocalDateTime> lastModifyDate = new AtomicReference<>(api.getLastModifyDate());
+
+        // 헤더 처리
+        List<ApiDetailResponseDto.Parameters.Header> headers = api.getHeaders().stream()
+                .map(header -> {
+                    if (header.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                        lastModifyDate.set(header.getLastModifyDate());
+                    }
+                    return new ApiDetailResponseDto.Parameters.Header(
+                            header.getId().toString(),
+                            header.getHeaderKey(),
+                            header.getHeaderValue(),
+                            header.getDescription()
+                    );
+                })
+                .toList();
+
+        // 쿼리 파라미터 처리
+        List<ApiDetailResponseDto.Parameters.QueryParameter> queryParameters = api.getQueryParameters().stream()
+                .map(queryParameter -> {
+                    if (queryParameter.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                        lastModifyDate.set(queryParameter.getLastModifyDate());
+                    }
+                    return new ApiDetailResponseDto.Parameters.QueryParameter(
+                            queryParameter.getId().toString(),
+                            queryParameter.getParamKey(),
+                            queryParameter.getParamValue(),
+                            queryParameter.getDescription()
+                    );
+                })
+                .toList();
+
+        // Parameters 쿠키 처리
+        List<ApiDetailResponseDto.Parameters.Cookie> cookies = api.getCookies().stream()
+                .map(cookie -> {
+                    if (cookie.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                        lastModifyDate.set(cookie.getLastModifyDate());
+                    }
+                    return new ApiDetailResponseDto.Parameters.Cookie(
+                            cookie.getId().toString(),
+                            cookie.getCookieKey(),
+                            cookie.getCookieValue(),
+                            cookie.getDescription()
+                    );
+                })
+                .toList();
+
         ApiDetailResponseDto.Parameters parameters = new ApiDetailResponseDto.Parameters(
                 api.getAuthenticationType().name(),
-                api.getHeaders().stream()
-                        .map(header -> new ApiDetailResponseDto.Parameters.Header(
-                                header.getId().toString(),
-                                header.getHeaderKey(),
-                                header.getHeaderValue(),
-                                header.getDescription()
-                        )).toList(),
-                api.getQueryParameters().stream()
-                        .map(queryParameter -> new ApiDetailResponseDto.Parameters.QueryParameter(
-                                queryParameter.getId().toString(),
-                                queryParameter.getParamKey(),
-                                queryParameter.getParamValue(),
-                                queryParameter.getDescription()
-                        )).toList(),
-                api.getCookies().stream()
-                        .map(cookie -> new ApiDetailResponseDto.Parameters.Cookie(
-                                cookie.getId().toString(),
-                                cookie.getCookieKey(),
-                                cookie.getCookieValue(),
-                                cookie.getDescription()
-                        )).toList()
+                headers,
+                queryParameters,
+                cookies
         );
+
+        // Body JSON 및 FormData 처리
+        ApiDetailResponseDto.Request.JsonData jsonData = api.getBodies().stream()
+                .filter(body -> body.getParameterType() == ParameterType.JSON)
+                .map(body -> {
+                    if (body.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                        lastModifyDate.set(body.getLastModifyDate());
+                    }
+                    return new ApiDetailResponseDto.Request.JsonData(
+                            body.getId().toString(),
+                            body.getBodyValue()
+                    );
+                })
+                .findFirst()
+                .orElse(null);
+
+        List<ApiDetailResponseDto.Request.FormData> formDataList = api.getBodies().stream()
+                .filter(body -> body.getParameterType() == ParameterType.TEXT || body.getParameterType() == ParameterType.FILE)
+                .map(formData -> {
+                    if (formData.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                        lastModifyDate.set(formData.getLastModifyDate());
+                    }
+                    return new ApiDetailResponseDto.Request.FormData(
+                            formData.getId().toString(),
+                            formData.getBodyKey(),
+                            formData.getBodyValue(),
+                            formData.getParameterType().name(),
+                            formData.getDescription()
+                    );
+                })
+                .toList();
 
         ApiDetailResponseDto.Request request = new ApiDetailResponseDto.Request(
                 api.getBodyType(),
-                api.getBodies().stream()
-                        .filter(body -> body.getParameterType() == ParameterType.JSON)
-                        .map(body -> new ApiDetailResponseDto.Request.JsonData(
-                                body.getId().toString(),
-                                body.getBodyValue()
-                        )).findFirst()
-                        .orElse(null),
-                api.getBodies().stream()
-                        .filter(body -> body.getParameterType() == ParameterType.TEXT || body.getParameterType() == ParameterType.FILE)
-                        .map(formData -> new ApiDetailResponseDto.Request.FormData(
-                                formData.getId().toString(),
-                                formData.getBodyKey(),
-                                formData.getBodyValue(),
-                                formData.getParameterType().name(),
-                                formData.getDescription()
-                        )).toList()
+                jsonData,
+                formDataList
         );
 
+        // Responses 처리
         List<ApiDetailResponseDto.Response> responseList = api.getResponses().stream()
-                .map(response -> new ApiDetailResponseDto.Response(
-                        response.getId().toString(),
-                        String.valueOf(response.getCode()),
-                        response.getDescription(),
-                        response.getBodyType() != null ? response.getBodyType().name() : "",
-                        response.getBodyData()
-                )).toList();
+                .map(response -> {
+                    if (response.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                        lastModifyDate.set(response.getLastModifyDate());
+                    }
+                    return new ApiDetailResponseDto.Response(
+                            response.getId().toString(),
+                            String.valueOf(response.getCode()),
+                            response.getDescription(),
+                            response.getBodyType() != null ? response.getBodyType().name() : "",
+                            response.getBodyData()
+                    );
+                })
+                .toList();
 
+        // 카테고리 설정
+        Category category = categoryRepository.findByName(api.getCategory())
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));;
+
+        // Manager 정보 설정
         String managerEmail = (api.getSpecification().getManager() != null) ? api.getSpecification().getManager().getEmail() : "";
         String managerNickname = (api.getSpecification().getManager() != null) ? api.getSpecification().getManager().getNickname() : "";
         String managerProfileImage = (api.getSpecification().getManager() != null) ? api.getSpecification().getManager().getProfileImage() : "";
 
-
+        // ApiDetailResponseDto 생성 및 반환
         return new ApiDetailResponseDto(
                 api.getSpecification().getId().toString(),
                 api.getId().toString(),
-                api.getCategory(),
+                new CategoryResponseDto(category),
                 api.getName(),
                 api.getMethod().name(),
                 api.getPath(),
@@ -229,7 +294,13 @@ public class ApiService {
                 managerProfileImage,
                 parameters,
                 request,
-                responseList
+                responseList,
+                api.getCreatedDate(),
+                lastModifyDate.get()
         );
+    }
+
+    public List<ApiTestResponseDto> getConfirmedApisByWorkspaceId(UUID workspaceId) {
+        return apiRepository.findConfirmedApisByWorkspaceId(workspaceId);
     }
 }
