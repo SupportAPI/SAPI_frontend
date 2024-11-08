@@ -23,15 +23,15 @@ public class CategoryController {
         return  categoryService.getCategories(workspaceId);
     }
 
-    @PostMapping("/workspaces/{workspaceId}/categories")
-    public CategoryResponseDto createCategory(@PathVariable("workspaceId") UUID workspaceId,
-                                              @RequestBody CreateCategoryRequestDto createCategoryRequestDto){
-        return categoryService.createCategory(createCategoryRequestDto,workspaceId);
-    }
+//    @PostMapping("/workspaces/{workspaceId}/categories")
+//    public CategoryResponseDto createCategory(@PathVariable("workspaceId") UUID workspaceId,
+//                                              @RequestBody CreateCategoryRequestDto createCategoryRequestDto){
+//        return categoryService.createCategory(createCategoryRequestDto,workspaceId);
+//    }
 
-    @DeleteMapping("/workspaces/{workspaceId}/categories/{categoryId}")
-    public void deleteCategory(@PathVariable("workspaceId") UUID workspaceId, @PathVariable("categoryId") Long categoryId){
-        categoryService.removeCategory(categoryId);
-    }
+//    @DeleteMapping("/workspaces/{workspaceId}/categories/{categoryId}")
+//    public void deleteCategory(@PathVariable("workspaceId") UUID workspaceId, @PathVariable("categoryId") Long categoryId){
+//        categoryService.removeCategory(categoryId);
+//    }
 
 }
