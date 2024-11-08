@@ -1,8 +1,13 @@
 package com.seniorcenter.sapi.domain.category.service;
 
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdValueRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
+import com.seniorcenter.sapi.domain.api.util.ValueUtils;
+import com.seniorcenter.sapi.domain.category.util.CategoryUtils;
 import com.seniorcenter.sapi.domain.category.domain.Category;
 import com.seniorcenter.sapi.domain.category.domain.repository.CategoryRepository;
 import com.seniorcenter.sapi.domain.category.presentation.dto.request.CreateCategoryRequestDto;
+import com.seniorcenter.sapi.domain.category.presentation.dto.request.RemoveCategoryRequestDto;
 import com.seniorcenter.sapi.domain.category.presentation.dto.response.CategoryResponseDto;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
@@ -25,32 +30,47 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final WorkspaceRepository workspaceRepository;
+    private final CategoryUtils categoryUtils;
+    private final ValueUtils valueUtils;
 
     public List<CategoryResponseDto> getCategories(UUID workspaceId) {
+        Workspace workspace = workspaceRepository.findById(workspaceId)
+                .orElseThrow(()->new MainException(CustomException.NOT_FOUND_WORKSPACE));
         List<Category> categories = categoryRepository.findByWorkspaceId(workspaceId);
+        Category category = Category.createCategory("Uncategorized",workspace);
+        categories.add(category);
         return categories.stream()
                 .map(CategoryResponseDto::new)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public CategoryResponseDto createCategory(CreateCategoryRequestDto createCategoryRequestDto, UUID workspaceId) {
+    public CategoryResponseDto createCategory(ApiMessage message, UUID workspaceId) {
+        CreateCategoryRequestDto createCategoryRequestDto = categoryUtils.createCategory(message);
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(()->new MainException(CustomException.NOT_FOUND_WORKSPACE));
-        categoryRepository.findByWorkspaceIdAndName(workspaceId,createCategoryRequestDto.name())
+        categoryRepository.findByWorkspaceIdAndName(workspaceId,createCategoryRequestDto.value())
                 .ifPresent(existingCategory -> {
                     throw new MainException(CustomException.DUPLICATE_CATEGORY);
                 });
 
-        Category category = Category.createCategory(createCategoryRequestDto.name(),workspace);
+        Category category = Category.createCategory(createCategoryRequestDto.value(),workspace);
         categoryRepository.save(category);
         return new CategoryResponseDto(category);
     }
 
     @Transactional
-    public void removeCategory(Long categoryId) {
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+    public RemoveCategoryRequestDto removeCategory(ApiMessage message) {
+        RemoveCategoryRequestDto removeCategoryRequestDto = categoryUtils.removeCategory(message);
+        Category category = categoryRepository.findById(removeCategoryRequestDto.id())
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
         categoryRepository.delete(category);
+        return removeCategoryRequestDto;
+    }
+
+    @Transactional
+    public UpdateIdValueRequestDto updateCategory(ApiMessage message, UUID apiId) {
+        UpdateIdValueRequestDto updateIdValueRequestDto = valueUtils.update(message);
+        return updateIdValueRequestDto;
     }
 }

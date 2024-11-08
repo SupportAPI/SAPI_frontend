@@ -6,6 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ApiType {
+    OCCUPATION("OCCUPATION"),
+    NAME("NAME"),
     CATEGORY("CATEGORY"),
     API_PATH("API_PATH"),
     DESCRIPTION("DESCRIPTION"),

@@ -1,6 +1,5 @@
 package com.seniorcenter.sapi.domain.api.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seniorcenter.sapi.domain.api.domain.*;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
@@ -8,12 +7,13 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailRespo
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
-import com.seniorcenter.sapi.domain.api.util.CategoryUtils;
 import com.seniorcenter.sapi.domain.category.domain.Category;
 import com.seniorcenter.sapi.domain.category.domain.repository.CategoryRepository;
 import com.seniorcenter.sapi.domain.category.presentation.dto.response.CategoryResponseDto;
+import com.seniorcenter.sapi.domain.api.util.ValueUtils;
 import com.seniorcenter.sapi.domain.category.service.CategoryService;
 import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepository;
+import com.seniorcenter.sapi.domain.occupation.service.OccupationService;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
 import com.seniorcenter.sapi.domain.user.domain.User;
@@ -44,23 +44,35 @@ public class ApiService {
     private final SpecificationRepository specificationRepository;
     private final MembershipRepository membershipRepository;
     private final CategoryService categoryService;
-    private final ObjectMapper objectMapper;
     private final UserUtils userUtils;
-    private final CategoryUtils categoryUtils;
     private final CategoryRepository categoryRepository;
+    private final ApiQueryParameterService apiQueryParameterService;
+    private final ApiCookieService apiCookieService;
+    private final ApiHeaderService apiHeaderService;
+    private final ApiPathService apiPathService;
+    private final OccupationService occupationService;
+    private final ValueUtils valueUtils;
 
     @Transactional
     public void createApi(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
         User user = userUtils.getUserFromSecurityPrincipal(principal);
-        Api api = apiRepository.findById(apiId)
-                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+//        Api api = apiRepository.findById(apiId)
+//                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
         Object result = null;
         if (message.apiType().equals(ApiType.CATEGORY)) {
-            result = categoryUtils.createCategory(message, workspaceId);
+            result = categoryService.createCategory(message, workspaceId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
+            result = apiQueryParameterService.createApiQueryParameter(message, apiId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
+            result = apiCookieService.createApiCookie(workspaceId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
+            result = apiHeaderService.createApiHeader(workspaceId);
+        } else if (message.apiType().equals(ApiType.OCCUPATION)) {
+            result = occupationService.createOccupaction(workspaceId, message, user);
         }
 
-        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId , new ApiMessage(message.apiType(),message.actionType(),result));
+        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
     }
 
     @Transactional
@@ -70,16 +82,45 @@ public class ApiService {
         Api api = apiRepository.findById(apiId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
+        Object result = null;
         if (message.apiType().equals(ApiType.CATEGORY)) {
-            categoryUtils.removeCategory(message);
+            result = categoryService.removeCategory(message);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
+            result = apiQueryParameterService.removeApiQueryParameter(message, apiId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
+            result = apiCookieService.removeApiCookie(message, workspaceId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
+            result = apiHeaderService.removeApiHeader(message, workspaceId);
+        } else if (message.apiType().equals(ApiType.OCCUPATION)) {
+            result = occupationService.removeOccupaction(workspaceId, message);
         }
 
-        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId , message);
+        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
     }
 
     @Transactional
     public void updateApi(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
-        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId , message);
+
+        Object result = null;
+        if (message.apiType().equals(ApiType.API_PATH)) {
+            result = apiPathService.updateApiPath(message, apiId);
+        } else if (message.apiType().equals(ApiType.NAME)) {
+            result = valueUtils.updateByValue(message);
+        } else if (message.apiType().equals(ApiType.CATEGORY)) {
+            result = valueUtils.update(message);
+        } else if (message.apiType().equals(ApiType.DESCRIPTION)) {
+            result = valueUtils.updateByValue(message);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_AUTH_TYPE)) {
+            result = valueUtils.update(message);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
+            result = apiQueryParameterService.updateApiQueryParameter(message, apiId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
+            result = apiCookieService.updateApiCookie(message, apiId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
+            result = apiHeaderService.updateApiHeader(message, apiId);
+        }
+
+        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
     }
 
     @Transactional
