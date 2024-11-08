@@ -3,6 +3,7 @@ package com.seniorcenter.sapi.domain.membership.presentation;
 import java.util.List;
 import java.util.UUID;
 
+import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMembershipColorRequestDto;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -64,6 +65,12 @@ public class MembershipController {
 	public void updateMembershipAuthority(@PathVariable Long membershipId,
 		@RequestBody UpdateMembershipAuthorityRequestDto updateMembershipAuthorityRequestDto) {
 		membershipService.updateMembershipAuthority(updateMembershipAuthorityRequestDto, membershipId);
+	}
+
+	@PatchMapping("/{membershipId}/color")
+	public void updateMembershipAuthority(@PathVariable Long membershipId,
+										  @RequestBody UpdateMembershipColorRequestDto updateMembershipAuthorityRequestDto) {
+		membershipService.updateMembershipColor(updateMembershipAuthorityRequestDto, membershipId);
 	}
 
 	@DeleteMapping("/resign")

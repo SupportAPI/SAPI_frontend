@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.seniorcenter.sapi.domain.membership.presentation.dto.request.CreateMembershipRequestDto;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMembershipAuthorityRequestDto;
+import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMembershipColorRequestDto;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMembershipRoleRequestDto;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.response.InvitedWorkspaceInfoResponseDto;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.response.MemberInfoResponseDto;
@@ -16,6 +17,7 @@ public interface MembershipService {
 	void refuseMembership(Long membershipId);
 	void updateMembershipRole(UpdateMembershipRoleRequestDto requestDto, Long membershipId);
 	void updateMembershipAuthority(UpdateMembershipAuthorityRequestDto requestDto, Long membershipId);
+	void updateMembershipColor(UpdateMembershipColorRequestDto requestDto, Long membershipId);
 	List<MemberInfoResponseDto> getMembershipsAtWorkspace(UUID workspaceId);
 	List<InvitedWorkspaceInfoResponseDto> getInvitedMemberships();
 	void resign(UUID workspaceId);
