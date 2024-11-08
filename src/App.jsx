@@ -33,17 +33,19 @@ const App = () => {
         // JSON 형식이 아닌 경우 예외 처리
         const data = JSON.parse(event.data);
         setReceived(true);
-        toast(
-          <div className='flex flex-col'>
-            <h4 className='font-bold text-white text-xl'>{data.apiName}</h4>
-            <p className='text-white'>{data.message}</p>
-          </div>,
-          {
-            icon: false,
-            className: 'p-3 bg-[#4F5A66] text-white rounded-2xl',
-            closeButton: <CloseButton />,
-          }
-        );
+        if (data.message !== 'EventStream Created.') {
+          toast(
+            <div className='flex flex-col'>
+              <h4 className='font-bold text-white text-xl'>{data.apiName}</h4>
+              <p className='text-white'>{data.message}</p>
+            </div>,
+            {
+              icon: false,
+              className: 'p-3 bg-[#4F5A66] text-white rounded-2xl',
+              closeButton: <CloseButton />,
+            }
+          );
+        }
         console.log(data);
       } catch (error) {
         console.error('Received non-JSON data:', event.data);
