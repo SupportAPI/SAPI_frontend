@@ -25,7 +25,7 @@ const TabBar = () => {
     // 탭을 먼저 제거
     removeTab(tabId);
 
-    // 탭이 활성화된 상태에서 닫혔다면, 다른 탭을 활성화asdfasdf
+    // 탭이 활성화된 상태에서 닫혔다면, 다른 탭을 활성화
     if (isActiveTab) {
       // 닫은 탭의 왼쪽에 있는 탭으로 이동 (탭이 남아있다면)
       if (tabIndex > 0) {

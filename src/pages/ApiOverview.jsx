@@ -36,7 +36,6 @@ const ApiOverview = () => {
 
   useEffect(() => {
     if (location.pathname === `/workspace/${workspaceId}/apidocs/all`) {
-      setMenu('API Docs');
       const existingTab = openTabs.find((tab) => tab.path === location.pathname);
       if (!existingTab) {
         addTab({

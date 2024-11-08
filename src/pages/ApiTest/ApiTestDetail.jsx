@@ -58,7 +58,6 @@ const ApiTestDetail = () => {
   };
 
   useEffect(() => {
-    if (location.pathname.includes('/api-test')) setMenu('API Test');
     if (apiData && apiId) {
       setApiDetail(apiData);
       const category = apiData.category;
@@ -164,7 +163,9 @@ const ApiTestDetail = () => {
                 Headers
               </button>
             </div>
-            <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar text-[13px]'>{renderTabResult()}</div>
+            <div className='border p-4 overflow-y-auto border-b h-full sidebar-scrollbar text-[13px]'>
+              {renderTabResult()}
+            </div>
           </div>
         </div>
       </div>
