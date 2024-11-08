@@ -32,6 +32,10 @@ const Header = () => {
     ? workspaces.filter((workspace) => workspace.projectName !== workspaceDetail.projectName)
     : workspaces;
 
+  const handleMain = () => {
+    navigate(`/workspace/${currentWorkspaceId}`);
+  };
+
   const handleWorkspaceSelect = (workspaceId) => {
     removeAllTabs(); // 모든 탭을 닫음
     navigate(`/workspace/${workspaceId}`);
@@ -64,7 +68,9 @@ const Header = () => {
 
   return (
     <header className='w-full h-16 bg-[#F0F5F8]/50 text-[#666666] flex items-center px-12 justify-between relative border-b select-none'>
-      <h1 className='text-2xl'>Support API</h1>
+      <h1 className='text-2xl' onClick={handleMain}>
+        Support API
+      </h1>
 
       {/* 워크스페이스 이름 및 드롭다운 */}
       <div className='absolute left-1/2 -translate-x-1/2' ref={dropdownRef} style={{ zIndex: 9999, position: 'fixed' }}>
