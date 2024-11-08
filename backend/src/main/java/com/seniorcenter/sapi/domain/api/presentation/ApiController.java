@@ -30,12 +30,12 @@ public class ApiController {
         return apiService.getApiByApiId(workspaceId, apiId);
     }
 
-    @GetMapping("/workspaces/{workspaceId}/api-tests")
+    @GetMapping("/workspace/{workspaceId}/api-tests")
     public List<ApiTestResponseDto> getTestApis(@PathVariable("workspaceId") UUID workspaceId) {
         return apiService.getConfirmedApisByWorkspaceId(workspaceId);
     }
 
-    @GetMapping("/workspaces/{workspaceId}/api-tests/{apiId}")
+    @GetMapping("/workspace/{workspaceId}/api-tests/{apiId}")
     public ApiTestDetailResponseDto getTestApi(@PathVariable("workspaceId") UUID workspaceId, @PathVariable("apiId") UUID apiId) {
         return null;
     }
