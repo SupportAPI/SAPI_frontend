@@ -62,7 +62,6 @@ const ApiDocsDetail = () => {
   };
 
   useEffect(() => {
-    if (location.pathname.includes('/apidocs')) setMenu('API Docs');
     if (apiData && apiId) {
       setApiDetail(apiData);
       const category = apiData.category;

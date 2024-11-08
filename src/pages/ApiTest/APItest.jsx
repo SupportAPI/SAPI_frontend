@@ -23,7 +23,6 @@ const ApiTest = () => {
 
   useEffect(() => {
     if (location.pathname === `/workspace/${workspaceId}/api-test`) {
-      setMenu('API Test');
       const existingTab = openTabs.find((tab) => tab.path === location.pathname);
       if (!existingTab) {
         addTab({
@@ -33,7 +32,7 @@ const ApiTest = () => {
         });
       }
     }
-  }, [location, workspaceId, setMenu, addTab, openTabs]);
+  }, [location, workspaceId, addTab, openTabs]);
 
   useEffect(() => {
     const allSelected = dataTest.every((api) => selectedItems[api.id]);
@@ -57,8 +56,15 @@ const ApiTest = () => {
     }));
   };
 
-  const handleRowClick = (apiId) => {
-    navigate(`/workspace/${workspaceId}/api-test/${apiId}`);
+  const handleRowClick = (apiId, apiName) => {
+    if (!workspaceId) return;
+    const path = `/workspace/${workspaceId}/api-test/${apiId}`;
+    addTab({
+      id: apiId,
+      name: apiName,
+      path,
+    });
+    navigate(path);
   };
 
   // -------------------------------------------------------여기서 부터 작성함
@@ -102,8 +108,7 @@ const ApiTest = () => {
   const [copiedStatus, setCopiedStatus] = useState({});
   // API 주소를 복사할 수 있는 함수
   const copyApiPath = (docId, path) => {
-    path = 'Path'; // 일단 임시로 설정
-    path = `안녕 난 ${docId} 번의 ${path} 야`;
+    path = `임시 Path: ${docId}`;
     // 실제 복사 동작 (예: 클립보드 복사)
     navigator.clipboard.writeText(path).then(() => {
       // 복사 상태를 현재 docId에 대해 true로 설정
@@ -219,16 +224,16 @@ const ApiTest = () => {
                         onChange={() => handleCheckboxChange(api.id)}
                       />
                     </td>
-                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id)}>
+                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
                       {api.category || 'Uncategorized'}
                     </td>
-                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id)}>
+                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
                       {api.name || 'Unnamed API'}
                     </td>
-                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id)}>
+                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
                       {api.method || 'GET'}
                     </td>
-                    <td className='p-4 border relative truncate' onClick={() => handleRowClick(api.id)}>
+                    <td className='p-4 border relative truncate' onClick={() => handleRowClick(api.id, api.name)}>
                       <div className='w-full pr-4 truncate'>
                         {api.path || 'N/A'}
                         <button
@@ -242,17 +247,17 @@ const ApiTest = () => {
                         </button>
                       </div>
                     </td>
-                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id)}>
+                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
                       {api.manager_id || 'N/A'}
                     </td>
-                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id)}>
+                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
                       {api.localTest === 'PENDING' ? (
                         <FaTimes className='text-red-600 mx-auto' />
                       ) : (
                         <FaCheck className='text-green-600 mx-auto' />
                       )}
                     </td>
-                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id)}>
+                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
                       {api.serverTest === 'PENDING' ? (
                         <FaTimes className='text-red-600 mx-auto' />
                       ) : (
