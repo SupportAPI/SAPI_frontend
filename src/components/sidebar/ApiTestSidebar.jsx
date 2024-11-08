@@ -186,7 +186,7 @@ const ApiTestSidebar = () => {
               {expandedCategories[categoryData.category] && (
                 <ul>
                   {categoryData.apis.map((api) => {
-                    const isActive = location.pathname === `/workspace/${workspaceId}/apidocs/${api.id}`;
+                    const isActive = location.pathname === `/workspace/${workspaceId}/api-test/${api.id}`;
                     const isDropdownActive = activeDropdown === api.id;
                     return (
                       <li
@@ -195,6 +195,8 @@ const ApiTestSidebar = () => {
                           isActive ? 'bg-blue-100 text-blue-800 font-semibold' : ''
                         } ${isDropdownActive ? 'bg-gray-300' : 'hover:bg-gray-300'}`}
                         onClick={(e) => {
+                          console.log('#####################');
+                          console.log(isActive);
                           e.stopPropagation();
                           handleApiClick(api.id, api.name);
                         }}
