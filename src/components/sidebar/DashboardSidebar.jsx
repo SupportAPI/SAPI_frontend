@@ -11,8 +11,6 @@ const DashboardSidebar = () => {
 
   const paths = [
     { id: 1, name: 'Dashboard Overview', path: `/workspace/${workspaceId}/dashboard/all` },
-    { id: 2, name: 'Dashboard Daily', path: `/workspace/${workspaceId}/dashboard/daily` },
-    { id: 3, name: 'Dashboard Status', path: `/workspace/${workspaceId}/dashboard/status` },
   ];
 
   const handleDashboardClick = (id) => {
