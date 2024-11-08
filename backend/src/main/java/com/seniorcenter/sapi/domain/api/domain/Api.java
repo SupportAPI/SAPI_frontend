@@ -58,6 +58,9 @@ public class Api extends BaseTimeEntity {
     private List<ApiQueryParameter> queryParameters;
 
     @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ApiPathVariable> pathVariables;
+
+    @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ApiBody> bodies;
 
     @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
