@@ -1,5 +1,8 @@
 package com.seniorcenter.sapi.global.response;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -10,9 +13,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import jakarta.servlet.http.HttpServletResponse;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 
 @RestControllerAdvice(basePackages = "com.seniorcenter.sapi")
 public class SuccessResponseAdvice implements ResponseBodyAdvice {
+
+	ObjectMapper objectMapper = new ObjectMapper()
+			.registerModule(new JavaTimeModule())
+			.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
 	@Override
 	public boolean supports(MethodParameter returnType, Class converterType) {
@@ -28,6 +37,15 @@ public class SuccessResponseAdvice implements ResponseBodyAdvice {
 		if (resolve == null) {
 			return body;
 		}
+
+		if (body instanceof String) {
+            try {
+				response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+				return objectMapper.writeValueAsString(new SuccessResponse(status, body));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
 		if (resolve.is2xxSuccessful()) {
 			return new SuccessResponse(status, body);

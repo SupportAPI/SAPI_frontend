@@ -1,0 +1,62 @@
+package com.seniorcenter.sapi.domain.api.service;
+
+import com.seniorcenter.sapi.domain.api.domain.Api;
+import com.seniorcenter.sapi.domain.api.domain.ApiHeader;
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiHeaderRepository;
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.RemoveRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdKeyValueRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdKeyValueResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
+import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
+import com.seniorcenter.sapi.global.error.exception.CustomException;
+import com.seniorcenter.sapi.global.error.exception.MainException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class ApiHeaderService {
+
+    private final ApiHeaderRepository apiHeaderRepository;
+    private final ApiRepository apiRepository;
+    private final KeyValueUtils keyValueUtils;
+
+    public ApiIdResponseDto createApiHeader(UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        ApiHeader apiHeader = ApiHeader.createApiHeader(api);
+        apiHeaderRepository.save(apiHeader);
+        return new ApiIdResponseDto(apiHeader.getId());
+    }
+
+    public ApiIdResponseDto removeApiHeader(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        RemoveRequestDto removeRequestDto = keyValueUtils.remove(message);
+        ApiHeader apiHeader = apiHeaderRepository.findById(removeRequestDto.id())
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_HEADER));
+        apiHeaderRepository.delete(apiHeader);
+        return new ApiIdResponseDto(apiHeader.getId());
+    }
+
+    public ApiIdKeyValueResponseDto updateApiHeader(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        UpdateIdKeyValueRequestDto updateIdKeyValueRequestDto = keyValueUtils.update(message);
+        ApiHeader apiHeader = apiHeaderRepository.findById(updateIdKeyValueRequestDto.id())
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_HEADER));
+        return new ApiIdKeyValueResponseDto(apiHeader.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value());
+    }
+
+}

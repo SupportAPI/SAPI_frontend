@@ -22,17 +22,20 @@ public class ApiMessageController {
 
     private final ApiService apiService;
 
-    @MessageMapping("/workspaces/{worksapceId}/apis/{apiId}")
+    @MessageMapping("/workspaces/{workspaceId}/apis/{apiId}")
     public void message(@DestinationVariable UUID workspaceId,
                         @DestinationVariable UUID apiId,
                         @Payload ApiMessage message,
                         @AuthenticationPrincipal Principal principal) {
 
         if (message.actionType().equals(MessageType.UPDATE)) {
+            log.info("[API UPDATE] message: {}", message);
             apiService.updateApi(message, workspaceId, apiId, principal);
         } else if (message.actionType().equals(MessageType.ADD)) {
-            apiService.createApi(message, apiId, workspaceId, principal);
+            log.info("[API ADD] message: {}", message);
+            apiService.createApi(message, workspaceId, apiId, principal);
         } else if (message.actionType().equals(MessageType.DELETE)) {
+            log.info("[API DELETE] message: {}", message);
             apiService.removeApi(message, workspaceId, apiId, principal);
         }
 

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.seniorcenter.sapi.domain.category.domain.Category;
+import com.seniorcenter.sapi.domain.category.domain.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +40,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 	private final MembershipRepository membershipRepository;
 	private final UserUtils userUtils;
 	private final S3UploadUtil s3UploadUtil;
+	private final CategoryRepository categoryRepository;
 
 	@Override
 	@Transactional
@@ -54,6 +57,9 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		Membership membership = Membership.createMembership(user, workspace, Role.MAINTAINER, InviteStatus.ACCEPTED);
 		membership.updateAuthorityForMaintainer();
 		membershipRepository.save(membership);
+
+		Category category = Category.createCategory("미설정",workspace);
+		categoryRepository.save(category);
 
 		return new WorkspaceInfoResponseDto(workspace.getId(),
 			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
