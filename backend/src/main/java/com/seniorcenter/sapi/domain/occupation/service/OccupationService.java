@@ -4,9 +4,14 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.request.AddRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiStringResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
+import com.seniorcenter.sapi.domain.membership.domain.Membership;
+import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepository;
 import com.seniorcenter.sapi.domain.occupation.presentation.dto.OccupationResponseDto;
 import com.seniorcenter.sapi.domain.user.domain.User;
+import com.seniorcenter.sapi.global.error.exception.CustomException;
+import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.utils.RedisUtil;
+import com.seniorcenter.sapi.global.utils.user.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,14 +28,21 @@ public class OccupationService {
 
     private final RedisUtil redisUtil;
     private final KeyValueUtils keyValueUtils;
+    private final UserUtils userUtils;
+    private final MembershipRepository membershipRepository;
 
     public List<OccupationResponseDto> getOccupations(UUID workspaceId) {
         String hashKey = workspaceId.toString();
         Map<String, Object> datas = redisUtil.getAllData(hashKey);
 
+        User user = userUtils.getUserFromSecurityContext();
+        Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
+
         List<OccupationResponseDto> occupationList = new ArrayList<>();
         for (Map.Entry<String, Object> entry : datas.entrySet()) {
-            occupationList.add(new OccupationResponseDto(entry.getKey(), Long.parseLong(entry.getValue().toString())));
+            occupationList.add(new OccupationResponseDto(entry.getKey(), Long.parseLong(entry.getValue().toString()),
+                    user.getNickname(), user.getProfileImage(), membership.getColor()));
         }
         return occupationList;
     }
@@ -38,9 +50,12 @@ public class OccupationService {
     public OccupationResponseDto createOccupaction(UUID workspaceId, ApiMessage message, User user) {
         String hashKey = workspaceId.toString();
 
+        Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
+
         AddRequestDto addRequestDto = keyValueUtils.createById(message);
         redisUtil.saveData(hashKey, addRequestDto.id(), user.getId().toString());
-        return new OccupationResponseDto(addRequestDto.id(), user.getId());
+        return new OccupationResponseDto(addRequestDto.id(), user.getId(), user.getNickname(), user.getProfileImage(), membership.getColor());
     }
 
     public ApiStringResponseDto removeOccupaction(UUID workspaceId, ApiMessage message) {
