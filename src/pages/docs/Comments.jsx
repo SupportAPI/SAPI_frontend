@@ -240,8 +240,8 @@ const Comments = ({ docsId, workspaceId }) => {
       // '@문자1-문자2' 패턴을 매칭하여 분리
       const match = part.match(/^@(\S+?)-(\S+)$/);
       if (match) {
-        return { type: 'USER', value: match[2] };
-        // return { type: 'USER', value: { nickname: match[1], userId: match[2] } };
+        // return { type: 'USER', value: match[2] };
+        return { type: 'USER', value: match[2], nickname: match[1] };
       }
       // 다른 텍스트는 TEXT 타입으로 처리
       return { type: 'TEXT', value: part };
@@ -302,8 +302,8 @@ const Comments = ({ docsId, workspaceId }) => {
       // '@문자1-문자2' 패턴을 매칭하여 분리
       const match = part.match(/^@(\S+?)-(\S+)$/);
       if (match) {
-        return { type: 'USER', value: match[2] };
-        // return { type: 'USER', value: { nickname: match[1], userId: match[2] } };
+        // return { type: 'USER', value: match[2] };
+        return { type: 'USER', value: match[2], nickname: match[1] };
       }
       // 다른 텍스트는 TEXT 타입으로 처리
       return { type: 'TEXT', value: part };
