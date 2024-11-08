@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.seniorcenter.sapi.domain.statistics.presentation.dto.ConfirmedApiCountDto;
 
 public interface SpecificationRepositoryCustom {
+	UUID findWorkspaceIdByApiId(UUID apiId);
 	List<ConfirmedApiCountDto> countConfirmedApiByManager(UUID workspaceId);
 	Long countTotalSpecifications(UUID workspaceId);
 	Long countLocalSuccessSpecifications(UUID workspaceId);
