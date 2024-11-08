@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.seniorcenter.sapi.domain.api.domain.QApi;
 import com.seniorcenter.sapi.domain.specification.domain.QSpecification;
 import com.seniorcenter.sapi.domain.specification.domain.TestStatus;
 import com.seniorcenter.sapi.domain.statistics.presentation.dto.ConfirmedApiCountDto;
@@ -18,6 +19,19 @@ public class SpecificationRepositoryCustomImpl implements SpecificationRepositor
 
 	public SpecificationRepositoryCustomImpl(JPAQueryFactory queryFactory) {
 		this.queryFactory = queryFactory;;
+	}
+
+	@Override
+	public UUID findWorkspaceIdByApiId(UUID apiId) {
+		QApi api = QApi.api;
+		QSpecification specification = QSpecification.specification;
+
+		return queryFactory
+			.select(specification.workspace.id)
+			.from(api)
+			.join(api.specification, specification)
+			.where(api.id.eq(apiId))
+			.fetchOne();
 	}
 
 	@Override

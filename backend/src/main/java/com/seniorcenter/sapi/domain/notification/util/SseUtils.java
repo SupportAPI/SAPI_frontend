@@ -17,6 +17,7 @@ import com.seniorcenter.sapi.domain.notification.domain.repository.EmitterReposi
 import com.seniorcenter.sapi.domain.notification.domain.repository.NotificationRepository;
 import com.seniorcenter.sapi.domain.notification.presentation.dto.response.ApiNotificationResponseDto;
 import com.seniorcenter.sapi.domain.notification.presentation.dto.response.NotificationResponseDto;
+import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
@@ -36,6 +37,7 @@ public class SseUtils {
 	private final NotificationRepository notificationRepository;
 	private final WorkspaceRepository workspaceRepository;
 	private final ApiRepository apiRepository;
+	private final SpecificationRepository specificationRepository;
 	private final UserUtils userUtils;
 
 	private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
@@ -64,12 +66,12 @@ public class SseUtils {
 		return emitter;
 	}
 
-	public void send(User receiver, UUID fromId, NotificationType notificationType) {
+	public void send(User receiver, UUID fromId, UUID workspaceId, NotificationType notificationType) {
 		Notification notification = notificationRepository.save(createNotification(receiver, fromId, notificationType));
 		String userId = String.valueOf(receiver.getId());
 
 		NotificationResponseDto responseDto = new NotificationResponseDto(notification.getId(),
-			fromId, notification.getFromName(), notification.getMessage(), notificationType.getType(),
+			fromId, workspaceId, notification.getFromName(), notification.getMessage(), notificationType.getType(),
 			notification.getCreatedDate());
 
 		Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByUserId(userId);
@@ -105,11 +107,12 @@ public class SseUtils {
 			Workspace workspace = workspaceRepository.findById(fromId)
 				.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
 			String message = workspace.getProjectName() + selectNotificationMessageBody(notificationType);
-			notification = Notification.createNotification(receiver, fromId, workspace.getProjectName(), message, notificationType);
+			notification = Notification.createNotification(receiver, fromId, fromId, workspace.getProjectName(), message, notificationType);
 		} else {
 			Api api = apiRepository.findById(fromId).orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 			String message = api.getName() + selectNotificationMessageBody(notificationType);
-			notification = Notification.createNotification(receiver, fromId, api.getName(), message, notificationType);
+			notification = Notification.createNotification(receiver, fromId,
+				specificationRepository.findWorkspaceIdByApiId(fromId), api.getName(), message, notificationType);
 		}
 
 		return notification;

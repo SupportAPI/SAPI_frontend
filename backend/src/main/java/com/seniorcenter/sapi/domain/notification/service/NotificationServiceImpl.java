@@ -40,7 +40,7 @@ public class NotificationServiceImpl implements NotificationService {
 	public void commentSseTest(Long userId, UUID specificationId) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
-		sseUtils.send(user, specificationId, NotificationType.COMMENT_TAG);
+		// sseUtils.send(user, specificationId, NotificationType.COMMENT_TAG);
 	}
 
 	@Override
@@ -52,6 +52,7 @@ public class NotificationServiceImpl implements NotificationService {
 			.map(notification -> new NotificationResponseDto(
 				notification.getId(),
 				notification.getFromId(),
+				notification.getWorkspaceId(),
 				notification.getFromName(),
 				notification.getMessage(),
 				notification.getType(),
