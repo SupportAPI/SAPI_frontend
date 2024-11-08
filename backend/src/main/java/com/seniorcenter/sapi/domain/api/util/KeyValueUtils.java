@@ -6,6 +6,7 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.request.AddRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.RemoveRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdKeyValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateKeyValueRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiStringResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
@@ -33,6 +34,17 @@ public class KeyValueUtils {
         RemoveRequestDto removeRequestDto;
         try {
             removeRequestDto = objectMapper.convertValue(message.message(), new TypeReference<RemoveRequestDto>() {
+            });
+        } catch (IllegalArgumentException e) {
+            throw new MainException(CustomException.INVALID_FORMAT);
+        }
+        return removeRequestDto;
+    }
+
+    public ApiStringResponseDto removeAndReturnString(ApiMessage message) {
+        ApiStringResponseDto removeRequestDto;
+        try {
+            removeRequestDto = objectMapper.convertValue(message.message(), new TypeReference<ApiStringResponseDto>() {
             });
         } catch (IllegalArgumentException e) {
             throw new MainException(CustomException.INVALID_FORMAT);

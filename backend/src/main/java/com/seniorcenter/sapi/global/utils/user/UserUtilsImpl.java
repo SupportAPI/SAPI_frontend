@@ -38,8 +38,6 @@ public class UserUtilsImpl implements UserUtils {
 			UsernamePasswordAuthenticationToken auth = (UsernamePasswordAuthenticationToken) principal;
 			UserDetails userDetails = (UserDetails) auth.getPrincipal();
 			User user = ((AuthDetails) userDetails).getUser();
-			System.out.println(user.getEmail());
-			System.out.println(user);
 			return user;
 		}
 		throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
