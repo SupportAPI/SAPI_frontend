@@ -37,8 +37,6 @@ public class CategoryService {
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(()->new MainException(CustomException.NOT_FOUND_WORKSPACE));
         List<Category> categories = categoryRepository.findByWorkspaceId(workspaceId);
-        Category category = Category.createCategory("Uncategorized",workspace);
-        categories.add(category);
         return categories.stream()
                 .map(CategoryResponseDto::new)
                 .collect(Collectors.toList());

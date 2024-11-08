@@ -70,7 +70,7 @@ public class Api extends BaseTimeEntity {
         this.method = HttpMethod.GET;
         this.bodyType = BodyType.NONE;
         this.authenticationType = AuthenticationType.NOAUTH;
-        this.category = "Uncategorized";
+        this.category = "미설정";
         this.description = "";
         this.specification = specification;
     }

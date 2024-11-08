@@ -31,17 +31,17 @@ public class OccupationService {
 
         List<OccupationResponseDto> occupationList = new ArrayList<>();
         for (Map.Entry<String, Object> entry : datas.entrySet()) {
-            occupationList.add(new OccupationResponseDto(entry.getKey(), entry.getValue().toString()));
+            occupationList.add(new OccupationResponseDto(entry.getKey(), Long.parseLong(entry.getValue().toString())));
         }
         return occupationList;
     }
 
-    public com.seniorcenter.sapi.domain.api.presentation.dto.response.OccupationResponseDto createOccupaction(UUID workspaceId, ApiMessage message, User user) {
+    public OccupationResponseDto createOccupaction(UUID workspaceId, ApiMessage message, User user) {
         String hashKey = workspaceId.toString();
 
         AddRequestDto addRequestDto = keyValueUtils.createById(message);
         redisUtil.saveData(hashKey, addRequestDto.id(), user.getId().toString());
-        return new com.seniorcenter.sapi.domain.api.presentation.dto.response.OccupationResponseDto(addRequestDto.id(), user.getId());
+        return new OccupationResponseDto(addRequestDto.id(), user.getId());
     }
 
     public ApiIdResponseDto removeOccupaction(UUID workspaceId, ApiMessage message) {

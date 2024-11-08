@@ -104,7 +104,7 @@ public class ApiService {
         Object result = null;
         if (message.apiType().equals(ApiType.API_PATH)) {
             result = apiPathService.updateApiPath(message, apiId);
-        } else if (message.apiType().equals(ApiType.NAME)) {
+        } else if (message.apiType().equals(ApiType.API_NAME)) {
             result = valueUtils.updateByValue(message);
         } else if (message.apiType().equals(ApiType.CATEGORY)) {
             result = valueUtils.update(message);
