@@ -5,7 +5,7 @@ import { useNavbarStore } from '../stores/useNavbarStore';
 import { useSidebarStore } from '../stores/useSidebarStore';
 import { useTabStore } from '../stores/useTabStore';
 import { FiChevronDown, FiMessageSquare, FiCode, FiFileText, FiX } from 'react-icons/fi';
-import { FaDownload, FaSave, FaShareAlt, FaTrashAlt } from 'react-icons/fa';
+import { FaDownload, FaSave, FaShareAlt, FaTrashAlt, FaInfoCircle } from 'react-icons/fa';
 import { useWebSocket } from '../contexts/WebSocketContext';
 
 import Parameters from './docs/Parameters';
@@ -14,6 +14,7 @@ import Response from './docs/Response';
 import Comments from './docs/Comments';
 import Summary from './docs/Summary';
 import CodeSnippet from './docs/CodeSnippet';
+import Info from './docs/Info';
 
 const ApiDocsDetail = () => {
   const { workspaceId, apiId } = useParams();
@@ -62,7 +63,6 @@ const ApiDocsDetail = () => {
   };
 
   useEffect(() => {
-    if (location.pathname.includes('/apidocs')) setMenu('API Docs');
     if (apiData && apiId) {
       setApiDetail(apiData);
       const category = apiData.category;
@@ -352,13 +352,19 @@ const ApiDocsDetail = () => {
             response={apiDetail?.response}
           />
         )}
-        {activeRightTab === 'comment' && <Comments docsId={apiDetail?.docsId} workspaceId={workspaceId} />}
+        {activeRightTab === 'comment' && <Comments docsId={apiDetail?.docId} workspaceId={workspaceId} />}
         {activeRightTab === 'code' && (
           <CodeSnippet
             path={apiDetail?.path}
             method={apiDetail?.method}
             parameters={apiDetail.parameters}
             request={apiDetail.request}
+          />
+        )}
+        {activeRightTab === 'info' && (
+          <Info
+            createdData = {apiDetail?.createdDate}
+            lastModifiedDate = {apiDetail?.lastModifyDate}
           />
         )}
       </div>
@@ -378,6 +384,11 @@ const ApiDocsDetail = () => {
           className={`cursor-pointer mb-4 ${activeRightTab === 'summary' ? 'text-blue-500' : 'text-gray-500'}`}
           size={24}
           onClick={() => toggleRightTab('summary')}
+        />
+        <FaInfoCircle
+          className={`cursor-pointer mb-4 ${activeRightTab === 'info' ? 'text-blue-500' : 'text-gray-500'}`}
+          size={24}
+          onClick={() => toggleRightTab('info')}
         />
       </div>
     </div>

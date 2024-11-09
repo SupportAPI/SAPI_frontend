@@ -9,13 +9,14 @@ import InviteUser from './InviteUser';
 import Settings from './Settings';
 import Header from './Header';
 import CheckModal from '../../components/common/CheckModal';
-
+import { useTabStore } from '../../stores/useTabStore';
 import { FaMinus } from 'react-icons/fa6';
 import { FaPlus } from 'react-icons/fa6';
 import { SlOptions } from 'react-icons/sl';
 
 const WorkspaceSelection = () => {
   const navigate = useNavigate();
+  const { removeAllTabs } = useTabStore();
   const { data: workspaces, isLoading } = useFetchWorkspaces();
   const [prograssTable, setPrograssTable] = useState([]);
   const [doneTable, setDoneTable] = useState([]);
@@ -32,6 +33,16 @@ const WorkspaceSelection = () => {
   const workSpaceDeleteMutation = useDeleteWorkspace({
     onSuccess: () => {
       queryClient.invalidateQueries(['workspaces']);
+      toast.success('워크스페이스가 삭제되었습니다.'); // 성공 메시지
+    },
+    onError: (error) => {
+      console.error('워크스페이스 삭제 실패:', error); // 에러 로그 출력
+      if (error.response?.status === 403) {
+        // 예: 권한 문제로 인한 실패
+        toast.error('삭제 권한이 없습니다.');
+      } else {
+        toast.error('워크스페이스 삭제 중 문제가 발생했습니다.');
+      }
     },
   });
 
@@ -59,6 +70,11 @@ const WorkspaceSelection = () => {
     }
   }, [filterWorkspaces, workspaces]);
 
+  // 탭 다 제거
+  useEffect(() => {
+    removeAllTabs();
+  }, []);
+
   const handleWorkspaceSelect = (workspaceId) => {
     navigate(`/workspace/${workspaceId}`);
   };
@@ -68,7 +84,6 @@ const WorkspaceSelection = () => {
     if (workspaceId) {
       workSpaceDeleteMutation.mutate(workspaceId);
       setDevelopAuthId(null);
-      toast('워크스페이스가 삭제되었습니다.');
     }
   };
 
@@ -112,7 +127,8 @@ const WorkspaceSelection = () => {
     queryClient.invalidateQueries('workspaces');
   };
   const handleSettingsClick = () => {
-    setIsOpenSetting(true);
+    queryClient.invalidateQueries('workspaces');
+    setIsOpenSetting(!isOpenSetting);
   };
 
   // table 목록 view 상태 관리
@@ -170,9 +186,9 @@ const WorkspaceSelection = () => {
   }
 
   return (
-    <div className='outer-wrapper bg-[#f0f5f8]/50 h-full w-full'>
+    <div className='outer-wrapper bg-[#f0f5f8]/50 h-full w-full min-h-screen min-w-screen'>
       <Header onSettingsClick={handleSettingsClick} />
-      <div className='inner-content overflow-y-auto overflow-x-auto p-1 h-full w-full'>
+      <div className='inner-content overflow-y-auto overflow-x-auto h-full w-full'>
         {/* 헤더 위치 */}
 
         <div className='flex flex-col w-[1200px] mx-auto'>
@@ -202,7 +218,7 @@ const WorkspaceSelection = () => {
                 <InviteUser workspaceId={newworkspaceid} onClose={() => handleCloseModal()}></InviteUser>
               )}
               {/* Setting 모달 */}
-              {isOpenSetting && <Settings onClose={() => setIsOpenSetting(false)} />}
+              {isOpenSetting && <Settings onClose={() => handleSettingsClick()} />}
               {isModalOpen && (
                 <CheckModal
                   modalTitle='워크스페이스 삭제 확인'

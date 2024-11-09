@@ -12,9 +12,9 @@ const CheckModal = ({
 }) => {
   return (
     <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
-      <div className='bg-white p-6 rounded-lg shadow-lg w-[400px] h-[350px]'>
+      <div className='bg-white p-6 rounded-lg shadow-lg w-[400px] h-[250px]'>
         <h3 className='text-xl font-bold mb-4'>{modalTitle}</h3>
-        <p className='mb-6 h-44' style={{ whiteSpace: 'pre-line' }}>
+        <p className='mb-6 h-24' style={{ whiteSpace: 'pre-line' }}>
           {modalContent}
         </p>
 

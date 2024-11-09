@@ -7,27 +7,37 @@ import Alarm from './Alarm';
 import Settings from '../../pages/Settings/Settings';
 import useAuthStore from '../../stores/useAuthStore'; // useAuthStore 가져오기
 import { useAlarmStore } from '../../stores/useAlarmStore';
+import { useFetchWorkspacesDetail } from '../../api/queries/useWorkspaceQueries';
+import { useTabStore } from '../../stores/useTabStore';
 
 const Header = () => {
   const [isWorkspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { workspaceId: currentWorkspaceId } = useParams();
-  const workspaceName = `Workspace ${currentWorkspaceId}`;
-
+  const { data: workspaceDetail } = useFetchWorkspacesDetail(currentWorkspaceId);
+  const { removeAllTabs } = useTabStore();
   const [isSettingModalOpen, setSettingModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const alarmRef = useRef(null);
+  const profileRef = useRef(null);
 
-  const { data: workspaces = [] } = useFetchWorkspaces('1');
+  const { data: workspaces = [] } = useFetchWorkspaces();
   const logout = useAuthStore((state) => state.logout); // logout 함수 가져오기
   const { received, setReceived } = useAlarmStore();
 
-  const filteredWorkspaces = workspaces.filter((workspace) => workspace.id !== currentWorkspaceId);
+  const filteredWorkspaces = workspaceDetail
+    ? workspaces.filter((workspace) => workspace.projectName !== workspaceDetail.projectName)
+    : workspaces;
+
+  const handleMain = () => {
+    navigate(`/workspace/${currentWorkspaceId}`);
+  };
 
   const handleWorkspaceSelect = (workspaceId) => {
+    removeAllTabs(); // 모든 탭을 닫음
     navigate(`/workspace/${workspaceId}`);
     setWorkspaceDropdownOpen(false);
   };
@@ -38,6 +48,9 @@ const Header = () => {
     }
     if (alarmRef.current && !alarmRef.current.contains(event.target)) {
       setIsNotificationOpen(false);
+    }
+    if (profileRef.current && !profileRef.current.contains(event.target)) {
+      setProfileDropdownOpen(false);
     }
   };
 
@@ -55,12 +68,20 @@ const Header = () => {
 
   return (
     <header className='w-full h-16 bg-[#F0F5F8]/50 text-[#666666] flex items-center px-12 justify-between relative border-b select-none'>
-      <h1 className='text-2xl'>Support API</h1>
+      <h1 className='text-2xl' onClick={handleMain}>
+        Support API
+      </h1>
 
       {/* 워크스페이스 이름 및 드롭다운 */}
-      <div className='absolute left-1/2 -translate-x-1/2' ref={dropdownRef}>
-        <div className='flex items-center cursor-pointer' onClick={() => setWorkspaceDropdownOpen((prev) => !prev)}>
-          <span className='text-xl'>{workspaceName}</span>
+      <div className='absolute left-1/2 -translate-x-1/2' ref={dropdownRef} style={{ zIndex: 9999, position: 'fixed' }}>
+        <div
+          className='flex items-center cursor-pointer'
+          onClick={() => {
+            setWorkspaceDropdownOpen((prev) => !prev);
+          }}
+        >
+          <span className='text-xl'>{workspaceDetail ? workspaceDetail.projectName : 'Loading...'}</span>
+
           {isWorkspaceDropdownOpen ? (
             <MdArrowDropUp className='text-2xl ml-1' />
           ) : (
@@ -68,7 +89,7 @@ const Header = () => {
           )}
         </div>
         {isWorkspaceDropdownOpen && (
-          <div className='absolute left-0 mt-2 w-48 bg-white text-[#666666] rounded shadow-lg max-h-48 overflow-y-auto'>
+          <div className='absolute left-0 mt-2 w-48 bg-white text-[#666666] rounded shadow-lg max-h-48 overflow-y-auto sidebar-scrollbar z-50 rounded-lg'>
             <ul>
               {filteredWorkspaces.map((workspace) => (
                 <li
@@ -76,7 +97,7 @@ const Header = () => {
                   className='px-4 py-2 hover:bg-gray-200 cursor-pointer'
                   onClick={() => handleWorkspaceSelect(workspace.id)}
                 >
-                  {workspace.name}
+                  {workspace.projectName}
                 </li>
               ))}
             </ul>
@@ -109,7 +130,7 @@ const Header = () => {
         {isSettingModalOpen && <Settings onClose={() => setSettingModalOpen(false)} />}
 
         {/* 프로필 아이콘 및 드롭다운 */}
-        <div className='relative'>
+        <div className='relative' ref={profileRef}>
           <FaUser className='text-2xl cursor-pointer' onClick={() => setProfileDropdownOpen((prev) => !prev)} />
           {isProfileDropdownOpen && (
             <div className='absolute right-0 mt-2 w-32 bg-white text-black rounded shadow-lg'>
