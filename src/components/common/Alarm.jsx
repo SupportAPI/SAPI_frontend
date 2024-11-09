@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import { useMutation } from 'react-query';
-import { fetchNotifications } from '../../api/queries/useNotificationsQueries';
+import { fetchNotifications, deleteNotification } from '../../api/queries/useNotificationsQueries';
 import Settings from '../../pages/Settings/Settings';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,7 +23,14 @@ const Alarm = () => {
     },
   });
 
-  console.log(notifications);
+  const deleteAlarmMutation = useMutation((notificationId) => deleteNotification(notificationId), {
+    onSuccess: (response) => {
+      return response;
+    },
+    onError: (error) => {
+      return false;
+    }
+  })
 
   useEffect(() => {
     alarmMutation.mutate();
@@ -33,10 +40,16 @@ const Alarm = () => {
     setIsNotificationOpen(!isNotificationOpen);
   };
 
-  const handleDeleteNotification = (id, event) => {
+  const handleDeleteNotification = async (id, event) => {
     event.stopPropagation();
-    setNotifications(notifications.filter((notification) => notification.id !== id));
+    const response = await deleteAlarmMutation.mutateAsync(id);
+    if(response){
+      setNotifications(notifications.filter((notification) => notification.id !== id));
+    }else{
+      console.log("삭제실패");
+    }
   };
+
 
   const alarmClickRouting = (apiId, workspaceId, type) => {
     if (type === 'WORKSPACE_INVITE') {
@@ -52,8 +65,6 @@ const Alarm = () => {
     }
   };
 
-  console.log(settingRef.current);
-
   return (
     <div
       className='absolute right-0 mt-4 w-80 h-[500px] bg-white 
@@ -65,7 +76,7 @@ const Alarm = () => {
       <div className='min-h-70 overflow-y-auto'>
         {notifications.length > 0 ? (
           notifications
-            .sort((a, b) => new Date(b.date) - new Date(a.date)) // 내림차순 정렬
+            .sort((a, b) => new Date(b.createdDatetime) - new Date(a.createdDatetime)) // 내림차순 정렬
             .map((notification) => (
               <div
                 key={notification.id}
