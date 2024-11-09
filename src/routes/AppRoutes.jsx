@@ -53,7 +53,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path='/workspace/:workspaceId/environment/global'
+        path='/workspace/:workspaceId/environment/:environmentId'
         element={
           <Layout>
             <Environment />
