@@ -15,6 +15,17 @@ export const fetchNotifications = async () => {
   return response.data.data;
 };
 
+export const deleteNotification = async (notificationId) => {
+  const accessToken = getToken();
+  const response = await axios.delete(`${base_URL}/api/notifications/${notificationId}`, {
+    headers : {
+      'Content-Type' : 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return response.data.success;
+}
+
 // 알림 읽음 상태 업데이트
 export const markNotificationAsRead = async (notificationId) => {
   const response = await axios.put(`${base_URL}/api/notifications/${notificationId}/read`, {

@@ -1,43 +1,15 @@
 import { ResponsiveLine } from '@nivo/line';
 import { useMemo } from 'react';
 
-const DashboardCompletedProgress = () => {
+const DashboardCompletedProgress = ({ recentStatistics = [] }) => {
   const data = [
     {
-      id: 'norway',
+      id: 'progress',
       color: 'hsl(263, 70%, 50%)',
-      data: [
-        { x: 1, y: 295 },
-        { x: 2, y: 108 },
-        { x: 3, y: 291 },
-        { x: 4, y: 75 },
-        { x: 5, y: 254 },
-        { x: 6, y: 135 },
-        { x: 7, y: 14 },
-        { x: 8, y: 184 },
-        { x: 9, y: 83 },
-        { x: 10, y: 142 },
-        { x: 11, y: 29 },
-        { x: 12, y: 241 },
-        { x: 13, y: 295 },
-        { x: 14, y: 108 },
-        { x: 15, y: 291 },
-        { x: 16, y: 75 },
-        { x: 17, y: 254 },
-        { x: 18, y: 135 },
-        { x: 19, y: 14 },
-        { x: 20, y: 184 },
-        { x: 21, y: 83 },
-        { x: 22, y: 142 },
-        { x: 23, y: 29 },
-        { x: 24, y: 241 },
-        { x: 25, y: 295 },
-        { x: 26, y: 250 },
-        { x: 27, y: 210 },
-        { x: 28, y: 200 },
-        { x: 29, y: 180 },
-        { x: 30, y: 130 },
-      ],
+      data: recentStatistics.map((item) => ({
+        x: item.date,
+        y: item.successCount,
+      })),
     },
   ];
 

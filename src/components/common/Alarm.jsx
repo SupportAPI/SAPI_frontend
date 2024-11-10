@@ -1,11 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import { useMutation } from 'react-query';
-import { fetchNotifications } from '../../api/queries/useNotificationsQueries';
+import { fetchNotifications, deleteNotification } from '../../api/queries/useNotificationsQueries';
+import Settings from '../../pages/Settings/Settings';
+import { useNavigate } from 'react-router-dom';
 
 const Alarm = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+
+  const [isSettingModalOpen, setIsSettingModalOpen] = useState(false);
+  const settingRef = useRef(null);
+
+  const navigate = useNavigate();
 
   const alarmMutation = useMutation(() => fetchNotifications(), {
     onSuccess: (response) => {
@@ -16,6 +23,15 @@ const Alarm = () => {
     },
   });
 
+  const deleteAlarmMutation = useMutation((notificationId) => deleteNotification(notificationId), {
+    onSuccess: (response) => {
+      return response;
+    },
+    onError: (error) => {
+      return false;
+    }
+  })
+
   useEffect(() => {
     alarmMutation.mutate();
   }, []);
@@ -24,9 +40,29 @@ const Alarm = () => {
     setIsNotificationOpen(!isNotificationOpen);
   };
 
-  const handleDeleteNotification = (id, event) => {
+  const handleDeleteNotification = async (id, event) => {
     event.stopPropagation();
-    setNotifications(notifications.filter((notification) => notification.id !== id));
+    const response = await deleteAlarmMutation.mutateAsync(id);
+    if(response){
+      setNotifications(notifications.filter((notification) => notification.id !== id));
+    }else{
+      console.log("삭제실패");
+    }
+  };
+
+
+  const alarmClickRouting = (apiId, workspaceId, type) => {
+    if (type === 'WORKSPACE_INVITE') {
+      setIsSettingModalOpen(true); // 먼저 모달을 열어 ref를 설정
+      setTimeout(() => {
+        if (settingRef.current) {
+          settingRef.current.showInvitationComponent(); // ref가 설정된 후 함수 호출
+        }
+      }, 0); // 짧은 지연을 둬서 Settings가 렌더링되도록 함
+    } else {
+      const path = `/workspace/${workspaceId}/apidocs/${apiId}`;
+      navigate(path);
+    }
   };
 
   return (
@@ -40,11 +76,14 @@ const Alarm = () => {
       <div className='min-h-70 overflow-y-auto'>
         {notifications.length > 0 ? (
           notifications
-            .sort((a, b) => new Date(b.date) - new Date(a.date)) // 내림차순 정렬
+            .sort((a, b) => new Date(b.createdDatetime) - new Date(a.createdDatetime)) // 내림차순 정렬
             .map((notification) => (
               <div
                 key={notification.id}
                 className='flex flex-col gap-1 p-3 hover:bg-[#EBF3F8] border-b border-gray-100 last:border-b-0'
+                onClick={() =>
+                  alarmClickRouting(notification.fromId, notification.workspaceId, notification.notificationType)
+                }
               >
                 <div className='flex flex-row ml-1'>
                   <p className='text-lg text-black font-bold'>{notification.fromName}</p>
@@ -70,6 +109,7 @@ const Alarm = () => {
           <div className='p-4 text-gray-500'>No new notifications</div>
         )}
       </div>
+      {isSettingModalOpen && <Settings ref={settingRef} onClose={() => setIsSettingModalOpen(false)} />}
     </div>
   );
 };

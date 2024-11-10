@@ -1,153 +1,172 @@
-import { useEffect, useState, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { IoCopyOutline } from 'react-icons/io5';
+import { ResizableBox } from 'react-resizable';
+import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
+import { FaSave } from 'react-icons/fa';
+import 'react-resizable/css/styles.css';
+import ApiTestParameters from './ApiTestParameters';
+import ApiTestBody from './APitestBody';
+import { useNavbarStore } from '../../stores/useNavbarStore';
+import { useSidebarStore } from '../../stores/useSidebarStore';
 import { useTabStore } from '../../stores/useTabStore';
-import { FiChevronDown, FiMessageSquare, FiCode, FiFileText, FiX } from 'react-icons/fi';
-import { FaDownload, FaSave, FaShareAlt, FaTrashAlt } from 'react-icons/fa';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 
 const ApiTestDetail = () => {
+  const [apiData, setApiData] = useState([{ category: 'Uncategorized', name: 'New API' }]);
+  const [apiDetail, setApiDetail] = useState(1);
+  const [apimethod, setApimethod] = useState('POST');
+  const [apiname, setApiname] = useState('API NAME');
+  const [apiUrl, setApiUrl] = useState('/api/memberships/membershipid/role');
+  const [activeTabContent, setActiveTabContent] = useState('Parameters'); // 기본 탭을 'Parameters'로 설정
+  const [activeTabResult, setActiveTabResult] = useState('Body'); // 기본 탭을 'Parameters'로 설정
+
+  const { expandedCategories, expandCategory } = useSidebarStore();
   const { addTab, openTabs, removeTab } = useTabStore();
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [activeRightTab, setActiveRightTab] = useState(false);
-  const [apiDetail, setApiDetail] = useState({ method: '', path: '', description: '' });
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef(null);
-  const [activeLeftTab, setActiveLeftTab] = useState('parameters');
+  const { setMenu } = useNavbarStore();
+  const { workspaceId, apiId } = useParams();
+  const location = useLocation();
 
-  const methodStyles = {
-    GET: 'text-green-600',
-    POST: 'text-blue-600',
-    PUT: 'text-yellow-600',
-    PATCH: 'text-purple-600',
-    DELETE: 'text-red-600',
-    HEAD: 'text-gray-600',
-    OPTIONS: 'text-gray-500',
+  const handleCopyAddress = () => {
+    // Address 카피할 수 있는 기능 추가할 것
   };
 
-  const handleApiUrlChange = (e) => {
-    setApiDetail((prev) => ({ ...prev, path: e.target.value }));
+  // Content Tap
+  const renderTabContent = () => {
+    switch (activeTabContent) {
+      case 'Parameters':
+        return <ApiTestParameters />;
+      case 'Body':
+        return <ApiTestBody />;
+
+      default:
+        return null;
+    }
   };
 
-  const handleDescriptionChange = (e) => {
-    setApiDetail((prev) => ({ ...prev, description: e.target.value }));
+  // Result Tap
+  const renderTabResult = () => {
+    switch (activeTabResult) {
+      case 'Body':
+        return <div>1</div>;
+      case 'Cookies':
+        return <div>2</div>;
+      case 'Headers':
+        return <div>3</div>;
+      default:
+        return null;
+    }
   };
 
-  const toggleRightTab = (tab) => {
-    setActiveRightTab((prevTab) => (prevTab === tab ? false : tab));
-  };
-
-  const handleDeleteClick = () => setShowDeleteModal(true);
-  const handleCloseModal = () => setShowDeleteModal(false);
-  const handleConfirmDelete = () => {};
-
-  const handleMethodSelect = (method) => {
-    setApiDetail((prev) => ({ ...prev, method }));
-    setShowDropdown(false);
-  };
+  useEffect(() => {
+    if (apiData && apiId) {
+      setApiDetail(apiData);
+      const category = apiData.category;
+      if (category && !expandedCategories[category]) expandCategory(category);
+      if (!openTabs.find((tab) => tab.id === apiId)) {
+        addTab({ id: apiId, name: apiData.name, path: `/workspace/${workspaceId}/api-test/${apiId}` });
+      }
+    }
+  }, [apiData, apiId, expandCategory, addTab, setMenu, expandedCategories, openTabs, location.pathname, workspaceId]);
 
   return (
-    <div className='flex h-[calc(100vh -104px)]'>
-      {/* Sidebar 및 상단 버튼 영역 */}
-      <div className='flex-1 p-8 overflow-y-auto sidebar-scrollbar scrollbar-gutter-stable'>
-        {/* 입력 필드 및 버튼 */}
-        <div className='flex items-baseline space-x-2 mb-8 justify-between'>
-          <div className='inline-flex items-baseline space-x-1'>
-            <input
-              type='text'
-              className='border-b focus:outline-none w-auto max-w-[200px] text-[18px] px-2'
-              placeholder='Enter Category'
-            />
-            <span className='text-gray-400' style={{ margin: '0 12px' }}>
-              /
-            </span>
-            <input
-              type='text'
-              className='text-2xl border-b focus:outline-none w-auto max-w-[250px] px-2 text-[18px]'
-              placeholder='Enter API Name'
-            />
-          </div>
-          <div className='flex space-x-4'>
-            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-              <FaSave />
-              <span>Save</span>
-            </button>
-            <button
-              onClick={handleDeleteClick}
-              className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
-            >
-              <FaTrashAlt />
-              <span>Delete</span>
-            </button>
-            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-              <FaDownload />
-              <span>Export</span>
-            </button>
-            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-              <FaShareAlt />
-              <span>Share</span>
-            </button>
-          </div>
-        </div>
-
-        {/* 삭제 모달 */}
-        {showDeleteModal && (
-          <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
-            <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
-              <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
-              <p className='mb-6'>현재 API 문서를 삭제하시겠습니까?</p>
-              <div className='flex justify-end space-x-4'>
-                <button onClick={handleCloseModal} className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'>
-                  취소
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
-                >
-                  삭제
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* API Path and Description */}
-        <div className='mb-4'>
-          <label className='block text-[18px] font-semibold mb-2'>API Path</label>
-          <div className='relative'>
-            <button
-              className={`px-4 py-2 w-[150px] rounded-md border ${
-                methodStyles[apiDetail?.method]
-              } border-gray-300 h-10`}
-              onClick={() => setShowDropdown((prev) => !prev)}
-            >
-              <div className='flex justify-between items-center'>
-                <span>{apiDetail?.method}</span>
-                <FiChevronDown className='ml-2' color='black' />
-              </div>
-            </button>
-            <input
-              type='text'
-              className='border rounded px-2 py-1 flex-grow h-10'
-              placeholder='Enter URL'
-              value={apiDetail?.path || ''}
-              onChange={handleApiUrlChange}
-            />
-          </div>
-          {showDropdown && (
-            <div
-              ref={dropdownRef}
-              className='absolute bg-white border mt-1 rounded shadow-md z-10'
-              style={{ top: '100%', left: 0, width: '150px' }}
-            >
-              {['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'].map((method) => (
-                <div
-                  key={method}
-                  className={`p-2 cursor-pointer ${methodStyles[method]} hover:bg-gray-100`}
-                  onClick={() => handleMethodSelect(method)}
-                >
-                  {method}
+    <div className='flex h-full'>
+      <div className='flex-1 overflow-hidden'>
+        <div className='flex flex-col min-w-[900px] h-screen border-white p-2 rounded-lg'>
+          {/* 상단 제목 단 */}
+          <div className='mb-4'>
+            <div className='flex justify-between items-center'>
+              <div className='flex items-center'>
+                <div className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
+                  {apimethod}
                 </div>
-              ))}
+                <div>
+                  <div className='text-xl font-semibold'>{apiname}</div>
+                  <div className='flex items-center'>
+                    <div className='max-w-[350px] mr-2 truncate'>{apiUrl}</div>
+                    <button onClick={handleCopyAddress}>
+                      <IoCopyOutline />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className='flex'>
+                <button className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
+                  <div className='flex items-center'>
+                    <RiArrowDropDownLine className='text-xl' />
+                    Local
+                  </div>
+                </button>
+                <button className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
+                  TEST
+                </button>
+                <button className='flex justify-center items-center w-[50px] border p-3 rounded-lg bg-[#2D3648] text-white'>
+                  <FaSave />
+                </button>
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* 탭 네비게이션 */}
+          <div className='flex mb-4 border-b-2 border-gray-200'>
+            <button
+              className={`w-[200px] p-2 ${activeTabContent === 'Parameters' ? 'border-b-2 border-blue-500' : ''}`}
+              onClick={() => setActiveTabContent('Parameters')}
+            >
+              Parameters
+            </button>
+            <button
+              className={`w-[200px] p-2 ${activeTabContent === 'Body' ? 'border-b-2 border-blue-500' : ''}`}
+              onClick={() => setActiveTabContent('Body')}
+            >
+              Body
+            </button>
+          </div>
+
+          {/* 화면 분할 */}
+          <ResizableBox
+            width={Infinity}
+            height={500}
+            resizeHandles={['se', 's', 'sw', 'ne', 'nw', 'n']}
+            minConstraints={[Infinity, 100]}
+            maxConstraints={[Infinity, 700]}
+          >
+            {/* 탭에 따른 내용 영역 */}
+            <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>{renderTabContent()}</div>
+          </ResizableBox>
+
+          {/* 테스트 결과 영역 */}
+          <div className='flex-1 p-4 overflow-y-auto border-t-2 sidebar-scrollbar'>
+            {/* 탭 네비게이션 */}
+            <div className='flex mb-4'>
+              <button
+                className={`w-[60px] mr-3 mb-1  text-[13px] ${
+                  activeTabResult === 'Body' ? 'border-b-2 border-blue-500' : ''
+                }`}
+                onClick={() => setActiveTabResult('Body')}
+              >
+                Body
+              </button>
+              <button
+                className={`w-[60px] mr-3 mb-1 text-[13px] ${
+                  activeTabResult === 'Cookies' ? 'border-b-2 border-blue-500' : ''
+                }`}
+                onClick={() => setActiveTabResult('Cookies')}
+              >
+                Cookies
+              </button>
+              <button
+                className={`w-[60px] mr-3 mb-1 text-[13px] ${
+                  activeTabResult === 'Headers' ? 'border-b-2 border-blue-500' : ''
+                }`}
+                onClick={() => setActiveTabResult('Headers')}
+              >
+                Headers
+              </button>
+            </div>
+            <div className='border p-4 overflow-y-auto border-b h-full sidebar-scrollbar text-[13px]'>
+              {renderTabResult()}
+            </div>
+          </div>
         </div>
       </div>
     </div>

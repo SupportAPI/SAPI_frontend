@@ -9,13 +9,14 @@ import InviteUser from './InviteUser';
 import Settings from './Settings';
 import Header from './Header';
 import CheckModal from '../../components/common/CheckModal';
-
+import { useTabStore } from '../../stores/useTabStore';
 import { FaMinus } from 'react-icons/fa6';
 import { FaPlus } from 'react-icons/fa6';
 import { SlOptions } from 'react-icons/sl';
 
 const WorkspaceSelection = () => {
   const navigate = useNavigate();
+  const { removeAllTabs } = useTabStore();
   const { data: workspaces, isLoading } = useFetchWorkspaces();
   const [prograssTable, setPrograssTable] = useState([]);
   const [doneTable, setDoneTable] = useState([]);
@@ -68,6 +69,11 @@ const WorkspaceSelection = () => {
       setPrograssTable(filtered);
     }
   }, [filterWorkspaces, workspaces]);
+
+  // 탭 다 제거
+  useEffect(() => {
+    removeAllTabs();
+  }, []);
 
   const handleWorkspaceSelect = (workspaceId) => {
     navigate(`/workspace/${workspaceId}`);
