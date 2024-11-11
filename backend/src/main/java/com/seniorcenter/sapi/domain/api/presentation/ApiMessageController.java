@@ -37,6 +37,9 @@ public class ApiMessageController {
         } else if (message.actionType().equals(MessageType.DELETE)) {
             log.info("[API DELETE] message: {}", message);
             apiService.removeApi(message, workspaceId, apiId, principal);
+        } else if (message.actionType().equals(MessageType.DB_UPDATE)) {
+            log.info("[API DB UPDATE] message: {}", message);
+            apiService.updateApiDB(message, workspaceId, apiId, principal);
         }
 
     }

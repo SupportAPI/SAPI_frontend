@@ -2,10 +2,7 @@ package com.seniorcenter.sapi.domain.api.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seniorcenter.sapi.domain.api.presentation.dto.request.AddRequestDto;
-import com.seniorcenter.sapi.domain.api.presentation.dto.request.RemoveRequestDto;
-import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdKeyValueRequestDto;
-import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateKeyValueRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.*;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiStringResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
@@ -72,5 +69,49 @@ public class KeyValueUtils {
             throw new MainException(CustomException.INVALID_FORMAT);
         }
         return updateIdKeyValueRequestDto;
+    }
+
+    public KeyValueRequestDto translateToKeyValueRequestDto(ApiMessage message) {
+        KeyValueRequestDto keyValueRequestDto;
+        try {
+            keyValueRequestDto = objectMapper.convertValue(message.message(), new TypeReference<KeyValueRequestDto>() {
+            });
+        } catch (IllegalArgumentException e) {
+            throw new MainException(CustomException.INVALID_FORMAT);
+        }
+        return keyValueRequestDto;
+    }
+
+    public IdKeyValueRequestDto translateToIdKeyValueRequestDto(ApiMessage message) {
+        IdKeyValueRequestDto idKeyValueRequestDto;
+        try {
+            idKeyValueRequestDto = objectMapper.convertValue(message.message(), new TypeReference<IdKeyValueRequestDto>() {
+            });
+        } catch (IllegalArgumentException e) {
+            throw new MainException(CustomException.INVALID_FORMAT);
+        }
+        return idKeyValueRequestDto;
+    }
+
+    public IdKeyValueDescritionRequestDto translateToIdKeyValueDescriptionRequestDto(ApiMessage message) {
+        IdKeyValueDescritionRequestDto idKeyValueDescritionRequestDto;
+        try {
+            idKeyValueDescritionRequestDto = objectMapper.convertValue(message.message(), new TypeReference<IdKeyValueDescritionRequestDto>() {
+            });
+        } catch (IllegalArgumentException e) {
+            throw new MainException(CustomException.INVALID_FORMAT);
+        }
+        return idKeyValueDescritionRequestDto;
+    }
+
+    public ValueRequestDto translateToValueRequestDto(ApiMessage message) {
+        ValueRequestDto valueRequestDto;
+        try {
+            valueRequestDto = objectMapper.convertValue(message.message(), new TypeReference<ValueRequestDto>() {
+            });
+        } catch (IllegalArgumentException e) {
+            throw new MainException(CustomException.INVALID_FORMAT);
+        }
+        return valueRequestDto;
     }
 }

@@ -4,6 +4,7 @@ import com.seniorcenter.sapi.domain.api.domain.Api;
 import com.seniorcenter.sapi.domain.api.domain.ApiHeader;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiHeaderRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.IdKeyValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.RemoveRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdKeyValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdResponseDto;
@@ -57,6 +58,13 @@ public class ApiHeaderService {
         ApiHeader apiHeader = apiHeaderRepository.findById(updateIdKeyValueRequestDto.id())
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_HEADER));
         return new ApiIdKeyValueResponseDto(apiHeader.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value());
+    }
+
+    public void updateDBApiHeader(ApiMessage message) {
+        IdKeyValueRequestDto data = keyValueUtils.translateToIdKeyValueRequestDto(message);
+        ApiHeader apiHeader = apiHeaderRepository.findById(Long.valueOf(data.id()))
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+        apiHeader.updateApiHeaderKeyAndValue(data.key(), data.value());
     }
 
 }
