@@ -1,34 +1,37 @@
 import { useState, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
+import { useWebSocket } from '../../contexts/WebSocketContext';
 
-const Parameters = ({ paramsChange, initialValues, history = false }) => {
-  const [headers, setHeader] = useState(initialValues?.headers || []);
+const Parameters = ({ paramsChange, initialValues, workspaceId, apiId }) => {
+  const [header, setHeader] = useState(initialValues?.headers || []);
   const [authType, setAuthType] = useState(initialValues?.authType || 'None');
-  const [queryParameters, setQueryParameter] = useState(initialValues?.queryParameters || []);
-  const [cookies, setCookie] = useState(initialValues?.cookies || []);
   const [authorization, setAuthorization] = useState('');
+  const [queryParameter, setQueryParameter] = useState(initialValues?.queryParameters || []);
+  const [cookie, setCookie] = useState(initialValues?.cookies || []);
+  const { publish } = useWebSocket();
 
-  // useEffect(() => {
-  //   setHeader(initialValues?.headers || []);
-  //   setAuthType(initialValues?.authType || 'None');
-  //   setQueryParameter(initialValues?.queryParameters || []);
-  //   setCookie(initialValues?.cookies || []);
-  // }, [initialValues]);
+  useEffect(() => {
+    setHeader(initialValues?.headers || []);
+    setAuthType(initialValues?.authType || 'None');
+    setQueryParameter(initialValues?.queryParameters || []);
+    setCookie(initialValues?.cookies || []);
+  }, [initialValues]);
 
   useEffect(() => {
     paramsChange({
-      headers,
+      header,
       authType,
-      queryParameters,
-      cookies,
+      authorization,
+      queryParameter,
+      cookie,
     });
-  }, [headers, authType, queryParameters, cookies]);
+  }, [header, authType, authorization, queryParameter, cookie, paramsChange]);
 
   const handleAuthTypeChange = (type) => {
     setAuthType(type);
 
-    if (type === 'BEARER') setAuthorization('Bearer <token>');
-    else if (type === 'BASIC') setAuthorization('Basic <credentials>');
+    if (type === 'Bearer') setAuthorization('Bearer <token>');
+    else if (type === 'Basic') setAuthorization('Basic <credentials>');
     else setAuthorization('');
   };
 
@@ -51,37 +54,60 @@ const Parameters = ({ paramsChange, initialValues, history = false }) => {
   }, [authorization, authType]);
 
   const handleHeaderChange = (index, field, value) => {
-    const updatedHeaders = [...headers];
+    const updatedHeaders = [...header];
     updatedHeaders[index][field] = value;
     setHeader(updatedHeaders);
   };
 
   const handleAddHeader = () => {
-    setHeader([...headers, { headerKey: '', headerValue: '' }]);
+    setHeader([...header, { headerKey: '', headerValue: '' }]);
   };
 
   const handleRemoveHeader = (index) => {
-    setHeader(headers.filter((_, i) => i !== index));
+    setHeader(header.filter((_, i) => i !== index));
   };
 
-  const handleAddQueryParam = () =>
-    setQueryParameter([...queryParameters, { queryParameterKey: '', queryParameterValue: '' }]);
-  const handleAddCookie = () => setCookie([...cookies, { cookieKey: '', cookieValue: '' }]);
+  const handleAddQueryParam = () => {
+    console.log(apiId);
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'PARAMETERS_QUERY_PARAMETERS',
+      actionType: 'ADD',
+      message: {},
+    });
+  };
 
-  const handleQueryParamChange = (index, field, value) => {
-    const updatedParams = [...queryParameters];
-    updatedParams[index][field] = value;
-    setQueryParameter(updatedParams);
+  const handleAddCookie = () => setCookie([...cookie, { cookieKey: '', cookieValue: '' }]);
+
+  const handleQueryParamChange = (queryParameterId, type, value) => {
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'PARAMETERS_QUERY_PARAMETERS',
+      actionType: 'UPDATE',
+      message: {
+        id: queryParameterId,
+        type: type,
+        value: value,
+      },
+    });
   };
 
   const handleCookieChange = (index, field, value) => {
-    const updatedCookies = [...cookies];
+    const updatedCookies = [...cookie];
     updatedCookies[index][field] = value;
     setCookie(updatedCookies);
   };
 
-  const handleRemoveQueryParam = (index) => setQueryParameter(queryParameters.filter((_, i) => i !== index));
-  const handleRemoveCookie = (index) => setCookie(cookies.filter((_, i) => i !== index));
+  const handleRemoveQueryParam = (queryParameterId) => {
+    console.log(queryParameterId);
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'QUERY_PARAMETERS',
+      actionType: 'DELETE',
+      message: {
+        id: { queryParameterId },
+      },
+    });
+  };
+
+  const handleRemoveCookie = (index) => setCookie(cookie.filter((_, i) => i !== index));
 
   return (
     <div className='pt-4'>
@@ -89,7 +115,6 @@ const Parameters = ({ paramsChange, initialValues, history = false }) => {
       <div className='mb-8'>
         <label className='block text-[18px] font-semibold h-8'>Auth Type</label>
         <select
-          disabled={history}
           value={authType}
           onChange={(e) => handleAuthTypeChange(e.target.value)}
           className='border rounded px-2 py-1 w-full h-10'
@@ -108,17 +133,13 @@ const Parameters = ({ paramsChange, initialValues, history = false }) => {
             className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
             onClick={handleAddHeader}
           >
-            {history ? null : (
-              <>
-                <FaPlus />
-                <span>Add</span>
-              </>
-            )}
+            <FaPlus />
+            <span>Add</span>
           </button>
         </div>
 
         {/* Headers 테이블 or No headers message */}
-        {headers.length === 0 ? (
+        {header.length === 0 ? (
           <p className='text-gray-500 h-10 mt-2'>No headers added.</p>
         ) : (
           <table className='w-full border mt-2'>
@@ -143,15 +164,13 @@ const Parameters = ({ paramsChange, initialValues, history = false }) => {
                       className='w-full border-none outline-none bg-gray-100 text-gray-500'
                     />
                   </td>
-                  {history ? null : (
-                    <td className='border p-2 text-center text-gray-400'>
-                      <span>🗑️</span>
-                    </td>
-                  )}
+                  <td className='border p-2 text-center text-gray-400'>
+                    <span>🗑️</span>
+                  </td>
                 </tr>
               )}
               {/* 나머지 헤더들 */}
-              {headers.map(
+              {header.map(
                 (header, index) =>
                   header.headerKey !== 'Authorization' && (
                     <tr key={index}>
@@ -173,14 +192,12 @@ const Parameters = ({ paramsChange, initialValues, history = false }) => {
                           className='w-full border-none outline-none'
                         />
                       </td>
-                      {history ? null : (
-                        <td
-                          className='border p-2 text-center cursor-pointer text-red-500'
-                          onClick={() => handleRemoveQueryParam(index)}
-                        >
-                          🗑️
-                        </td>
-                      )}
+                      <td
+                        className='border p-2 text-center cursor-pointer text-red-500'
+                        onClick={() => handleRemoveHeader(index)}
+                      >
+                        🗑️
+                      </td>
                     </tr>
                   )
               )}
@@ -197,27 +214,23 @@ const Parameters = ({ paramsChange, initialValues, history = false }) => {
             className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
             onClick={handleAddQueryParam}
           >
-            {history ? null : (
-              <>
-                <FaPlus />
-                <span>Add</span>
-              </>
-            )}
+            <FaPlus />
+            <span>Add</span>
           </button>
         </div>
-        {queryParameters.length === 0 ? (
+        {queryParameter.length === 0 ? (
           <p className='text-gray-500 h-10'>No query parameters added.</p>
         ) : (
           <table className='w-full border'>
             <tbody>
-              {queryParameters.map((param, index) => (
+              {queryParameter.map((param, index) => (
                 <tr key={index}>
                   <td className='border p-2 h-10'>
                     <input
                       type='text'
                       placeholder='Key'
                       value={param.queryParameterKey}
-                      onChange={(e) => handleQueryParamChange(index, 'queryParameterKey', e.target.value)}
+                      onChange={(e) => handleQueryParamChange(param.queryParameterId, 'KEY', e.target.value)}
                       className='w-full border-none outline-none'
                     />
                   </td>
@@ -226,18 +239,16 @@ const Parameters = ({ paramsChange, initialValues, history = false }) => {
                       type='text'
                       placeholder='Value'
                       value={param.queryParameterValue}
-                      onChange={(e) => handleQueryParamChange(index, 'queryParameterValue', e.target.value)}
+                      onChange={(e) => handleQueryParamChange(param.queryParameterId, 'VALUE', e.target.value)}
                       className='w-full border-none outline-none'
                     />
                   </td>
-                  {history ? null : (
-                    <td
-                      className='border p-2 text-center cursor-pointer text-red-500'
-                      onClick={() => handleRemoveQueryParam(index)}
-                    >
-                      🗑️
-                    </td>
-                  )}
+                  <td
+                    className='border p-2 text-center cursor-pointer text-red-500'
+                    onClick={() => handleRemoveQueryParam(param.queryParameterId)}
+                  >
+                    🗑️
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -253,20 +264,16 @@ const Parameters = ({ paramsChange, initialValues, history = false }) => {
             className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
             onClick={handleAddCookie}
           >
-            {history ? null : (
-              <>
-                <FaPlus />
-                <span>Add</span>
-              </>
-            )}
+            <FaPlus />
+            <span>Add</span>
           </button>
         </div>
-        {cookies.length === 0 ? (
+        {cookie.length === 0 ? (
           <p className='text-gray-500 h-10'>No cookies added.</p>
         ) : (
           <table className='w-full border'>
             <tbody>
-              {cookies.map((cookie, index) => (
+              {cookie.map((cookie, index) => (
                 <tr key={index}>
                   <td className='border p-2 h-10'>
                     <input
@@ -286,14 +293,12 @@ const Parameters = ({ paramsChange, initialValues, history = false }) => {
                       className='w-full border-none outline-none'
                     />
                   </td>
-                  {history ? null : (
-                    <td
-                      className='border p-2 text-center cursor-pointer text-red-500'
-                      onClick={() => handleRemoveQueryParam(index)}
-                    >
-                      🗑️
-                    </td>
-                  )}
+                  <td
+                    className='border p-2 text-center cursor-pointer text-red-500'
+                    onClick={() => handleRemoveCookie(index)}
+                  >
+                    🗑️
+                  </td>
                 </tr>
               ))}
             </tbody>
