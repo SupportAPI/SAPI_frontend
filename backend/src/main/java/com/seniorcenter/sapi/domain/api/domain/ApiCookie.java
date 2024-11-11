@@ -53,4 +53,9 @@ public class ApiCookie extends BaseTimeEntity {
     public void updateCookieValue(String cookieValue) {
         this.cookieValue = cookieValue;
     }
+
+    public void updateCookieKeyAndValue(String cookieKey, String cookieValue) {
+        this.cookieKey = cookieKey;
+        this.cookieValue = cookieValue;
+    }
 }

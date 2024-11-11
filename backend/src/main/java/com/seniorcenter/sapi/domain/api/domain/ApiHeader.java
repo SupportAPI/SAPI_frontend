@@ -53,6 +53,11 @@ public class ApiHeader extends BaseTimeEntity {
     public void updateApiHeaderValue(String headerValue) {
         this.headerValue = headerValue;
     }
+
+    public void updateApiHeaderKeyAndValue(String headerKey, String headerValue) {
+        this.headerKey = headerKey;
+        this.headerValue = headerValue;
+    }
 }
 
 
