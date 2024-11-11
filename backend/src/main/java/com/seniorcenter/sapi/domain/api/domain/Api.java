@@ -96,4 +96,20 @@ public class Api extends BaseTimeEntity {
         this.specification = specification;
     }
 
+    public void updatePath(HttpMethod method, String path) {
+        this.method = method;
+        this.path = path;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateAuthType(AuthenticationType authenticationType) {
+        this.authenticationType = authenticationType;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
 }

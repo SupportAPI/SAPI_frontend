@@ -4,8 +4,7 @@ import com.seniorcenter.sapi.domain.api.domain.Api;
 import com.seniorcenter.sapi.domain.api.domain.ApiQueryParameter;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiQueryParameterRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
-import com.seniorcenter.sapi.domain.api.presentation.dto.request.RemoveRequestDto;
-import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdKeyValueRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.*;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdKeyValueResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
@@ -57,5 +56,16 @@ public class ApiQueryParameterService {
         ApiQueryParameter apiQueryParameter = apiQueryParameterRepository.findById(updateIdKeyValueRequestDto.id())
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_QUERY_PARAMETER));
         return new ApiIdKeyValueResponseDto(apiQueryParameter.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value());
+    }
+
+    public void updateDBApiQueryParameter(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        IdKeyValueDescritionRequestDto data = keyValueUtils.translateToIdKeyValueDescriptionRequestDto(message);
+        ApiQueryParameter apiQueryParameter = apiQueryParameterRepository.findById(Long.valueOf(data.id()))
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_QUERY_PARAMETER));
+        apiQueryParameter.updateKeyAndValueAndDescription(data.key(), data.value(), data.description());
+
     }
 }

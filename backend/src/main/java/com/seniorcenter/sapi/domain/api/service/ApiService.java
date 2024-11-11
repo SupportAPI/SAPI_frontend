@@ -1,6 +1,7 @@
 package com.seniorcenter.sapi.domain.api.service;
 
 import com.seniorcenter.sapi.domain.api.domain.*;
+import com.seniorcenter.sapi.domain.api.domain.enums.AuthenticationType;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiBodyRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiCookieRepository;
@@ -9,11 +10,13 @@ import com.seniorcenter.sapi.domain.api.domain.repository.ApiPathVariableReposit
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiQueryParameterRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateApiDetailRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.ValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
+import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
 import com.seniorcenter.sapi.domain.category.domain.Category;
 import com.seniorcenter.sapi.domain.category.domain.repository.CategoryRepository;
 import com.seniorcenter.sapi.domain.category.presentation.dto.response.CategoryResponseDto;
@@ -64,6 +67,7 @@ public class ApiService {
     private final SimpMessageSendingOperations messagingTemplate;
     private final ValueUtils valueUtils;
     private final UserUtils userUtils;
+    private final KeyValueUtils keyValueUtils;
 
     @Transactional
     public void createApi(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
@@ -134,6 +138,51 @@ public class ApiService {
     }
 
     @Transactional
+    public void updateApiDB(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
+
+        Object result = null;
+        if (message.apiType().equals(ApiType.API_PATH)) {
+            apiPathService.updateDbApiPath(message, apiId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
+            apiQueryParameterService.updateDBApiQueryParameter(message, apiId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
+            apiCookieService.updateDBApiCookie(message);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
+            apiHeaderService.updateDBApiHeader(message);
+        } else if (message.apiType().equals(ApiType.DESCRIPTION)) {
+            updateDescription(message, apiId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_AUTH_TYPE)) {
+            updateAuthType(message, apiId);
+        } else if (message.apiType().equals(ApiType.API_NAME)) {
+            updateApiName(message, apiId);
+        }
+    }
+
+    public void updateDescription(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        ValueRequestDto data = keyValueUtils.translateToValueRequestDto(message);
+        api.updateDescription(data.value());
+    }
+
+    public void updateAuthType(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        ValueRequestDto data = keyValueUtils.translateToValueRequestDto(message);
+        api.updateAuthType(AuthenticationType.valueOf(data.value()));
+    }
+
+    public void updateApiName(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        ValueRequestDto data = keyValueUtils.translateToValueRequestDto(message);
+        api.updateName(data.value());
+    }
+
+    @Transactional
     public List<ApiResponseDto> getApisByWorkspaceId(UUID workspaceId) {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         return specifications.stream()
@@ -166,6 +215,9 @@ public class ApiService {
 
     public ApiDetailResponseDto getApiByApiId(UUID workspaceId, UUID apiId) {
         User user = userUtils.getUserFromSecurityContext();
+        log.info("검증 시작: userId={}, workspaceId={}", user.getId(), workspaceId);
+        log.info("API 조회 시작: apiId={}, workspaceId={}", apiId, workspaceId);
+
         // 유저가 해당 워크스페이스에 포함되어 있는지 검증
         membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
             .orElseThrow(() -> new MainException(CustomException.ACCESS_DENIED_EXCEPTION));
@@ -303,8 +355,8 @@ public class ApiService {
             .toList();
 
         // 카테고리 설정
-        Category category = categoryRepository.findByName(api.getCategory())
-            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));;
+        Category category = categoryRepository.findByWorkspaceIdAndName(workspaceId, api.getCategory())
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
 
         // Manager 정보 설정
         String managerEmail = (api.getSpecification().getManager() != null) ? api.getSpecification().getManager().getEmail() : "";

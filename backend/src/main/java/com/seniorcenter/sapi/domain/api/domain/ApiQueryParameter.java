@@ -66,4 +66,10 @@ public class ApiQueryParameter extends BaseTimeEntity {
         this.paramValue = paramValue;
         this.isChecked = isChecked;
     }
+
+    public void updateKeyAndValueAndDescription(String paramKey, String paramValue, String description) {
+        this.paramKey = paramKey;
+        this.paramValue = paramValue;
+        this.description = description;
+    }
 }
