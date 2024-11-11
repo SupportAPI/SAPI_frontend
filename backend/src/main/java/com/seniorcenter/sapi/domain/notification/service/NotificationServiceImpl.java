@@ -5,11 +5,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.seniorcenter.sapi.domain.notification.domain.Notification;
 import com.seniorcenter.sapi.domain.notification.domain.NotificationType;
 import com.seniorcenter.sapi.domain.notification.domain.repository.NotificationRepository;
+import com.seniorcenter.sapi.domain.notification.presentation.dto.request.UpdateNotificationRequestDto;
 import com.seniorcenter.sapi.domain.notification.presentation.dto.response.NotificationResponseDto;
 import com.seniorcenter.sapi.domain.notification.util.SseUtils;
 import com.seniorcenter.sapi.domain.user.domain.User;
@@ -24,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class NotificationServiceImpl implements NotificationService {
 
 	private final NotificationRepository notificationRepository;
@@ -56,12 +59,14 @@ public class NotificationServiceImpl implements NotificationService {
 				notification.getFromName(),
 				notification.getMessage(),
 				notification.getType(),
+				notification.getIsRead(),
 				notification.getCreatedDate()
 			))
 			.collect(Collectors.toList());
 	}
 
 	@Override
+	@Transactional
 	public void removeNotification(Long notificationId) {
 		User user = userUtils.getUserFromSecurityContext();
 		Notification notification = notificationRepository.findById(notificationId)
@@ -72,5 +77,13 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 
 		notificationRepository.deleteById(notificationId);
+	}
+
+	@Override
+	@Transactional
+	public void updateNotification(UpdateNotificationRequestDto requestDto) {
+		List<Long> notificationIds = requestDto.notificationIds();
+		List<Notification> notifications = notificationRepository.findAllById(notificationIds);
+		notifications.forEach(Notification::changeReadStatus);
 	}
 }

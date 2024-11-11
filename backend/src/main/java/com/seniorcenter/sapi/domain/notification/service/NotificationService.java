@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import com.seniorcenter.sapi.domain.notification.presentation.dto.request.UpdateNotificationRequestDto;
 import com.seniorcenter.sapi.domain.notification.presentation.dto.response.NotificationResponseDto;
 
 public interface NotificationService {
@@ -13,4 +14,5 @@ public interface NotificationService {
 	void commentSseTest(Long userId, UUID specificationId);
 	List<NotificationResponseDto> getNotifications();
 	void removeNotification(Long notificationId);
+	void updateNotification(UpdateNotificationRequestDto requestDto);
 }

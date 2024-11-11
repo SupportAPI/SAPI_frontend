@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.seniorcenter.sapi.domain.api.domain.Api;
@@ -31,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class SseUtils {
 
 	private final EmitterRepository emitterRepository;
@@ -66,13 +68,14 @@ public class SseUtils {
 		return emitter;
 	}
 
+	@Transactional
 	public void send(User receiver, UUID fromId, UUID workspaceId, NotificationType notificationType) {
 		Notification notification = notificationRepository.save(createNotification(receiver, fromId, notificationType));
 		String userId = String.valueOf(receiver.getId());
 
 		NotificationResponseDto responseDto = new NotificationResponseDto(notification.getId(),
 			fromId, workspaceId, notification.getFromName(), notification.getMessage(), notificationType.getType(),
-			notification.getCreatedDate());
+			notification.getIsRead(), notification.getCreatedDate());
 
 		Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByUserId(userId);
 		sseEmitters.forEach(
@@ -83,13 +86,14 @@ public class SseUtils {
 		);
 	}
 
+	@Transactional
 	public void sendApiNotification(User receiver, UUID fromId, UUID workspaceId, NotificationType notificationType) {
 		Notification notification = notificationRepository.save(createNotification(receiver, fromId, notificationType));
 		String userId = String.valueOf(receiver.getId());
 
 		ApiNotificationResponseDto responseDto = new ApiNotificationResponseDto(notification.getId(), fromId,
 			workspaceId, notification.getFromName(), notification.getMessage(), notificationType.getType(),
-			notification.getCreatedDate());
+			notification.getIsRead(), notification.getCreatedDate());
 
 		Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByUserId(userId);
 		sseEmitters.forEach(
