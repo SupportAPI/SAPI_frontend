@@ -30,6 +30,7 @@ import com.seniorcenter.sapi.domain.occupation.service.OccupationService;
 import com.seniorcenter.sapi.domain.proxy.service.ProxyService;
 import com.seniorcenter.sapi.domain.proxy.service.ServerRequestInfoDto;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
+import com.seniorcenter.sapi.domain.specification.domain.TestStatus;
 import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
@@ -585,7 +586,7 @@ public class ApiService {
     }
 
     public TestResponseDto testDefaultRequest(String workspaceId, Map<String, String> headers, HttpMethod method, HttpServletRequest request) {
-        String path = request.getRequestURI().replace("/api/workspace/" + workspaceId + "/test", "");
+        String path = request.getRequestURI().replace("/api/workspaces/" + workspaceId + "/test", "");
         String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
         String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
         String domain = testType.equals("Local")
@@ -622,7 +623,7 @@ public class ApiService {
 
 
     public TestResponseDto testFormDataRequest(String workspaceId, Map<String, String> headers, HttpMethod method, Map<String, Object> formParams, Map<String, MultipartFile> files, HttpServletRequest request) {
-        String path = request.getRequestURI().replace("/api/workspace/" + workspaceId + "/test", "");
+        String path = request.getRequestURI().replace("/api/workspaces/" + workspaceId + "/test", "");
         String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
         String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
         String domain = testType.equals("Local")
@@ -659,7 +660,7 @@ public class ApiService {
     }
 
     public TestResponseDto testJsonRequest(String workspaceId, Map<String, String> headers, HttpMethod method, Map<String, Object> body, HttpServletRequest request) {
-        String path = request.getRequestURI().replace("/api/workspace/" + workspaceId + "/test", "");
+        String path = request.getRequestURI().replace("/api/workspaces/" + workspaceId + "/test", "");
         String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
         String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
         String domain = testType.equals("Local")
@@ -738,17 +739,17 @@ public class ApiService {
         Map<String, Object> responseBodyMap = parseJsonToMap(responseBodyStr);
         Map<String, Object> mockBodyMap = parseJsonToMap(mockResponse.getBodyData());
 
-        List<String> differences = findStructureDifferences(mockBodyMap, responseBodyMap, "");
+        List<String> differences = findStructureDifferences(responseBodyMap, mockBodyMap, "");
         String status;
         int code;
         String message;
 
         if (differences.isEmpty()) {
-            status = "success";
+            status = TestStatus.SUCCESS.name();
             code = responseEntity.getStatusCodeValue();
             message = null;
         } else {
-            status = "fail";
+            status = TestStatus.FAIL.name();
             code = 422; // 422 Unprocessable Entity (구조 불일치 시 사용)
             message = String.join("; ", differences);
         }
@@ -773,7 +774,6 @@ public class ApiService {
             testType,
             message
         );
-
     }
 
     private static Map<String, Object> parseJsonToMap(String json) {
