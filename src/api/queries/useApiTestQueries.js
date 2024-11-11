@@ -5,10 +5,11 @@ import { getToken } from '../../utils/cookies';
 const base_URL = 'https://k11b305.p.ssafy.io'; // 본 /서버
 // const base_URL = 'http://192.168.31.35:8080'; // 세현 서버
 
+// 1. Api List 호출 (전체)
 export const fetcApiList = async (workspaceId) => {
   const accessToken = getToken();
 
-  const response = await axios.get(`${base_URL}/api/workspace/${workspaceId}/api-test`, {
+  const response = await axios.get(`${base_URL}/api/workspaces/${workspaceId}/api-tests`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -20,4 +21,34 @@ export const fetcApiList = async (workspaceId) => {
 // React Query 훅: 워크스페이스 목록을 가져오는 쿼리 훅
 export const useFetchApiList = (workspaceId) => {
   return useQuery(['workspaceId', workspaceId], () => fetcApiList(workspaceId));
+};
+
+// 2. API Detail 호출 (개별)
+export const fetcApiDetail = async (workspaceId, apiId) => {
+  const accessToken = getToken();
+
+  const response = await axios.get(`${base_URL}/api/workspaces/${workspaceId}/api-tests/${apiId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return response.data.data;
+};
+
+// React Query 훅: 워크스페이스 목록을 가져오는 쿼리 훅
+export const useFetchApiDetail = (workspaceId, apiId) => {
+  return useQuery(['apiDetail', workspaceId, apiId], () => fetcApiDetail(workspaceId, apiId));
+};
+
+// 3. API Detail 수정 (개별)
+export const patchApiDetail = async (workspaceId, apiId) => {
+  const accessToken = getToken();
+
+  const response = await axios.patch(`${base_URL}/api/workspaces/${workspaceId}/api-tests/${apiId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 };
