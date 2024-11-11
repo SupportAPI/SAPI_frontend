@@ -161,6 +161,8 @@ const Comments = ({ docsId, workspaceId }) => {
     onError: (error) => console.error('Find comments error:', error),
   });
 
+  console.log(messages);
+
   // 유저 태그 시 유저 정보 불러오기
   const findUserMutation = useMutation(({ searchQuery, startIndex, endIndex }) => findUsers(workspaceId, searchQuery), {
     onSuccess: (response, variables) => {
@@ -577,7 +579,11 @@ const Comments = ({ docsId, workspaceId }) => {
           <div key={message.commentId} className='flex flex-col'>
             <div className={`flex ${message.isHost ? 'justify-end' : 'justify-start'}`}>
               {!message.isHost && (
-                <img className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain' src={User2} alt='Profile' />
+                <img
+                  className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain'
+                  src={message.profileImage}
+                  alt='Profile'
+                />
               )}
               <div
                 className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#E9F2F5] ${
@@ -637,7 +643,11 @@ const Comments = ({ docsId, workspaceId }) => {
                 )}
               </div>
               {message.isHost && (
-                <img className='w-[40px] h-[40px] rounded-full mr-5 ml-3 object-contain' src={User2} alt='Profile' />
+                <img
+                  className='w-[40px] h-[40px] rounded-full mr-5 ml-3 object-contain'
+                  src={message.profileImage}
+                  alt='Profile'
+                />
               )}
             </div>
             <div className={`flex ${message.isHost ? 'justify-end mr-[72px]' : 'justify-start ml-[72px]'}`}>
