@@ -1,14 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import {
-  FaTrashAlt,
-  FaPlus,
-  FaShareAlt,
-  FaDownload,
-  FaAngleDown,
-  FaGripVertical,
-  FaCheckSquare,
-  FaSquare,
-} from 'react-icons/fa';
+import { FaTrashAlt, FaPlus, FaAngleDown, FaGripVertical, FaCheckSquare, FaSquare, FaSave } from 'react-icons/fa';
 import { createPortal } from 'react-dom';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -357,15 +348,19 @@ const Environment = () => {
         <div className='flex justify-between items-center mb-4'>
           <h2 className='text-2xl font-bold'>Environment</h2>
           <div className='flex space-x-4'>
+            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
+              <FaSave />
+              <span>Save</span>
+            </button>
             <button
-              className='flex items-center space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+              className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
               onClick={() => handleAddRow(-1)}
             >
               <FaPlus />
               <span>Add</span>
             </button>
             <button
-              className='flex items-center space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+              className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
               onClick={handleDeleteCheckedRows}
             >
               <FaTrashAlt />
