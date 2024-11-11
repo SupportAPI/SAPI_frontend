@@ -24,12 +24,20 @@ public class ApiHeader extends BaseTimeEntity {
     private String headerValue;
     private String description;
 
+    @Column(nullable = false)
+    private Boolean isEssential;
+
+    @Column(nullable = false)
+    private Boolean isChecked;
+
     @Builder
-    public ApiHeader(Api api, String headerKey, String headerValue, String description) {
+    public ApiHeader(Api api, String headerKey, String headerValue, String description, Boolean isEssential, Boolean isChecked) {
         this.api = api;
         this.headerKey = headerKey;
         this.headerValue = headerValue;
         this.description = description;
+        this.isEssential = isEssential;
+        this.isChecked = isChecked;
     }
 
     public static ApiHeader createApiHeader(Api api) {
@@ -38,6 +46,8 @@ public class ApiHeader extends BaseTimeEntity {
                 .headerKey("")
                 .headerValue("")
                 .description("")
+                .isEssential(true)
+                .isChecked(true)
                 .build();
     }
 
@@ -47,11 +57,14 @@ public class ApiHeader extends BaseTimeEntity {
                 .headerKey(originHeader.getHeaderKey())
                 .headerValue(originHeader.getHeaderValue())
                 .description(originHeader.getDescription())
+                .isEssential(originHeader.getIsEssential())
+                .isChecked(originHeader.getIsChecked())
                 .build();
     }
 
-    public void updateApiHeaderValue(String headerValue) {
+    public void updateApiHeaderValue(String headerValue, Boolean isChecked) {
         this.headerValue = headerValue;
+        this.isChecked = isChecked;
     }
 
     public void updateApiHeaderKeyAndValue(String headerKey, String headerValue) {

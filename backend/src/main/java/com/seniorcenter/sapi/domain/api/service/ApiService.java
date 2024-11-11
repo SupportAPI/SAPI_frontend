@@ -94,7 +94,7 @@ public class ApiService {
 
         User user = userUtils.getUserFromSecurityPrincipal(principal);
         Api api = apiRepository.findById(apiId)
-                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
         Object result = null;
         if (message.apiType().equals(ApiType.CATEGORY)) {
@@ -186,20 +186,20 @@ public class ApiService {
     public List<ApiResponseDto> getApisByWorkspaceId(UUID workspaceId) {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         return specifications.stream()
-                .map(specification -> {
-                    Api api = apiRepository.findById(specification.getConfirmedApiId())
-                            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
-                    return new ApiResponseDto(api);
-                }).collect(Collectors.toList());
+            .map(specification -> {
+                Api api = apiRepository.findById(specification.getConfirmedApiId())
+                    .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+                return new ApiResponseDto(api);
+            }).collect(Collectors.toList());
     }
 
     public void sendErrorMessageToUser(String errorMessage, UUID workspaceUUID) {
         User user = userUtils.getUserFromSecurityContext();
         if (user != null) {
             messagingTemplate.convertAndSendToUser(
-                    String.valueOf(user.getId()),
-                    "/ws/sub/workspace/" + workspaceUUID + "/api/errors",
-                    errorMessage
+                String.valueOf(user.getId()),
+                "/ws/sub/workspace/" + workspaceUUID + "/api/errors",
+                errorMessage
             );
         }
     }
@@ -207,10 +207,10 @@ public class ApiService {
     public List<ApiResponseDto> getApiHistoryBySpecificationId(UUID specificationId) {
         List<Api> apis = apiRepository.findBySpecificationIdOrderByCreatedDateDesc(specificationId);
         return apis.stream()
-                .map(api -> {
-                    ApiResponseDto apiResponseDto = new ApiResponseDto(api);
-                    return apiResponseDto;
-                }).collect(Collectors.toList());
+            .map(api -> {
+                ApiResponseDto apiResponseDto = new ApiResponseDto(api);
+                return apiResponseDto;
+            }).collect(Collectors.toList());
     }
 
     public ApiDetailResponseDto getApiByApiId(UUID workspaceId, UUID apiId) {
@@ -220,123 +220,143 @@ public class ApiService {
 
         // 유저가 해당 워크스페이스에 포함되어 있는지 검증
         membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
-                .orElseThrow(() -> new MainException(CustomException.ACCESS_DENIED_EXCEPTION));
+            .orElseThrow(() -> new MainException(CustomException.ACCESS_DENIED_EXCEPTION));
 
         // API가 해당 워크스페이스에 포함되어 있는지 확인
         Api api = apiRepository.findByIdAndWorkspaceId(apiId, workspaceId)
-                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
         AtomicReference<LocalDateTime> lastModifyDate = new AtomicReference<>(api.getLastModifyDate());
 
         // 헤더 처리
         List<ApiDetailResponseDto.Parameters.Header> headers = api.getHeaders().stream()
-                .map(header -> {
-                    if (header.getLastModifyDate().isAfter(lastModifyDate.get())) {
-                        lastModifyDate.set(header.getLastModifyDate());
-                    }
-                    return new ApiDetailResponseDto.Parameters.Header(
-                            header.getId().toString(),
-                            header.getHeaderKey(),
-                            header.getHeaderValue(),
-                            header.getDescription()
-                    );
-                })
-                .toList();
+            .map(header -> {
+                if (header.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                    lastModifyDate.set(header.getLastModifyDate());
+                }
+                return new ApiDetailResponseDto.Parameters.Header(
+                    header.getId().toString(),
+                    header.getHeaderKey(),
+                    header.getHeaderValue(),
+                    header.getDescription(),
+                    header.getIsEssential(),
+                    header.getIsChecked()
+                );
+            })
+            .toList();
+
+        // Path Variable 처리
+        List<ApiDetailResponseDto.Parameters.PathVariables> pathVariables = api.getPathVariables().stream()
+            .map(queryParameter -> {
+                return new ApiDetailResponseDto.Parameters.PathVariables(
+                    queryParameter.getId().toString(),
+                    queryParameter.getVariableKey(),
+                    queryParameter.getVariableValue(),
+                    queryParameter.getDescription()
+                );
+            })
+            .toList();
 
         // 쿼리 파라미터 처리
         List<ApiDetailResponseDto.Parameters.QueryParameter> queryParameters = api.getQueryParameters().stream()
-                .map(queryParameter -> {
-                    if (queryParameter.getLastModifyDate().isAfter(lastModifyDate.get())) {
-                        lastModifyDate.set(queryParameter.getLastModifyDate());
-                    }
-                    return new ApiDetailResponseDto.Parameters.QueryParameter(
-                            queryParameter.getId().toString(),
-                            queryParameter.getParamKey(),
-                            queryParameter.getParamValue(),
-                            queryParameter.getDescription()
-                    );
-                })
-                .toList();
+            .map(queryParameter -> {
+                if (queryParameter.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                    lastModifyDate.set(queryParameter.getLastModifyDate());
+                }
+                return new ApiDetailResponseDto.Parameters.QueryParameter(
+                    queryParameter.getId().toString(),
+                    queryParameter.getParamKey(),
+                    queryParameter.getParamValue(),
+                    queryParameter.getDescription(),
+                    queryParameter.getIsEssential(),
+                    queryParameter.getIsChecked()
+                );
+            })
+            .toList();
 
         // Parameters 쿠키 처리
         List<ApiDetailResponseDto.Parameters.Cookie> cookies = api.getCookies().stream()
-                .map(cookie -> {
-                    if (cookie.getLastModifyDate().isAfter(lastModifyDate.get())) {
-                        lastModifyDate.set(cookie.getLastModifyDate());
-                    }
-                    return new ApiDetailResponseDto.Parameters.Cookie(
-                            cookie.getId().toString(),
-                            cookie.getCookieKey(),
-                            cookie.getCookieValue(),
-                            cookie.getDescription()
-                    );
-                })
-                .toList();
+            .map(cookie -> {
+                if (cookie.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                    lastModifyDate.set(cookie.getLastModifyDate());
+                }
+                return new ApiDetailResponseDto.Parameters.Cookie(
+                    cookie.getId().toString(),
+                    cookie.getCookieKey(),
+                    cookie.getCookieValue(),
+                    cookie.getDescription(),
+                    cookie.getIsEssential(),
+                    cookie.getIsChecked()
+                );
+            })
+            .toList();
 
         ApiDetailResponseDto.Parameters parameters = new ApiDetailResponseDto.Parameters(
-                api.getAuthenticationType().name(),
-                headers,
-                queryParameters,
-                cookies
+            api.getAuthenticationType().name(),
+            headers,
+            pathVariables,
+            queryParameters,
+            cookies
         );
 
         // Body JSON 및 FormData 처리
         ApiDetailResponseDto.Request.JsonData jsonData = api.getBodies().stream()
-                .filter(body -> body.getParameterType() == ParameterType.JSON)
-                .map(body -> {
-                    if (body.getLastModifyDate().isAfter(lastModifyDate.get())) {
-                        lastModifyDate.set(body.getLastModifyDate());
-                    }
-                    return new ApiDetailResponseDto.Request.JsonData(
-                            body.getId().toString(),
-                            body.getBodyValue()
-                    );
-                })
-                .findFirst()
-                .orElse(null);
+            .filter(body -> body.getParameterType() == ParameterType.JSON)
+            .map(body -> {
+                if (body.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                    lastModifyDate.set(body.getLastModifyDate());
+                }
+                return new ApiDetailResponseDto.Request.JsonData(
+                    body.getId().toString(),
+                    body.getBodyValue()
+                );
+            })
+            .findFirst()
+            .orElse(null);
 
         List<ApiDetailResponseDto.Request.FormData> formDataList = api.getBodies().stream()
-                .filter(body -> body.getParameterType() == ParameterType.TEXT || body.getParameterType() == ParameterType.FILE)
-                .map(formData -> {
-                    if (formData.getLastModifyDate().isAfter(lastModifyDate.get())) {
-                        lastModifyDate.set(formData.getLastModifyDate());
-                    }
-                    return new ApiDetailResponseDto.Request.FormData(
-                            formData.getId().toString(),
-                            formData.getBodyKey(),
-                            formData.getBodyValue(),
-                            formData.getParameterType().name(),
-                            formData.getDescription()
-                    );
-                })
-                .toList();
+            .filter(body -> body.getParameterType() == ParameterType.TEXT || body.getParameterType() == ParameterType.FILE)
+            .map(formData -> {
+                if (formData.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                    lastModifyDate.set(formData.getLastModifyDate());
+                }
+                return new ApiDetailResponseDto.Request.FormData(
+                    formData.getId().toString(),
+                    formData.getBodyKey(),
+                    formData.getBodyValue(),
+                    formData.getParameterType().name(),
+                    formData.getDescription(),
+                    formData.getIsEssential(),
+                    formData.getIsChecked()
+                );
+            })
+            .toList();
 
         ApiDetailResponseDto.Request request = new ApiDetailResponseDto.Request(
-                api.getBodyType(),
-                jsonData,
-                formDataList
+            api.getBodyType(),
+            jsonData,
+            formDataList
         );
 
         // Responses 처리
         List<ApiDetailResponseDto.Response> responseList = api.getResponses().stream()
-                .map(response -> {
-                    if (response.getLastModifyDate().isAfter(lastModifyDate.get())) {
-                        lastModifyDate.set(response.getLastModifyDate());
-                    }
-                    return new ApiDetailResponseDto.Response(
-                            response.getId().toString(),
-                            String.valueOf(response.getCode()),
-                            response.getDescription(),
-                            response.getBodyType() != null ? response.getBodyType().name() : "",
-                            response.getBodyData()
-                    );
-                })
-                .toList();
+            .map(response -> {
+                if (response.getLastModifyDate().isAfter(lastModifyDate.get())) {
+                    lastModifyDate.set(response.getLastModifyDate());
+                }
+                return new ApiDetailResponseDto.Response(
+                    response.getId().toString(),
+                    String.valueOf(response.getCode()),
+                    response.getDescription(),
+                    response.getBodyType() != null ? response.getBodyType().name() : "",
+                    response.getBodyData()
+                );
+            })
+            .toList();
 
         // 카테고리 설정
         Category category = categoryRepository.findByWorkspaceIdAndName(workspaceId, api.getCategory())
-                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
-        ;
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
 
         // Manager 정보 설정
         String managerEmail = (api.getSpecification().getManager() != null) ? api.getSpecification().getManager().getEmail() : "";
@@ -345,21 +365,21 @@ public class ApiService {
 
         // ApiDetailResponseDto 생성 및 반환
         return new ApiDetailResponseDto(
-                api.getSpecification().getId().toString(),
-                api.getId().toString(),
-                new CategoryResponseDto(category),
-                api.getName(),
-                api.getMethod().name(),
-                api.getPath(),
-                api.getDescription(),
-                managerEmail,
-                managerNickname,
-                managerProfileImage,
-                parameters,
-                request,
-                responseList,
-                api.getCreatedDate(),
-                lastModifyDate.get()
+            api.getSpecification().getId().toString(),
+            api.getId().toString(),
+            new CategoryResponseDto(category),
+            api.getName(),
+            api.getMethod().name(),
+            api.getPath(),
+            api.getDescription(),
+            managerEmail,
+            managerNickname,
+            managerProfileImage,
+            parameters,
+            request,
+            responseList,
+            api.getCreatedDate(),
+            lastModifyDate.get()
         );
     }
 
@@ -372,99 +392,107 @@ public class ApiService {
 
         // 유저가 해당 워크스페이스에 포함되어 있는지 검증
         membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
-                .orElseThrow(() -> new MainException(CustomException.ACCESS_DENIED_EXCEPTION));
+            .orElseThrow(() -> new MainException(CustomException.ACCESS_DENIED_EXCEPTION));
 
         // API가 해당 워크스페이스에 포함되어 있는지 확인
         Api api = apiRepository.findByIdAndWorkspaceId(apiId, workspaceId)
-                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
         Specification specification = api.getSpecification();
 
         // 헤더 처리
         List<ApiTestDetailResponseDto.Parameters.Header> headers = api.getHeaders().stream()
-                .map(header -> {
-                    return new ApiTestDetailResponseDto.Parameters.Header(
-                            header.getId().toString(),
-                            header.getHeaderKey(),
-                            header.getHeaderValue(),
-                            header.getDescription()
-                    );
-                })
-                .toList();
+            .map(header -> {
+                return new ApiTestDetailResponseDto.Parameters.Header(
+                    header.getId().toString(),
+                    header.getHeaderKey(),
+                    header.getHeaderValue(),
+                    header.getDescription(),
+                    header.getIsEssential(),
+                    header.getIsChecked()
+                );
+            })
+            .toList();
 
         // Path Variable 처리
         List<ApiTestDetailResponseDto.Parameters.PathVariables> pathVariables = api.getPathVariables().stream()
-                .map(queryParameter -> {
-                    return new ApiTestDetailResponseDto.Parameters.PathVariables(
-                            queryParameter.getId().toString(),
-                            queryParameter.getVariableKey(),
-                            queryParameter.getVariableValue(),
-                            queryParameter.getDescription()
-                    );
-                })
-                .toList();
+            .map(queryParameter -> {
+                return new ApiTestDetailResponseDto.Parameters.PathVariables(
+                    queryParameter.getId().toString(),
+                    queryParameter.getVariableKey(),
+                    queryParameter.getVariableValue(),
+                    queryParameter.getDescription()
+                );
+            })
+            .toList();
 
         // 쿼리 파라미터 처리
         List<ApiTestDetailResponseDto.Parameters.QueryParameter> queryParameters = api.getQueryParameters().stream()
-                .map(queryParameter -> {
-                    return new ApiTestDetailResponseDto.Parameters.QueryParameter(
-                            queryParameter.getId().toString(),
-                            queryParameter.getParamKey(),
-                            queryParameter.getParamValue(),
-                            queryParameter.getDescription()
-                    );
-                })
-                .toList();
+            .map(queryParameter -> {
+                return new ApiTestDetailResponseDto.Parameters.QueryParameter(
+                    queryParameter.getId().toString(),
+                    queryParameter.getParamKey(),
+                    queryParameter.getParamValue(),
+                    queryParameter.getDescription(),
+                    queryParameter.getIsEssential(),
+                    queryParameter.getIsChecked()
+                );
+            })
+            .toList();
 
         // Parameters 쿠키 처리
         List<ApiTestDetailResponseDto.Parameters.Cookie> cookies = api.getCookies().stream()
-                .map(cookie -> {
-                    return new ApiTestDetailResponseDto.Parameters.Cookie(
-                            cookie.getId().toString(),
-                            cookie.getCookieKey(),
-                            cookie.getCookieValue(),
-                            cookie.getDescription()
-                    );
-                })
-                .toList();
+            .map(cookie -> {
+                return new ApiTestDetailResponseDto.Parameters.Cookie(
+                    cookie.getId().toString(),
+                    cookie.getCookieKey(),
+                    cookie.getCookieValue(),
+                    cookie.getDescription(),
+                    cookie.getIsEssential(),
+                    cookie.getIsChecked()
+                );
+            })
+            .toList();
 
         ApiTestDetailResponseDto.Parameters parameters = new ApiTestDetailResponseDto.Parameters(
-                api.getAuthenticationType().name(),
-                headers,
-                pathVariables,
-                queryParameters,
-                cookies
+            api.getAuthenticationType().name(),
+            headers,
+            pathVariables,
+            queryParameters,
+            cookies
         );
 
         // Body JSON 및 FormData 처리
         ApiTestDetailResponseDto.Request.JsonData jsonData = api.getBodies().stream()
-                .filter(body -> body.getParameterType() == ParameterType.JSON)
-                .map(body -> {
-                    return new ApiTestDetailResponseDto.Request.JsonData(
-                            body.getId().toString(),
-                            body.getBodyValue()
-                    );
-                })
-                .findFirst()
-                .orElse(null);
+            .filter(body -> body.getParameterType() == ParameterType.JSON)
+            .map(body -> {
+                return new ApiTestDetailResponseDto.Request.JsonData(
+                    body.getId().toString(),
+                    body.getBodyValue()
+                );
+            })
+            .findFirst()
+            .orElse(null);
 
         List<ApiTestDetailResponseDto.Request.FormData> formDataList = api.getBodies().stream()
-                .filter(body -> body.getParameterType() == ParameterType.TEXT || body.getParameterType() == ParameterType.FILE)
-                .map(formData -> {
-                    return new ApiTestDetailResponseDto.Request.FormData(
-                            formData.getId().toString(),
-                            formData.getBodyKey(),
-                            formData.getBodyValue(),
-                            formData.getParameterType().name(),
-                            formData.getDescription()
-                    );
-                })
-                .toList();
+            .filter(body -> body.getParameterType() == ParameterType.TEXT || body.getParameterType() == ParameterType.FILE)
+            .map(formData -> {
+                return new ApiTestDetailResponseDto.Request.FormData(
+                    formData.getId().toString(),
+                    formData.getBodyKey(),
+                    formData.getBodyValue(),
+                    formData.getParameterType().name(),
+                    formData.getDescription(),
+                    formData.getIsEssential(),
+                    formData.getIsChecked()
+                );
+            })
+            .toList();
 
         ApiTestDetailResponseDto.Request request = new ApiTestDetailResponseDto.Request(
-                api.getBodyType(),
-                jsonData,
-                formDataList
+            api.getBodyType(),
+            jsonData,
+            formDataList
         );
 
         // Manager 정보 설정
@@ -474,68 +502,70 @@ public class ApiService {
 
         // ApiTestDetailResponseDto 생성 및 반환
         return new ApiTestDetailResponseDto(
-                api.getSpecification().getId().toString(),
-                api.getId().toString(),
-                api.getName(),
-                api.getMethod().name(),
-                api.getPath(),
-                specification.getLocalStatus(),
-                specification.getServerStatus(),
-                managerEmail,
-                managerNickname,
-                managerProfileImage,
-                parameters,
-                request
+            api.getSpecification().getId().toString(),
+            api.getId().toString(),
+            api.getName(),
+            api.getMethod().name(),
+            api.getPath(),
+            api.getCategory(),
+            specification.getLocalStatus(),
+            specification.getServerStatus(),
+            managerEmail,
+            managerNickname,
+            managerProfileImage,
+            parameters,
+            request
         );
     }
 
     public void updateTestApi(UUID workspaceId, UUID apiId, UpdateApiDetailRequestDto requestDto) {
         requestDto.parameters().headers().forEach(headerDto -> {
             apiHeaderRepository.findById(Long.parseLong(headerDto.headerId()))
-                    .ifPresent(header -> {
-                        header.updateApiHeaderValue(headerDto.headerValue());
-                        apiHeaderRepository.save(header);
-                    });
+                .ifPresent(header -> {
+                    header.updateApiHeaderValue(headerDto.headerValue(), headerDto.isChecked());
+                    apiHeaderRepository.save(header);
+                });
         });
 
         requestDto.parameters().pathVariables().forEach(pathVariableDto -> {
             apiPathVariableRepository.findById(Long.parseLong(pathVariableDto.pathVariableId()))
-                    .ifPresent(pathVariable -> {
-                        pathVariable.updateApiPathVariableValue(pathVariableDto.pathVariableValue());
-                        apiPathVariableRepository.save(pathVariable);
-                    });
+                .ifPresent(pathVariable -> {
+                    pathVariable.updateApiPathVariableValue(pathVariableDto.pathVariableValue());
+                    apiPathVariableRepository.save(pathVariable);
+                });
         });
 
         requestDto.parameters().queryParameters().forEach(queryParameterDto -> {
             apiQueryParameterRepository.findById(Long.parseLong(queryParameterDto.queryParameterId()))
-                    .ifPresent(queryParameter -> {
-                        queryParameter.updateApiQueryParameterValue(queryParameterDto.queryParameterValue());
-                        apiQueryParameterRepository.save(queryParameter);
-                    });
+                .ifPresent(queryParameter -> {
+                    queryParameter.updateApiQueryParameterValue(queryParameterDto.queryParameterValue(),
+                        queryParameterDto.isChecked());
+                    apiQueryParameterRepository.save(queryParameter);
+                });
         });
 
         requestDto.parameters().cookies().forEach(cookieDto -> {
             apiCookieRepository.findById(Long.parseLong(cookieDto.cookieId()))
-                    .ifPresent(cookie -> {
-                        cookie.updateCookieValue(cookieDto.cookieValue());
-                        apiCookieRepository.save(cookie);
-                    });
+                .ifPresent(cookie -> {
+                    cookie.updateCookieValue(cookieDto.cookieValue(), cookieDto.isChecked());
+                    apiCookieRepository.save(cookie);
+                });
         });
 
         if (requestDto.request().json() != null) {
             apiBodyRepository.findById(Long.parseLong(requestDto.request().json().jsonDataId()))
-                    .ifPresent(body -> {
-                        body.updateBodyValue(requestDto.request().json().jsonDataValue());
-                        apiBodyRepository.save(body);
-                    });
+                .ifPresent(body -> {
+                    body.updateBodyValue(requestDto.request().json().jsonDataValue(), true);
+                    apiBodyRepository.save(body);
+                });
         }
 
         requestDto.request().formData().forEach(formDataDto -> {
             apiBodyRepository.findById(Long.parseLong(formDataDto.formDataId()))
-                    .ifPresent(body -> {
-                        body.updateBodyValue(formDataDto.formDataValue());
-                        apiBodyRepository.save(body);
-                    });
+                .ifPresent(body -> {
+                    body.updateBodyValue(formDataDto.formDataValue(), formDataDto.isChecked());
+                    apiBodyRepository.save(body);
+                });
         });
     }
 }

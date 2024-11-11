@@ -14,7 +14,8 @@ public record UpdateApiDetailRequestDto(
 	) {
 		public record Header(
 			String headerId,
-			String headerValue
+			String headerValue,
+			Boolean isChecked
 		) {}
 
 		public record PathVariables(
@@ -24,12 +25,14 @@ public record UpdateApiDetailRequestDto(
 
 		public record QueryParameter(
 			String queryParameterId,
-			String queryParameterValue
+			String queryParameterValue,
+			Boolean isChecked
 		) {}
 
 		public record Cookie(
 			String cookieId,
-			String cookieValue
+			String cookieValue,
+			Boolean isChecked
 		) {}
 	}
 
@@ -44,7 +47,8 @@ public record UpdateApiDetailRequestDto(
 
 		public record FormData(
 			String formDataId,
-			String formDataValue
+			String formDataValue,
+			Boolean isChecked
 		) {}
 	}
 }
