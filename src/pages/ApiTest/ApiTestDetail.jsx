@@ -39,7 +39,7 @@ const ApiTestDetail = () => {
     setApimethod(apiInfo.method);
   }, [apiInfo]);
 
-  // Url 복사 기능
+  // Url 복사 기능df
   const handleCopyAddress = () => {
     navigator.clipboard
       .writeText(apiUrl)
