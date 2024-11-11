@@ -166,6 +166,9 @@ public class ApiService {
 
     public ApiDetailResponseDto getApiByApiId(UUID workspaceId, UUID apiId) {
         User user = userUtils.getUserFromSecurityContext();
+        log.info("검증 시작: userId={}, workspaceId={}", user.getId(), workspaceId);
+        log.info("API 조회 시작: apiId={}, workspaceId={}", apiId, workspaceId);
+
         // 유저가 해당 워크스페이스에 포함되어 있는지 검증
         membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
             .orElseThrow(() -> new MainException(CustomException.ACCESS_DENIED_EXCEPTION));
