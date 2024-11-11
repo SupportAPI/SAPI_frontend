@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 
-const Parameters = ({ paramsChange, initialValues }) => {
+const Parameters = ({ paramsChange, initialValues, history = false }) => {
   const [headers, setHeader] = useState(initialValues?.headers || []);
   const [authType, setAuthType] = useState(initialValues?.authType || 'None');
   const [queryParameters, setQueryParameter] = useState(initialValues?.queryParameters || []);
@@ -89,6 +89,7 @@ const Parameters = ({ paramsChange, initialValues }) => {
       <div className='mb-8'>
         <label className='block text-[18px] font-semibold h-8'>Auth Type</label>
         <select
+          disabled={history}
           value={authType}
           onChange={(e) => handleAuthTypeChange(e.target.value)}
           className='border rounded px-2 py-1 w-full h-10'
@@ -107,8 +108,12 @@ const Parameters = ({ paramsChange, initialValues }) => {
             className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
             onClick={handleAddHeader}
           >
-            <FaPlus />
-            <span>Add</span>
+            {history ? null : (
+              <>
+                <FaPlus />
+                <span>Add</span>
+              </>
+            )}
           </button>
         </div>
 
@@ -138,9 +143,11 @@ const Parameters = ({ paramsChange, initialValues }) => {
                       className='w-full border-none outline-none bg-gray-100 text-gray-500'
                     />
                   </td>
-                  <td className='border p-2 text-center text-gray-400'>
-                    <span>🗑️</span>
-                  </td>
+                  {history ? null : (
+                    <td className='border p-2 text-center text-gray-400'>
+                      <span>🗑️</span>
+                    </td>
+                  )}
                 </tr>
               )}
               {/* 나머지 헤더들 */}
@@ -166,12 +173,14 @@ const Parameters = ({ paramsChange, initialValues }) => {
                           className='w-full border-none outline-none'
                         />
                       </td>
-                      <td
-                        className='border p-2 text-center cursor-pointer text-red-500'
-                        onClick={() => handleRemoveHeader(index)}
-                      >
-                        🗑️
-                      </td>
+                      {history ? null : (
+                        <td
+                          className='border p-2 text-center cursor-pointer text-red-500'
+                          onClick={() => handleRemoveQueryParam(index)}
+                        >
+                          🗑️
+                        </td>
+                      )}
                     </tr>
                   )
               )}
@@ -188,8 +197,12 @@ const Parameters = ({ paramsChange, initialValues }) => {
             className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
             onClick={handleAddQueryParam}
           >
-            <FaPlus />
-            <span>Add</span>
+            {history ? null : (
+              <>
+                <FaPlus />
+                <span>Add</span>
+              </>
+            )}
           </button>
         </div>
         {queryParameters.length === 0 ? (
@@ -217,12 +230,14 @@ const Parameters = ({ paramsChange, initialValues }) => {
                       className='w-full border-none outline-none'
                     />
                   </td>
-                  <td
-                    className='border p-2 text-center cursor-pointer text-red-500'
-                    onClick={() => handleRemoveQueryParam(index)}
-                  >
-                    🗑️
-                  </td>
+                  {history ? null : (
+                    <td
+                      className='border p-2 text-center cursor-pointer text-red-500'
+                      onClick={() => handleRemoveQueryParam(index)}
+                    >
+                      🗑️
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -238,8 +253,12 @@ const Parameters = ({ paramsChange, initialValues }) => {
             className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
             onClick={handleAddCookie}
           >
-            <FaPlus />
-            <span>Add</span>
+            {history ? null : (
+              <>
+                <FaPlus />
+                <span>Add</span>
+              </>
+            )}
           </button>
         </div>
         {cookies.length === 0 ? (
@@ -267,12 +286,14 @@ const Parameters = ({ paramsChange, initialValues }) => {
                       className='w-full border-none outline-none'
                     />
                   </td>
-                  <td
-                    className='border p-2 text-center cursor-pointer text-red-500'
-                    onClick={() => handleRemoveCookie(index)}
-                  >
-                    🗑️
-                  </td>
+                  {history ? null : (
+                    <td
+                      className='border p-2 text-center cursor-pointer text-red-500'
+                      onClick={() => handleRemoveQueryParam(index)}
+                    >
+                      🗑️
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
