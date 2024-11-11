@@ -74,7 +74,6 @@ const ApiDocsDetail = () => {
     if (isConnected) {
       const subscriptionPath = `/ws/sub/workspaces/${workspaceId}/apis/${apiId}`;
       const subscription = subscribe(subscriptionPath, (data) => {
-        console.log(data);
         switch (data.apiType) {
           case 'PARAMETERS_QUERY_PARAMETERS':
             apiHandler.handleQueryParameterData(data, setApiDocDetail);
@@ -82,17 +81,18 @@ const ApiDocsDetail = () => {
           case 'CATEGORY':
             apiHandler.handleCategoryData(data, setApiDocDetail);
             categoryListRefetch();
-            console.log(apiDocDetail);
             break;
           case 'OCCUPATION':
             occupationStateRefetch();
-            console.log(occupationState);
             break;
           case 'API_NAME':
             apiHandler.handleApiNameHandler(data, setApiDocDetail);
-            console.log(apiDocDetail);
             break;
           case 'API_PATH':
+            apiHandler.handlePathHandler(data, setApiDocDetail);
+            break;
+          case 'API_DESCRIPTION':
+            apiHandler.handleDescriptionHandler(data, setApiDocDetail);
             break;
           default:
             console.warn(`Unhandled message type: ${data.apiType}`);

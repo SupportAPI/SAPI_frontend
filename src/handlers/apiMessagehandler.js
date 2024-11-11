@@ -37,9 +37,25 @@ const handleApiNameHandler = (data, setApiDocDetail) => {
   }
 };
 
+// API Path 핸들러
+const handlePathHandler = (data, setApiDocDetail) => {
+  if (data.actionType === 'UPDATE') {
+    setApiDocDetail(['path'], data.message.value);
+  }
+};
+
+// Descriptio 핸들러
+const handleDescriptionHandler = (data, setApiDocDetail) => {
+  if (data.actionType === 'UPDATE') {
+    setApiDocDetail(['description'], data.message.value);
+  }
+};
+
 export default {
   handleQueryParameterData,
   handleCategoryData,
   handleCategoryListData,
   handleApiNameHandler,
+  handleDescriptionHandler,
+  handlePathHandler,
 };

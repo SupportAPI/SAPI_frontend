@@ -15,8 +15,8 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
   const [category, setCategory] = useState(apiDocDetail.category || {});
   const [name, setName] = useState(apiDocDetail.name || '');
   const [method, setMethod] = useState(apiDocDetail.method || '');
-  const [description, setDescription] = useState(apiDocDetail.description || '');
   const [path, setPath] = useState(apiDocDetail.path || '');
+  const [description, setDescription] = useState(apiDocDetail.description || '');
   const [filteredCategoryList, setFilteredCategoryList] = useState(categoryList);
   const [showMethodDropdown, setShowMethodDropdown] = useState(false);
 
@@ -25,6 +25,12 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
   // 점유상태에 쓸 아이디들
   const occupationCategoryId = `${apiId}-category`;
   const occupationNameId = `${apiId}-name`;
+
+  const occupationApiPath = `${apiId}-path`;
+  const occupationDescription = `${apiId}-description`;
+
+  const pathRef = useRef(null);
+  const descriptionRef = useRef(null);
 
   const categoryRef = useRef(null);
   const nameRef = useRef(null);
@@ -107,6 +113,28 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
       apiType: 'API_NAME',
       actionType: 'UPDATE',
       message: { value: newName },
+    });
+  };
+
+  // 이름 변경하면 서버로 UPDATE 보냄 (소켓)
+  const handlePathChange = (e) => {
+    const newPath = e.target.value;
+    setPath(newPath);
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'API_PATH',
+      actionType: 'UPDATE',
+      message: { value: newPath },
+    });
+  };
+
+  // 이름 변경하면 서버로 UPDATE 보냄 (소켓)
+  const handleDescriptionChange = (e) => {
+    const newDescription = e.target.value;
+    setDescription(newDescription);
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'API_DESCRIPTION',
+      actionType: 'UPDATE',
+      message: { value: newDescription },
     });
   };
 
@@ -271,11 +299,17 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
             </button>
 
             <input
+              ref={pathRef}
               type='text'
               className='border rounded px-2 py-1 flex-grow h-10'
               placeholder='Enter URL'
-              value={apiDocDetail?.path || ''}
-              // onChange={handleApiUrlChange}
+              value={path || ''}
+              onChange={handlePathChange}
+              onFocus={() => {
+                handleOccupationState(occupationApiPath, 'UPDATE');
+                handleInputFocus();
+              }}
+              onBlur={() => handleOccupationState(occupationApiPath, 'DELETE')}
             />
           </div>
 
@@ -303,10 +337,16 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
       <div className='mb-4'>
         <label className='block font-semibold mb-2 text-[18px]'>Description</label>
         <textarea
+          ref={descriptionRef}
           className='border rounded w-full p-2'
           placeholder='Enter description here.'
-          value={apiDocDetail?.description || ''}
-          // onChange={handleDescriptionChange}
+          value={description || ''}
+          onFocus={() => {
+            handleOccupationState(occupationDescription, 'UPDATE');
+            handleInputFocus();
+          }}
+          onChange={handleDescriptionChange}
+          onBlur={() => handleOccupationState(occupationDescription, 'DELETE')}
           style={{ resize: 'none' }}
         />
       </div>

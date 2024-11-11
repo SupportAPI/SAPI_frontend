@@ -15,7 +15,8 @@ export const WebSocketProvider = ({ children }) => {
     if (!userId) return;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(`http://192.168.31.219:8080/ws/ws-stomp?accessToken=${getToken()}`),
+      // webSocketFactory: () => new SockJS(`http://192.168.31.219:8080/ws/ws-stomp?accessToken=${getToken()}`),
+      webSocketFactory: () => new SockJS(`https://k11b305.p.ssafy.io/ws/ws-stomp?accessToken=${getToken()}`),
       reconnectDelay: 5000,
       heartbeatIncoming: 5000,
       heartbeatOutgoing: 5000,
@@ -86,6 +87,9 @@ export const WebSocketProvider = ({ children }) => {
       {children}
     </WebSocketContext.Provider>
   );
+  
 };
+
+
 
 export const useWebSocket = () => useContext(WebSocketContext);
