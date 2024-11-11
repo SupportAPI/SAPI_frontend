@@ -15,10 +15,30 @@ export const fetchNotifications = async () => {
   return response.data.data;
 };
 
-// 알림 읽음 상태 업데이트
-export const markNotificationAsRead = async (notificationId) => {
-  const response = await axios.put(`${base_URL}/api/notifications/${notificationId}/read`, {
-    read: true,
+// 알림 삭제
+export const deleteNotification = async (notificationId) => {
+  const accessToken = getToken();
+  const response = await axios.delete(`${base_URL}/api/notifications/${notificationId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
   });
+  return response.data.success;
+};
+
+// 알림 읽음 상태 업데이트
+export const markNotificationAsRead = async (notificationIds) => {
+  const accessToken = getToken();
+  const response = await axios.patch(
+    `${base_URL}/api/notifications`,
+    { notificationIds }, // 요청 데이터
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
   return response.data.data;
 };

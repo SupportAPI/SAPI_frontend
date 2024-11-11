@@ -1,12 +1,14 @@
 import { ResponsiveRadialBar } from '@nivo/radial-bar';
 
-const DashboardCompletedPie = ({ data, maxValue, title }) => {
+const DashboardCompletedPie = ({ data = [], maxValue, title }) => {
+  const radialData = Array.isArray(data) ? data : [];
+
   return (
     <div className='flex flex-col items-center'>
       <div className='text-[1.6vw] font-bold mr-10'>{title}</div>
       <div className='w-full h-64'>
         <ResponsiveRadialBar
-          data={data}
+          data={radialData} // 수정된 data 사용
           maxValue={maxValue}
           valueFormat=' >-.2f'
           endAngle={360}

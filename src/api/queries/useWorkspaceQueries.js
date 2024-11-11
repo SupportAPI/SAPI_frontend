@@ -283,3 +283,22 @@ export const userInvitedRefuse = async (membershipId) => {
 export const useInvitedRefuse = () => {
   return useMutation((membershipId) => userInvitedRefuse(membershipId));
 };
+
+// 10. 워크스페이스 디테일 조회
+export const fetchWorkspacesDetail = async (workspaceId) => {
+  const accessToken = getToken();
+  const response = await axios.get(`${base_URL}/api/workspaces/${workspaceId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return response.data.data;
+};
+
+// React Query 훅: 워크스페이스 디테일을 가져오는 쿼리 훅
+export const useFetchWorkspacesDetail = (workspaceId) => {
+  return useQuery(['workspacesDetail', workspaceId], () => fetchWorkspacesDetail(workspaceId), {
+    enabled: !!workspaceId, // workspaceId가 있을 때만 쿼리를 활성화
+  });
+};

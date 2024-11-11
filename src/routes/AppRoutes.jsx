@@ -7,8 +7,6 @@ import ApiOverview from '../pages/ApiOverview';
 import ApiDocsDetail from '../pages/ApiDocsDetail';
 import Page404 from '../pages/404page';
 import DashboardOverview from '../pages/Dashboard/DashboardOverview';
-import DashboardDaily from '../pages/Dashboard/DashboardDaily';
-import DashboardStatus from '../pages/Dashboard/DashboardStatus';
 import useAuthStore from '../stores/useAuthStore';
 import Environment from '../pages/Environment/Environment';
 import ApiTest from '../pages/ApiTest/APItest';
@@ -55,23 +53,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path='/workspace/:workspaceId/dashboard/daily'
-        element={
-          <Layout>
-            <DashboardDaily />
-          </Layout>
-        }
-      />
-      <Route
-        path='/workspace/:workspaceId/dashboard/status'
-        element={
-          <Layout>
-            <DashboardStatus />
-          </Layout>
-        }
-      />
-      <Route
-        path='/workspace/:workspaceId/environment/global'
+        path='/workspace/:workspaceId/environment/:environmentId'
         element={
           <Layout>
             <Environment />

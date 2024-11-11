@@ -36,12 +36,12 @@ const Layout = ({ children }) => {
       case 'API Docs':
         return <ApiDocsSidebar data={apiData} />;
       case 'Environment':
-        return <EnvironmentSidebar/>;
+        return <EnvironmentSidebar />;
       case 'API Test':
         return <ApiTestSidebar data={apiData} />;
       case 'Dashboard':
         return <DashboardSidebar />;
-      default: 
+      default:
         return null;
     }
   };

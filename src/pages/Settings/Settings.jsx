@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import UserComponent from './SettingUser';
 import SettingThemee from './SettingTheme';
 import SettingMember from './SettingMember';
@@ -6,11 +6,17 @@ import SettingInvitation from './SettingInvitation';
 import { useNavigate } from 'react-router-dom';
 import { IoClose } from 'react-icons/io5';
 
-const Settings = ({ onClose }) => {
+const Settings = forwardRef(({ onClose }, ref) => {
   const navigate = useNavigate();
   // 어떤 컴포넌트를 불러올지 관리
   const [changeComponent, setChangeComponent] = useState(<UserComponent />);
   const [activeComponent, setActiveComponent] = useState('User');
+
+  useImperativeHandle(ref, () => ({
+    showInvitationComponent() {
+      handleComponentChange(<SettingInvitation />, 'Invitation');
+    },
+  }));
 
   // 컴포넌트를 변경하는 함수
   const handleComponentChange = (component, name) => {
@@ -99,6 +105,6 @@ const Settings = ({ onClose }) => {
       </div>
     </div>
   );
-};
+});
 
 export default Settings;
