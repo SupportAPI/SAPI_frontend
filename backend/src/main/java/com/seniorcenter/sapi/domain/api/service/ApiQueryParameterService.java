@@ -11,6 +11,7 @@ import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
+import com.seniorcenter.sapi.global.utils.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class ApiQueryParameterService {
     private final ApiRepository apiRepository;
     private final ApiQueryParameterRepository apiQueryParameterRepository;
     private final KeyValueUtils keyValueUtils;
+    private final RedisUtil redisUtil;
 
     public ApiIdResponseDto createApiQueryParameter(ApiMessage message, UUID apiId) {
         Api api = apiRepository.findById(apiId)
@@ -58,14 +60,16 @@ public class ApiQueryParameterService {
         return new ApiIdKeyValueResponseDto(apiQueryParameter.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value());
     }
 
-    public void updateDBApiQueryParameter(ApiMessage message, UUID apiId) {
+    public void updateDBApiQueryParameter(ApiMessage message, UUID workspaceId, UUID apiId) {
         Api api = apiRepository.findById(apiId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
 
-        IdKeyValueDescritionRequestDto data = keyValueUtils.translateToIdKeyValueDescriptionRequestDto(message);
+        SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
         ApiQueryParameter apiQueryParameter = apiQueryParameterRepository.findById(Long.valueOf(data.id()))
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_QUERY_PARAMETER));
         apiQueryParameter.updateKeyAndValueAndDescription(data.key(), data.value(), data.description());
 
+        String hashKey = workspaceId.toString();
+        redisUtil.deleteData(hashKey, data.componentId());
     }
 }

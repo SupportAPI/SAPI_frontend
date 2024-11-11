@@ -96,8 +96,7 @@ public class Api extends BaseTimeEntity {
         this.specification = specification;
     }
 
-    public void updatePath(HttpMethod method, String path) {
-        this.method = method;
+    public void updatePath(String path) {
         this.path = path;
     }
 
@@ -111,5 +110,9 @@ public class Api extends BaseTimeEntity {
 
     public void updateName(String name) {
         this.name = name;
+    }
+
+    public void updateMethod(String method) {
+        this.method = HttpMethod.valueOf(method);
     }
 }

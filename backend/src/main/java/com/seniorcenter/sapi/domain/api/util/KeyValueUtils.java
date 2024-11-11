@@ -114,4 +114,15 @@ public class KeyValueUtils {
         }
         return valueRequestDto;
     }
+
+    public SaveDataRequestDto translateToSaveDataRequestDto(ApiMessage message) {
+        SaveDataRequestDto saveDataRequestDto;
+        try {
+            saveDataRequestDto = objectMapper.convertValue(message.message(), new TypeReference<SaveDataRequestDto>() {
+            });
+        } catch (IllegalArgumentException e) {
+            throw new MainException(CustomException.INVALID_FORMAT);
+        }
+        return saveDataRequestDto;
+    }
 }
