@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import Editor from '@monaco-editor/react';
 
-const Request = ({ requestChange = () => {}, initialValues }) => {
+const Request = ({ requestChange = () => {}, initialValues, history = false }) => {
   const [bodyType, setRequestType] = useState(initialValues?.bodyType || 'none');
   const [json, setJsonData] = useState(initialValues?.json?.jsonDataValue || '{}');
   const [formData, setFormData] = useState(initialValues?.formData || []);
@@ -61,6 +61,7 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
     <div className='pt-4'>
       <label className='block text-[18px] font-semibold h-8'>Request</label>
       <select
+        disabled={history}
         value={bodyType}
         onChange={(e) => handleRequestTypeChange(e.target.value)}
         className='border rounded px-2 py-1 w-full h-10'
@@ -74,28 +75,39 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
       {bodyType === 'JSON' && (
         <div className='mb-4'>
           <label className='block text-[16px] font-semibold mb-2'>JSON Data</label>
-          <Editor
-            height='200px'
-            language='json'
-            value={json}
-            onChange={(value) => setJsonData(value || '{}')}
-            options={{
-              automaticLayout: true,
-              autoClosingBrackets: 'always',
-              formatOnType: true,
-              overviewRulerLanes: 0,
-              hideCursorInOverviewRuler: true,
-              minimap: {
-                enabled: false,
-                renderCharacters: false,
-                showSlider: 'mouseover',
-                decorations: false,
-              },
-            }}
-          />
-          <button className='mt-2 bg-blue-500 text-white px-4 py-2 rounded' onClick={handleFormatJson}>
-            JSON 정렬
-          </button>
+          <div style={{ pointerEvents: history ? 'none' : 'auto' }}>
+            <Editor
+              height='200px'
+              language='json'
+              value={json}
+              onChange={(value) => setJsonData(value || '{}')}
+              options={{
+                automaticLayout: true,
+                autoClosingBrackets: 'always',
+                formatOnType: true,
+                overviewRulerLanes: 0,
+                hideCursorInOverviewRuler: true,
+                cursorStyle: history ? 'line' : 'block', // history가 true일 때 커서 스타일을 제거
+                readOnly: history,
+                lineNumbers: history ? 'off' : 'on',
+                renderLineHighlight: history ? 'none' : 'all',
+                selectionHighlight: !history,
+                contextmenu: !history,
+                minimap: {
+                  enabled: false,
+                  renderCharacters: false,
+                  showSlider: 'mouseover',
+                  decorations: false,
+                },
+              }}
+            />
+          </div>
+
+          {history ? null : (
+            <button className='mt-2 bg-blue-500 text-white px-4 py-2 rounded' onClick={handleFormatJson}>
+              JSON 정렬
+            </button>
+          )}
         </div>
       )}
 
@@ -110,33 +122,40 @@ const Request = ({ requestChange = () => {}, initialValues }) => {
                   type='text'
                   className='border rounded p-2 flex-1'
                   placeholder='Key'
+                  disabled={history}
                   value={field.formDataKey}
                   onChange={(e) => handleFormDataChange(index, 'formDataKey', e.target.value)}
                 />
                 <input
                   type='text'
                   className='border rounded p-2 flex-1'
+                  disabled={history}
                   placeholder='Value'
                   value={field.formDataValue}
                   onChange={(e) => handleFormDataChange(index, 'formDataValue', e.target.value)}
                 />
                 <select
                   className='border rounded p-2 flex-1'
+                  disabled={history}
                   value={field.formDataType}
                   onChange={(e) => handleFormDataChange(index, 'formDataType', e.target.value)}
                 >
                   <option value='TEXT'>Text</option>
                   <option value='FILE'>File</option>
                 </select>
-                <button onClick={() => handleRemoveFormData(index)} className='text-red-500 font-bold'>
-                  🗑️
-                </button>
+                {history ? null : (
+                  <button onClick={() => handleRemoveFormData(index)} className='text-red-500 font-bold'>
+                    🗑️
+                  </button>
+                )}
               </div>
             ))}
-            <button className='mt-2 flex items-center text-blue-600 hover:text-blue-800' onClick={handleAddFormData}>
-              <FaPlus />
-              <span className='ml-1'>Add</span>
-            </button>
+            {history ? null : (
+              <button className='mt-2 flex items-center text-blue-600 hover:text-blue-800' onClick={handleAddFormData}>
+                <FaPlus />
+                <span className='ml-1'>Add</span>
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 
-import { FiChevronDown, FiMessageSquare, FiCode, FiFileText, FiX } from 'react-icons/fi';
-import { FaDownload, FaSave, FaShareAlt, FaTrashAlt, FaInfoCircle, FaHistory } from 'react-icons/fa';
+import { PiArrowFatLeftFill } from 'react-icons/pi';
+import { FaReply, FaUndo, FaUndoAlt } from 'react-icons/fa';
+import { FaArrowLeft } from 'react-icons/fa6';
 
 import Parameters from '../docs/Parameters';
 import Request from '../docs/Request';
@@ -46,9 +47,9 @@ const HistoryDetail = ({ apiId, closeHistoryDetail }) => {
       headers: [],
       queryParameters: [],
     },
-    path: 'asdassd',
+    path: 'asdassdasdassdasdassdasdassd',
     request: {
-      bodyType: 'JSON',
+      bodyType: 'FORM-DATA',
       formData: [],
       json: {
         jsonDataDescription: null,
@@ -140,21 +141,16 @@ const HistoryDetail = ({ apiId, closeHistoryDetail }) => {
 
   return (
     <>
-      <button onClick={closeHistoryDetail} className='text-gray-600 hover:text-gray-800'>
-        닫기
-      </button>
-      <h2 className='text-2xl font-bold mb-4'>History Detail - {dummyData.id}</h2>
+      <div className='flex flex-row'>
+        <FaArrowLeft onClick={closeHistoryDetail} className='text-black hover:text-[#4C5E65] mt-1' size={28} />
+        <h2 className='text-2xl font-bold mb-4 ml-3'>History Detail - {dummyData.id}</h2>
+      </div>
       <div className='flex flex-1 flex-col'>
         <div className='flex items-baseline space-x-1 mb-8 justify-between'>
           <div className='inline-flex items-baseline space-x-1'>
-            <input
-              type='text'
-              ref={categoryRef}
-              className='border-b focus:outline-none w-auto max-w-[200px] text-[18px] px-2'
-              placeholder='Enter Category'
-              value={dummyData?.category.value || ''}
-              readOnly
-            />
+            <p ref={categoryRef} className='focus:outline-none w-auto max-w-[200px] text-[18px] px-2'>
+              {dummyData?.category.value || ''}
+            </p>
             <span className='text-gray-400' style={{ margin: '0 12px' }}>
               /
             </span>
@@ -162,7 +158,7 @@ const HistoryDetail = ({ apiId, closeHistoryDetail }) => {
             <input
               type='text'
               ref={nameRef}
-              className='text-2xl border-b focus:outline-none w-auto max-w-[250px] px-2 text-[18px]'
+              className='text-2xl focus:outline-none w-auto max-w-[250px] px-2 text-[18px]'
               value={dummyData?.name || ''}
               readOnly
               placeholder='Enter API Name'
@@ -176,6 +172,7 @@ const HistoryDetail = ({ apiId, closeHistoryDetail }) => {
           <div className='relative'>
             <div className='flex items-center space-x-2'>
               <button
+                disabled
                 className={`px-4 py-2 w-[150px] rounded-md border ${
                   methodStyles[dummyData.method]
                 } border-gray-300 h-10`}
@@ -243,13 +240,13 @@ const HistoryDetail = ({ apiId, closeHistoryDetail }) => {
 
         <div>
           {activeLeftTab === 'parameters' && (
-            <Parameters paramsChange={handleParamsChange} initialValues={dummyData.parameters} />
+            <Parameters paramsChange={handleParamsChange} initialValues={dummyData.parameters} history={true} />
           )}
           {activeLeftTab === 'request' && (
-            <Request requestChange={handleRequestChange} initialValues={dummyData.request} />
+            <Request requestChange={handleRequestChange} initialValues={dummyData.request} history={true} />
           )}
           {activeLeftTab === 'response' && (
-            <Response responseChange={handleResponseChange} initialValues={dummyData.responses[200]} />
+            <Response responseChange={handleResponseChange} initialValues={dummyData.responses[200]} history={true} />
           )}
         </div>
       </div>
