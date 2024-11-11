@@ -6,7 +6,8 @@ import { useMutation } from 'react-query';
 import SockJS from 'sockjs-client';
 import { findComments, findIndex, findUsers } from '../../api/queries/useCommentsQueries';
 import { getToken } from '../../utils/cookies';
-import User2 from '../../assets/workspace/basic_image.png';
+import { fetchUserInfo } from '../../api/queries/useAPIUserQueries';
+import useAuthStore from '../../stores/useAuthStore';
 
 const Comments = ({ docsId, workspaceId }) => {
   // 드롭다운 불러오는 변수들
@@ -28,6 +29,7 @@ const Comments = ({ docsId, workspaceId }) => {
   // 유저 정보 관련 변수
   const [userSuggestions, setUserSuggestions] = useState([]);
   const [user, setUser] = useState({});
+  const [myInfo, setMyInfo] = useState([]);
 
   const scrollContainerRef = useRef(null);
   const textareaRef = useRef(null);
@@ -49,6 +51,7 @@ const Comments = ({ docsId, workspaceId }) => {
   const [taggedUsers, setTaggedUsers] = useState([]); // 태그된 유저 리스트
 
   const accessToken = getToken();
+  const { userId } = useAuthStore();
 
   // 초반 화면 렌더링 시 소켓 연결 + 최근 인덱스 불러오기
   useEffect(() => {
@@ -174,6 +177,14 @@ const Comments = ({ docsId, workspaceId }) => {
       });
     },
     onError: (error) => console.error('User fetch error:', error),
+  });
+
+  // 본인 정보 불러오기
+  const findMyInfoMutation = useMutation(() => fetchUserInfo(userId), {
+    onSuccess: (response) => {
+      setMyInfo(response);
+    },
+    onError: (error) => console.error('정보를 불러오는데 실패했습니다.', error),
   });
 
   // 메세지 작성/수정 시 공통 사용 함수들
@@ -581,7 +592,7 @@ const Comments = ({ docsId, workspaceId }) => {
               {!message.isHost && (
                 <img
                   className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain'
-                  src={message.profileImage}
+                  src={message?.writerProfileImage}
                   alt='Profile'
                 />
               )}
@@ -645,7 +656,7 @@ const Comments = ({ docsId, workspaceId }) => {
               {message.isHost && (
                 <img
                   className='w-[40px] h-[40px] rounded-full mr-5 ml-3 object-contain'
-                  src={message.profileImage}
+                  src={message?.writerProfileImage}
                   alt='Profile'
                 />
               )}
@@ -665,7 +676,11 @@ const Comments = ({ docsId, workspaceId }) => {
         ))}
         <div className='absolute bottom-10'>
           <div className='flex flex-row w-full rounded-[10px] ml-6 bg-[#E9F2F5] p-3'>
-            <img className='w-[40px] h-[40px] rounded-full mr-3 object-contain' src={User2} alt='Profile' />
+            <img
+              className='w-[40px] h-[40px] rounded-full mr-3 object-contain'
+              src={myInfo?.profileImage}
+              alt='Profile'
+            />
             <textarea
               ref={textareaRef}
               className='text-xl pt-2 bg-transparent w-full flex-grow resize-none overflow-hidden'
