@@ -2,36 +2,44 @@ import { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { toast } from 'react-toastify';
 
-const ApiTestParameters = ({ body }) => {
-  // bodyType, JSON, FORM_DATA 데이터를 prop에서 받아 초기화
+const ApiTestParameters = ({ body, bodyChange }) => {
   const [bodyType, setBodyType] = useState(body.bodyType); // NONE, JSON, FORM_DATA
-  const [jsonData, setJsonData] = useState(body.json.value || {});
+  const [json, setJson] = useState(body.json || { id: '', value: '{}' });
   const [formData, setFormData] = useState(body.formData || []); // formData가 없을 경우 빈 배열로 초기화
 
   useEffect(() => {
-    // body prop이 업데이트될 때마다 상태를 업데이트
-    // setBodyType(body.bodyType);
-    setBodyType('FORM_DATA');
-    setJsonData(body.json.value);
-    setFormData(body.formData);
-  }, [body]);
+    bodyChange({
+      bodyType,
+      json,
+      formData,
+    });
+  }, [bodyType, json, formData]);
 
-  // JSON 데이터 변경 핸들러
   const handleFormDataChange = () => {
     try {
-      const parsed = JSON.parse(jsonData);
-      setJsonData(JSON.stringify(parsed, null, 2));
+      const parsed = JSON.parse(json.value || '{}');
+      setJson({
+        id: json.id,
+        value: JSON.stringify(parsed, null, 2),
+      });
       toast('JSON 정렬이 완료되었습니다.');
     } catch (e) {
       toast('유효한 JSON 형식이 아닙니다.');
     }
   };
 
-  // 맨 처음 들어오면 바로 정렬 시켜버리기
-  // useEffect에 빈칸으로 보내면 정렬만 됨
+  // 맨 처음 들어오면 바로 JSON 정렬
   useEffect(() => {
-    const parsed = JSON.parse(jsonData);
-    setJsonData(JSON.stringify(parsed, null, 2));
+    setBodyType('JSON');
+    try {
+      const parsed = JSON.parse(json.value || '{}');
+      setJson({
+        id: json.id,
+        value: JSON.stringify(parsed, null, 2),
+      });
+    } catch (e) {
+      toast('유효한 JSON 형식이 아닙니다.');
+    }
   }, []);
 
   const handleInputChange = (e, index) => {
@@ -41,7 +49,6 @@ const ApiTestParameters = ({ body }) => {
     setFormData(updatedFormData);
   };
 
-  // Form Data 테이블 렌더링 함수
   const renderFormDataTable = () => (
     <div className='mb-4'>
       <h3 className='font-bold text-sm mb-2'>Form Data</h3>
@@ -71,26 +78,12 @@ const ApiTestParameters = ({ body }) => {
     </div>
   );
 
-  if (!jsonData) {
+  if (!json) {
     return <div>Loading...</div>; // 로딩 중일 때 표시할 내용
   }
 
   return (
     <div>
-      {/* <div className='flex items-center mb-4'> */}
-      {/* Body Type을 수동으로 변경하는 버튼들 (테스트용) */}
-      {/* <button className='mr-4 border p-2 bg-blue-300' onClick={() => setBodyType('NONE')}>
-          NONE
-        </button>
-        <button className='mr-4 border p-2 bg-blue-300' onClick={() => setBodyType('JSON')}>
-          JSON
-        </button>
-        <button className='mr-4 border p-2 bg-blue-300' onClick={() => setBodyType('FORM_DATA')}>
-          FORM-DATA
-        </button>
-      </div> */}
-
-      {/* bodyType에 따른 조건부 렌더링 */}
       {bodyType === 'NONE' && <p className='mt-5 text-center text-gray-500'>No Body</p>}
 
       {bodyType === 'JSON' && (
@@ -105,8 +98,13 @@ const ApiTestParameters = ({ body }) => {
           <Editor
             height='200px'
             language='json'
-            value={jsonData || '{}'} // JSON 데이터 기본 값 설정
-            onChange={(value) => setJsonData(value || '{}')} // 변경된 부분
+            value={json.value || '{}'}
+            onChange={(value) =>
+              setJson({
+                id: json.id,
+                value: value || '{}',
+              })
+            }
             options={{
               automaticLayout: true,
               autoClosingBrackets: 'always',
