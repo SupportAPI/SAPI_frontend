@@ -570,7 +570,7 @@ const Comments = ({ docsId, workspaceId }) => {
   return (
     <div
       ref={scrollContainerRef}
-      className='w-full h-[700px] bg-[#F8FCFF] flex flex-col justify-start pt-5 pb-24 overflow-y-auto box-border sidebar-scrollbar'
+      className='mt-5 w-full h-[calc(100vh-215px)] bg-white flex flex-col justify-start pt-5 pb-24 overflow-y-auto box-border sidebar-scrollbar'
     >
       <div className='flex flex-col space-y-4 flex-grow'>
         {messages.map((message) => (
@@ -580,7 +580,7 @@ const Comments = ({ docsId, workspaceId }) => {
                 <img className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain' src={User2} alt='Profile' />
               )}
               <div
-                className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#D7E9F4] ${
+                className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#E9F2F5] ${
                   message.isHost ? 'ml-auto text-right' : 'text-left'
                 }`}
               >
@@ -653,8 +653,8 @@ const Comments = ({ docsId, workspaceId }) => {
             </div>
           </div>
         ))}
-        <div className='absolute bottom-5'>
-          <div className='flex flex-row w-full rounded-[10px] ml-6 bg-[#D7E9F4] p-3'>
+        <div className='absolute bottom-10'>
+          <div className='flex flex-row w-full rounded-[10px] ml-6 bg-[#E9F2F5] p-3'>
             <img className='w-[40px] h-[40px] rounded-full mr-3 object-contain' src={User2} alt='Profile' />
             <textarea
               ref={textareaRef}
