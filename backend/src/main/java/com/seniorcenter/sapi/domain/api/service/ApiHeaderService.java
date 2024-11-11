@@ -4,8 +4,8 @@ import com.seniorcenter.sapi.domain.api.domain.Api;
 import com.seniorcenter.sapi.domain.api.domain.ApiHeader;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiHeaderRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
-import com.seniorcenter.sapi.domain.api.presentation.dto.request.IdKeyValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.RemoveRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.SaveDataRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdKeyValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdKeyValueResponseDto;
@@ -13,6 +13,7 @@ import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
+import com.seniorcenter.sapi.global.utils.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class ApiHeaderService {
     private final ApiHeaderRepository apiHeaderRepository;
     private final ApiRepository apiRepository;
     private final KeyValueUtils keyValueUtils;
+    private final RedisUtil redisUtil;
 
     public ApiIdResponseDto createApiHeader(UUID apiId) {
         Api api = apiRepository.findById(apiId)
@@ -60,11 +62,14 @@ public class ApiHeaderService {
         return new ApiIdKeyValueResponseDto(apiHeader.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value());
     }
 
-    public void updateDBApiHeader(ApiMessage message) {
-        IdKeyValueRequestDto data = keyValueUtils.translateToIdKeyValueRequestDto(message);
+    public void updateDBApiHeader(ApiMessage message, UUID workspaceId) {
+        SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
         ApiHeader apiHeader = apiHeaderRepository.findById(Long.valueOf(data.id()))
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
         apiHeader.updateApiHeaderKeyAndValue(data.key(), data.value());
+
+        String hashKey = workspaceId.toString();
+        redisUtil.deleteData(hashKey, data.componentId());
     }
 
 }

@@ -4,5 +4,5 @@ public record IdKeyValueRequestDto(
         String id,
         String key,
         String value
-) {
+)  {
 }

@@ -65,9 +65,6 @@ public class SpecificationService {
         Workspace workspace = workspaceRepository.findById(worksapceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
 
-        Category category = Category.createCategory("미설정", workspace);
-        categoryRepository.save(category);
-
         Specification specification = Specification.createSpecification(api.getId(), workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
@@ -148,9 +145,6 @@ public class SpecificationService {
         apiRepository.save(api);
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
-
-        Category category = Category.createCategory("미설정", workspace);
-        categoryRepository.save(category);
 
         Specification specification = Specification.createSpecification(api.getId(), workspace);
         api.updateSpecification(specification);
