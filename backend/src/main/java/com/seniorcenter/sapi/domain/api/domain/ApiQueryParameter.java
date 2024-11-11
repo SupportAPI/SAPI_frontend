@@ -24,12 +24,20 @@ public class ApiQueryParameter extends BaseTimeEntity {
     private String paramValue;
     private String description;
 
+    @Column(nullable = false)
+    private Boolean isEssential;
+
+    @Column(nullable = false)
+    private Boolean isChecked;
+
     @Builder
-    public ApiQueryParameter(Api api, String paramKey, String paramValue, String description) {
+    public ApiQueryParameter(Api api, String paramKey, String paramValue, String description, Boolean isEssential, Boolean isChecked) {
         this.api = api;
         this.paramKey = paramKey;
         this.paramValue = paramValue;
         this.description = description;
+        this.isEssential = isEssential;
+        this.isChecked = isChecked;
     }
 
     public static ApiQueryParameter createApiQueryParameter(Api api) {
@@ -38,6 +46,8 @@ public class ApiQueryParameter extends BaseTimeEntity {
                 .paramKey("")
                 .paramValue("")
                 .description("")
+                .isEssential(true)
+                .isChecked(true)
                 .build();
     }
 
@@ -47,10 +57,13 @@ public class ApiQueryParameter extends BaseTimeEntity {
                 .paramKey(originQueryParameter.getParamKey())
                 .paramValue(originQueryParameter.getParamValue())
                 .description(originQueryParameter.getDescription())
+                .isEssential(originQueryParameter.getIsEssential())
+                .isChecked(originQueryParameter.getIsChecked())
                 .build();
     }
 
-    public void updateApiQueryParameterValue(String paramValue) {
+    public void updateApiQueryParameterValue(String paramValue, Boolean isChecked) {
         this.paramValue = paramValue;
+        this.isChecked = isChecked;
     }
 }
