@@ -1,22 +1,41 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import { useMutation } from 'react-query';
-import { fetchNotifications, deleteNotification } from '../../api/queries/useNotificationsQueries';
+import {
+  fetchNotifications,
+  deleteNotification,
+  markNotificationAsRead,
+} from '../../api/queries/useNotificationsQueries';
 import Settings from '../../pages/Settings/Settings';
 import { useNavigate } from 'react-router-dom';
 
 const Alarm = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState([
+    {
+      id: 4,
+      fromId: '8fcef436-3641-444b-b7d4-48e281a769d7',
+      workspaceId: '8fcef436-3641-444b-b7d4-48e281a769d7',
+      fromName: 'testProject',
+      message: 'testProject 워크스페이스에서 초대받았습니다.',
+      notificationType: 'WORKSPACE_INVITE',
+      isRead: true,
+      createdDatetime: '2024-11-08T12:49:12.198137',
+    },
+  ]);
+  const [isLoad, setIsLoad] = useState(false);
 
   const [isSettingModalOpen, setIsSettingModalOpen] = useState(false);
   const settingRef = useRef(null);
-
   const navigate = useNavigate();
 
+  // React-Query
   const alarmMutation = useMutation(() => fetchNotifications(), {
     onSuccess: (response) => {
-      if (response !== undefined) setNotifications(response);
+      if (response) {
+        setNotifications(response);
+        setIsLoad(true);
+      }
     },
     onError: (error) => {
       console.error('alarm fetch error', error);
@@ -29,12 +48,38 @@ const Alarm = () => {
     },
     onError: (error) => {
       return false;
-    }
-  })
+    },
+  });
+
+  const markNotificationAsReadMutation = useMutation((notificationIds) => markNotificationAsRead(notificationIds), {
+    onSuccess: (response) => {
+      return response;
+    },
+    onError: (error) => {
+      console.error('Error marking notifications as read:', error);
+      return false;
+    },
+  });
 
   useEffect(() => {
     alarmMutation.mutate();
   }, []);
+
+  useEffect(() => {
+    const markNotificationsAsRead = async () => {
+      if (isLoad) {
+        const notificationIds = notifications
+          .filter((notification) => !notification.isRead)
+          .map((notification) => notification.id);
+
+        if (notificationIds.length > 0) {
+          await markNotificationAsReadMutation.mutateAsync(notificationIds);
+        }
+      }
+    };
+
+    markNotificationsAsRead();
+  }, [isLoad]); // `notifications`를 의존성에 추가하여 업데이트 시 반영
 
   const toggleNotification = () => {
     setIsNotificationOpen(!isNotificationOpen);
@@ -43,13 +88,12 @@ const Alarm = () => {
   const handleDeleteNotification = async (id, event) => {
     event.stopPropagation();
     const response = await deleteAlarmMutation.mutateAsync(id);
-    if(response){
+    if (response) {
       setNotifications(notifications.filter((notification) => notification.id !== id));
-    }else{
-      console.log("삭제실패");
+    } else {
+      console.log('삭제실패');
     }
   };
-
 
   const alarmClickRouting = (apiId, workspaceId, type) => {
     if (type === 'WORKSPACE_INVITE') {
@@ -71,16 +115,18 @@ const Alarm = () => {
         border border-gray-200 rounded-2xl shadow-2xl 
         overflow-y-scroll sidebar-scrollbar transition-all duration-300 z-50 scrollbar-gutter-stable'
     >
-      <div className='flex items-center p-4 bg-[#D8E9F3] text-black font-bold text-2xl h-[70px]'>Notifications</div>
+      <div className='flex items-center p-4 bg-[#DEEBF0] text-black font-bold text-2xl h-[70px]'>Notifications</div>
 
       <div className='min-h-70 overflow-y-auto'>
         {notifications.length > 0 ? (
           notifications
-            .sort((a, b) => new Date(b.createdDatetime) - new Date(a.createdDatetime)) // 내림차순 정렬
+            .sort((a, b) => new Date(b.createdDatetime) - new Date(a.createdDatetime))
             .map((notification) => (
               <div
                 key={notification.id}
-                className='flex flex-col gap-1 p-3 hover:bg-[#EBF3F8] border-b border-gray-100 last:border-b-0'
+                className={`flex flex-col gap-1 p-3 hover:bg-[#E0ECF0]
+          ${notification.isRead ? 'bg-white' : 'bg-[#EEF6F9]'}
+          border-b border-gray-100 last:border-b-0`}
                 onClick={() =>
                   alarmClickRouting(notification.fromId, notification.workspaceId, notification.notificationType)
                 }
@@ -88,7 +134,6 @@ const Alarm = () => {
                 <div className='flex flex-row ml-1'>
                   <p className='text-lg text-black font-bold'>{notification.fromName}</p>
                   <p className='text-xs text-black ml-2 mt-2'>
-                    {' '}
                     {new Date(notification.createdDatetime).toLocaleString('ko-KR', {
                       year: 'numeric',
                       month: '2-digit',
