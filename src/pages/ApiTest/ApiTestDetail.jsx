@@ -10,8 +10,9 @@ import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useSidebarStore } from '../../stores/useSidebarStore';
 import { useTabStore } from '../../stores/useTabStore';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { useFetchApiDetail } from '../../api/queries/useApiTestQueries';
+import { useFetchApiDetail, patchApiDetail, requestApiTest } from '../../api/queries/useApiTestQueries';
 import { toast } from 'react-toastify';
+import { useMutation } from 'react-query';
 
 const ApiTestDetail = () => {
   const { workspaceId, apiId } = useParams();
@@ -21,6 +22,7 @@ const ApiTestDetail = () => {
   const [apimethod, setApimethod] = useState('null');
   const [apiname, setApiname] = useState('null');
   const [apiUrl, setApiUrl] = useState('null');
+  const [testResult, setTestResult] = useState(null);
   const [activeTabContent, setActiveTabContent] = useState(null); // 기본 탭을 'Parameters'로 설정
   const [activeTabResult, setActiveTabResult] = useState('Body'); // 기본 탭을 'Parameters'로 설정
   const [copySuccess, setCopySuccess] = useState(false); // 복사 성공 여부 상태 추가
@@ -31,9 +33,26 @@ const ApiTestDetail = () => {
 
   const [renderApi, setRenderApi] = useState(false);
 
+  console.log('apiInfo', apiInfo);
   const location = useLocation();
 
   console.log('apidetail', apiDetail);
+
+  const editApiTestDetailsMutation = useMutation((api) => patchApiDetail(workspaceId, apiId, api), {
+    onSuccess: (response) => {
+      console.log('저장 성공!');
+      refetch();
+    },
+    onError: (error) => console.error('저장 실패!', error),
+  });
+
+  const requestApiTestMutation = useMutation(() => requestApiTest(workspaceId, apiDetail), {
+    onSuccess: (response) => {
+      setTestResult(response);
+      console.log('테스트 완료', response);
+    },
+    onError: (error) => console.error('실패!', error),
+  });
 
   useEffect(() => {
     // 페이지 이동이나 location 변경 시 refetch로 데이터 다시 로딩
@@ -137,6 +156,54 @@ const ApiTestDetail = () => {
     return <div>Error: API data not found.</div>; // apiInfo가 없을 때 표시할 오류 메시지
   }
 
+  const transformApiDetail = (apiDetail) => {
+    return {
+      parameters: {
+        headers: (apiDetail.parameters.headers || []).map((header) => ({
+          headerId: header.id || null,
+          headerValue: header.value || null,
+          isChecked: header.isChecked || true,
+        })),
+        pathVariables: (apiDetail.parameters.pathVariables || []).map((pathVariable) => ({
+          pathVariableId: pathVariable.id || null,
+          pathVariableValue: pathVariable.value || null,
+        })),
+        queryParameters: (apiDetail.parameters.queryParameters || []).map((queryParameter) => ({
+          queryParameterId: queryParameter.id || null,
+          queryParameterValue: queryParameter.value || null,
+          isChecked: queryParameter.isChecked || true,
+        })),
+        cookies: (apiDetail.parameters.cookies || []).map((cookie) => ({
+          cookieId: cookie.id || null,
+          cookieValue: cookie.value || null,
+          isChecked: cookie.isChecked || true,
+        })),
+      },
+      request: {
+        json: apiDetail.request.json
+          ? {
+              jsonDataId: apiDetail.request.json.id || null,
+              jsonDataValue: apiDetail.request.json.value || null,
+            }
+          : null,
+        formData: (apiDetail.request.formData || []).map((formData) => ({
+          formDataId: formData.id || null,
+          formDataValue: formData.value || null,
+          isChecked: formData.isChecked || false,
+        })),
+      },
+    };
+  };
+
+  const handleEditApi = () => {
+    const transformedData = transformApiDetail(apiDetail);
+    editApiTestDetailsMutation.mutate(transformedData);
+  };
+
+  const handleApiTest = () => {
+    requestApiTestMutation.mutate();
+  };
+
   return (
     <div className='flex p-4'>
       <div className='flex-1'>
@@ -163,10 +230,16 @@ const ApiTestDetail = () => {
                     Local
                   </div>
                 </button> */}
-                <button className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
+                <button
+                  className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'
+                  onClick={handleApiTest}
+                >
                   TEST
                 </button>
-                <button className='flex justify-center items-center w-[50px] border p-3 rounded-lg bg-[#2D3648] text-white'>
+                <button
+                  className='flex justify-center items-center w-[50px] border p-3 rounded-lg bg-[#2D3648] text-white'
+                  onClick={handleEditApi}
+                >
                   <FaSave />
                 </button>
               </div>
