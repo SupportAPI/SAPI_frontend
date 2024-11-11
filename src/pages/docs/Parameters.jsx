@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
+import { useWebSocket } from '../../contexts/WebSocketContext';
 
-const Parameters = ({ paramsChange, initialValues }) => {
+const Parameters = ({ paramsChange, initialValues, workspaceId, apiId }) => {
   const [header, setHeader] = useState(initialValues?.headers || []);
   const [authType, setAuthType] = useState(initialValues?.authType || 'None');
   const [authorization, setAuthorization] = useState('');
   const [queryParameter, setQueryParameter] = useState(initialValues?.queryParameters || []);
   const [cookie, setCookie] = useState(initialValues?.cookies || []);
+  const { publish } = useWebSocket();
 
   useEffect(() => {
     setHeader(initialValues?.headers || []);
@@ -23,7 +25,7 @@ const Parameters = ({ paramsChange, initialValues }) => {
       queryParameter,
       cookie,
     });
-  }, [header, authType, authorization, queryParameter, cookie]);
+  }, [header, authType, authorization, queryParameter, cookie, paramsChange]);
 
   const handleAuthTypeChange = (type) => {
     setAuthType(type);
@@ -65,14 +67,27 @@ const Parameters = ({ paramsChange, initialValues }) => {
     setHeader(header.filter((_, i) => i !== index));
   };
 
-  const handleAddQueryParam = () =>
-    setQueryParameter([...queryParameter, { queryParameterKey: '', queryParameterValue: '' }]);
+  const handleAddQueryParam = () => {
+    console.log(apiId);
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'PARAMETERS_QUERY_PARAMETERS',
+      actionType: 'ADD',
+      message: {},
+    });
+  };
+
   const handleAddCookie = () => setCookie([...cookie, { cookieKey: '', cookieValue: '' }]);
 
-  const handleQueryParamChange = (index, field, value) => {
-    const updatedParams = [...queryParameter];
-    updatedParams[index][field] = value;
-    setQueryParameter(updatedParams);
+  const handleQueryParamChange = (queryParameterId, type, value) => {
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'PARAMETERS_QUERY_PARAMETERS',
+      actionType: 'UPDATE',
+      message: {
+        id: queryParameterId,
+        type: type,
+        value: value,
+      },
+    });
   };
 
   const handleCookieChange = (index, field, value) => {
@@ -81,7 +96,17 @@ const Parameters = ({ paramsChange, initialValues }) => {
     setCookie(updatedCookies);
   };
 
-  const handleRemoveQueryParam = (index) => setQueryParameter(queryParameter.filter((_, i) => i !== index));
+  const handleRemoveQueryParam = (queryParameterId) => {
+    console.log(queryParameterId);
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'QUERY_PARAMETERS',
+      actionType: 'DELETE',
+      message: {
+        id: { queryParameterId },
+      },
+    });
+  };
+
   const handleRemoveCookie = (index) => setCookie(cookie.filter((_, i) => i !== index));
 
   return (
@@ -205,7 +230,7 @@ const Parameters = ({ paramsChange, initialValues }) => {
                       type='text'
                       placeholder='Key'
                       value={param.queryParameterKey}
-                      onChange={(e) => handleQueryParamChange(index, 'queryParameterKey', e.target.value)}
+                      onChange={(e) => handleQueryParamChange(param.queryParameterId, 'KEY', e.target.value)}
                       className='w-full border-none outline-none'
                     />
                   </td>
@@ -214,13 +239,13 @@ const Parameters = ({ paramsChange, initialValues }) => {
                       type='text'
                       placeholder='Value'
                       value={param.queryParameterValue}
-                      onChange={(e) => handleQueryParamChange(index, 'queryParameterValue', e.target.value)}
+                      onChange={(e) => handleQueryParamChange(param.queryParameterId, 'VALUE', e.target.value)}
                       className='w-full border-none outline-none'
                     />
                   </td>
                   <td
                     className='border p-2 text-center cursor-pointer text-red-500'
-                    onClick={() => handleRemoveQueryParam(index)}
+                    onClick={() => handleRemoveQueryParam(param.queryParameterId)}
                   >
                     🗑️
                   </td>
