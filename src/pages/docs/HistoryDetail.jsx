@@ -143,7 +143,7 @@ const HistoryDetail = ({ apiId, closeHistoryDetail }) => {
       <button onClick={closeHistoryDetail} className='text-gray-600 hover:text-gray-800'>
         닫기
       </button>
-      <h2 className='text-2xl font-bold mb-4'>History Detail - {dummyData.name}</h2>
+      <h2 className='text-2xl font-bold mb-4'>History Detail - {dummyData.id}</h2>
       <div className='flex flex-1 flex-col'>
         <div className='flex items-baseline space-x-1 mb-8 justify-between'>
           <div className='inline-flex items-baseline space-x-1'>
@@ -168,50 +168,7 @@ const HistoryDetail = ({ apiId, closeHistoryDetail }) => {
               placeholder='Enter API Name'
             />
           </div>
-
-          <div className='flex space-x-4'>
-            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-              <FaSave />
-              <span>Save</span>
-            </button>
-            <button
-              onClick={handleDeleteClick}
-              className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
-            >
-              <FaTrashAlt />
-              <span>Delete</span>
-            </button>
-            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-              <FaDownload />
-              <span>Export</span>
-            </button>
-            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-              <FaShareAlt />
-              <span>Share</span>
-            </button>
-          </div>
         </div>
-
-        {/* 삭제 모달 */}
-        {showDeleteModal && (
-          <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
-            <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
-              <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
-              <p className='mb-6'>현재 API 문서를 삭제하시겠습니까?</p>
-              <div className='flex justify-end space-x-4'>
-                <button onClick={handleCloseModal} className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'>
-                  취소
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
-                >
-                  삭제
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* API Path and Description */}
         <div className='mb-4'>
@@ -222,11 +179,9 @@ const HistoryDetail = ({ apiId, closeHistoryDetail }) => {
                 className={`px-4 py-2 w-[150px] rounded-md border ${
                   methodStyles[dummyData.method]
                 } border-gray-300 h-10`}
-                onClick={() => setShowDropdown((prev) => !prev)}
               >
                 <div className='flex justify-between items-center'>
                   <span>{dummyData.method}</span>
-                  <FiChevronDown className='ml-2' color='black' />
                 </div>
               </button>
 
