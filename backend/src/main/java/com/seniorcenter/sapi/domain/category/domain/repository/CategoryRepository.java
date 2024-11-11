@@ -12,6 +12,4 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByWorkspaceId(UUID workspaceId);
 
     Optional<Category> findByWorkspaceIdAndName(UUID workspaceId, String name);
-
-    Optional<Category> findByName(String category);
 }

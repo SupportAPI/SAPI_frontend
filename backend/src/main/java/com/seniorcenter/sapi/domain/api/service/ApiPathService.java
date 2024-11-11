@@ -1,7 +1,9 @@
 package com.seniorcenter.sapi.domain.api.service;
 
 import com.seniorcenter.sapi.domain.api.domain.Api;
+import com.seniorcenter.sapi.domain.api.domain.enums.HttpMethod;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.IdKeyValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateKeyValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiKeyValueResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
@@ -30,6 +32,14 @@ public class ApiPathService {
 
         UpdateKeyValueRequestDto updateIdKeyValueRequestDto = keyValueUtils.updateKeyValue(message);
         return new ApiKeyValueResponseDto(updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value());
+    }
+
+    public void updateDbApiPath(ApiMessage message, UUID apiId){
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        IdKeyValueRequestDto idKeyValueRequestDto = keyValueUtils.translateToIdKeyValueRequestDto(message);
+        api.updatePath(HttpMethod.valueOf(idKeyValueRequestDto.key()),idKeyValueRequestDto.value());
     }
 
 }

@@ -4,6 +4,7 @@ import com.seniorcenter.sapi.domain.api.domain.Api;
 import com.seniorcenter.sapi.domain.api.domain.ApiCookie;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiCookieRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.IdKeyValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.RemoveRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdKeyValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdResponseDto;
@@ -57,6 +58,13 @@ public class ApiCookieService {
         ApiCookie apiCookie = apiCookieRepository.findById(updateIdKeyValueRequestDto.id())
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUNT_COOKIE));
         return new ApiIdKeyValueResponseDto(apiCookie.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value());
+    }
+
+    public void updateDBApiCookie(ApiMessage message) {
+        IdKeyValueRequestDto data = keyValueUtils.translateToIdKeyValueRequestDto(message);
+        ApiCookie apiCookie = apiCookieRepository.findById(Long.valueOf(data.id()))
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+        apiCookie.updateCookieKeyAndValue(data.key(), data.value());
     }
 
 }
