@@ -3,6 +3,7 @@ package com.seniorcenter.sapi.domain.api.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seniorcenter.sapi.domain.api.domain.*;
+import com.seniorcenter.sapi.domain.api.domain.enums.AuthenticationType;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiBodyRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiCookieRepository;
@@ -11,8 +12,14 @@ import com.seniorcenter.sapi.domain.api.domain.repository.ApiPathVariableReposit
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiQueryParameterRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateApiDetailRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.ValueRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestDetailResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.*;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
+import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
 import com.seniorcenter.sapi.domain.category.domain.Category;
 import com.seniorcenter.sapi.domain.category.domain.repository.CategoryRepository;
 import com.seniorcenter.sapi.domain.category.presentation.dto.response.CategoryResponseDto;
@@ -75,6 +82,7 @@ public class ApiService {
     private final UserUtils userUtils;
     private final WorkspaceRepository workspaceRepository;
     private final ProxyService proxyService;
+    private final KeyValueUtils keyValueUtils;
 
     @Transactional
     public void createApi(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
@@ -145,6 +153,51 @@ public class ApiService {
     }
 
     @Transactional
+    public void updateApiDB(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
+
+        Object result = null;
+        if (message.apiType().equals(ApiType.API_PATH)) {
+            apiPathService.updateDbApiPath(message, apiId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
+            apiQueryParameterService.updateDBApiQueryParameter(message, apiId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
+            apiCookieService.updateDBApiCookie(message);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
+            apiHeaderService.updateDBApiHeader(message);
+        } else if (message.apiType().equals(ApiType.DESCRIPTION)) {
+            updateDescription(message, apiId);
+        } else if (message.apiType().equals(ApiType.PARAMETERS_AUTH_TYPE)) {
+            updateAuthType(message, apiId);
+        } else if (message.apiType().equals(ApiType.API_NAME)) {
+            updateApiName(message, apiId);
+        }
+    }
+
+    public void updateDescription(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        ValueRequestDto data = keyValueUtils.translateToValueRequestDto(message);
+        api.updateDescription(data.value());
+    }
+
+    public void updateAuthType(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        ValueRequestDto data = keyValueUtils.translateToValueRequestDto(message);
+        api.updateAuthType(AuthenticationType.valueOf(data.value()));
+    }
+
+    public void updateApiName(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        ValueRequestDto data = keyValueUtils.translateToValueRequestDto(message);
+        api.updateName(data.value());
+    }
+
+    @Transactional
     public List<ApiResponseDto> getApisByWorkspaceId(UUID workspaceId) {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         return specifications.stream()
@@ -177,6 +230,9 @@ public class ApiService {
 
     public ApiDetailResponseDto getApiByApiId(UUID workspaceId, UUID apiId) {
         User user = userUtils.getUserFromSecurityContext();
+        log.info("검증 시작: userId={}, workspaceId={}", user.getId(), workspaceId);
+        log.info("API 조회 시작: apiId={}, workspaceId={}", apiId, workspaceId);
+
         // 유저가 해당 워크스페이스에 포함되어 있는지 검증
         membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
             .orElseThrow(() -> new MainException(CustomException.ACCESS_DENIED_EXCEPTION));
@@ -197,7 +253,21 @@ public class ApiService {
                     header.getId().toString(),
                     header.getHeaderKey(),
                     header.getHeaderValue(),
-                    header.getDescription()
+                    header.getDescription(),
+                    header.getIsEssential(),
+                    header.getIsChecked()
+                );
+            })
+            .toList();
+
+        // Path Variable 처리
+        List<ApiDetailResponseDto.Parameters.PathVariables> pathVariables = api.getPathVariables().stream()
+            .map(queryParameter -> {
+                return new ApiDetailResponseDto.Parameters.PathVariables(
+                    queryParameter.getId().toString(),
+                    queryParameter.getVariableKey(),
+                    queryParameter.getVariableValue(),
+                    queryParameter.getDescription()
                 );
             })
             .toList();
@@ -212,7 +282,9 @@ public class ApiService {
                     queryParameter.getId().toString(),
                     queryParameter.getParamKey(),
                     queryParameter.getParamValue(),
-                    queryParameter.getDescription()
+                    queryParameter.getDescription(),
+                    queryParameter.getIsEssential(),
+                    queryParameter.getIsChecked()
                 );
             })
             .toList();
@@ -227,7 +299,9 @@ public class ApiService {
                     cookie.getId().toString(),
                     cookie.getCookieKey(),
                     cookie.getCookieValue(),
-                    cookie.getDescription()
+                    cookie.getDescription(),
+                    cookie.getIsEssential(),
+                    cookie.getIsChecked()
                 );
             })
             .toList();
@@ -235,6 +309,7 @@ public class ApiService {
         ApiDetailResponseDto.Parameters parameters = new ApiDetailResponseDto.Parameters(
             api.getAuthenticationType().name(),
             headers,
+            pathVariables,
             queryParameters,
             cookies
         );
@@ -265,7 +340,9 @@ public class ApiService {
                     formData.getBodyKey(),
                     formData.getBodyValue(),
                     formData.getParameterType().name(),
-                    formData.getDescription()
+                    formData.getDescription(),
+                    formData.getIsEssential(),
+                    formData.getIsChecked()
                 );
             })
             .toList();
@@ -293,7 +370,7 @@ public class ApiService {
             .toList();
 
         // 카테고리 설정
-        Category category = categoryRepository.findByName(api.getCategory())
+        Category category = categoryRepository.findByWorkspaceIdAndName(workspaceId, api.getCategory())
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
 
         // Manager 정보 설정
@@ -345,7 +422,9 @@ public class ApiService {
                     header.getId().toString(),
                     header.getHeaderKey(),
                     header.getHeaderValue(),
-                    header.getDescription()
+                    header.getDescription(),
+                    header.getIsEssential(),
+                    header.getIsChecked()
                 );
             })
             .toList();
@@ -369,7 +448,9 @@ public class ApiService {
                     queryParameter.getId().toString(),
                     queryParameter.getParamKey(),
                     queryParameter.getParamValue(),
-                    queryParameter.getDescription()
+                    queryParameter.getDescription(),
+                    queryParameter.getIsEssential(),
+                    queryParameter.getIsChecked()
                 );
             })
             .toList();
@@ -381,7 +462,9 @@ public class ApiService {
                     cookie.getId().toString(),
                     cookie.getCookieKey(),
                     cookie.getCookieValue(),
-                    cookie.getDescription()
+                    cookie.getDescription(),
+                    cookie.getIsEssential(),
+                    cookie.getIsChecked()
                 );
             })
             .toList();
@@ -414,7 +497,9 @@ public class ApiService {
                     formData.getBodyKey(),
                     formData.getBodyValue(),
                     formData.getParameterType().name(),
-                    formData.getDescription()
+                    formData.getDescription(),
+                    formData.getIsEssential(),
+                    formData.getIsChecked()
                 );
             })
             .toList();
@@ -437,6 +522,7 @@ public class ApiService {
             api.getName(),
             api.getMethod().name(),
             api.getPath(),
+            api.getCategory(),
             specification.getLocalStatus(),
             specification.getServerStatus(),
             managerEmail,
@@ -451,7 +537,7 @@ public class ApiService {
         requestDto.parameters().headers().forEach(headerDto -> {
             apiHeaderRepository.findById(Long.parseLong(headerDto.headerId()))
                 .ifPresent(header -> {
-                    header.updateApiHeaderValue(headerDto.headerValue());
+                    header.updateApiHeaderValue(headerDto.headerValue(), headerDto.isChecked());
                     apiHeaderRepository.save(header);
                 });
         });
@@ -467,7 +553,8 @@ public class ApiService {
         requestDto.parameters().queryParameters().forEach(queryParameterDto -> {
             apiQueryParameterRepository.findById(Long.parseLong(queryParameterDto.queryParameterId()))
                 .ifPresent(queryParameter -> {
-                    queryParameter.updateApiQueryParameterValue(queryParameterDto.queryParameterValue());
+                    queryParameter.updateApiQueryParameterValue(queryParameterDto.queryParameterValue(),
+                        queryParameterDto.isChecked());
                     apiQueryParameterRepository.save(queryParameter);
                 });
         });
@@ -475,7 +562,7 @@ public class ApiService {
         requestDto.parameters().cookies().forEach(cookieDto -> {
             apiCookieRepository.findById(Long.parseLong(cookieDto.cookieId()))
                 .ifPresent(cookie -> {
-                    cookie.updateCookieValue(cookieDto.cookieValue());
+                    cookie.updateCookieValue(cookieDto.cookieValue(), cookieDto.isChecked());
                     apiCookieRepository.save(cookie);
                 });
         });
@@ -483,7 +570,7 @@ public class ApiService {
         if (requestDto.request().json() != null) {
             apiBodyRepository.findById(Long.parseLong(requestDto.request().json().jsonDataId()))
                 .ifPresent(body -> {
-                    body.updateBodyValue(requestDto.request().json().jsonDataValue());
+                    body.updateBodyValue(requestDto.request().json().jsonDataValue(), true);
                     apiBodyRepository.save(body);
                 });
         }
@@ -491,7 +578,7 @@ public class ApiService {
         requestDto.request().formData().forEach(formDataDto -> {
             apiBodyRepository.findById(Long.parseLong(formDataDto.formDataId()))
                 .ifPresent(body -> {
-                    body.updateBodyValue(formDataDto.formDataValue());
+                    body.updateBodyValue(formDataDto.formDataValue(), formDataDto.isChecked());
                     apiBodyRepository.save(body);
                 });
         });

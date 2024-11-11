@@ -51,6 +51,9 @@ public class Notification extends BaseTimeEntity {
 	@Enumerated(EnumType.STRING)
 	private NotificationType type;
 
+	@Column(nullable = false)
+	private Boolean isRead;
+
 	@Builder
 	private Notification(User user, UUID fromId, UUID workspaceId, String fromName, String message, NotificationType type) {
 		this.user = user;
@@ -59,6 +62,7 @@ public class Notification extends BaseTimeEntity {
 		this.fromName = fromName;
 		this.message = message;
 		this.type = type;
+		this.isRead = false;
 	}
 
 	public static Notification createNotification(User user, UUID fromId, UUID workspaceId, String fromName, String message, NotificationType type) {
@@ -74,5 +78,9 @@ public class Notification extends BaseTimeEntity {
 
 	public String getType() {
 		return type.getType();
+	}
+
+	public void changeReadStatus() {
+		this.isRead = true;
 	}
 }

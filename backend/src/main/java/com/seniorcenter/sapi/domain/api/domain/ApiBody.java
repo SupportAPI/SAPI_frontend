@@ -30,13 +30,21 @@ public class ApiBody extends BaseTimeEntity {
     private String bodyValue;
     private String description;
 
+    @Column(nullable = false)
+    private Boolean isEssential;
+
+    @Column(nullable = false)
+    private Boolean isChecked;
+
     @Builder
-    public ApiBody(Api api, ParameterType parameterType, String bodyKey, String bodyValue, String description) {
+    public ApiBody(Api api, ParameterType parameterType, String bodyKey, String bodyValue, String description, Boolean isEssential, Boolean isChecked) {
         this.api = api;
         this.parameterType = parameterType;
         this.bodyKey = bodyKey;
         this.bodyValue = bodyValue;
         this.description = description;
+        this.isEssential = isEssential;
+        this.isChecked = isChecked;
     }
 
     public static ApiBody createApiBody(Api api, ParameterType parameterType) {
@@ -46,6 +54,8 @@ public class ApiBody extends BaseTimeEntity {
                 .bodyKey("")
                 .bodyValue("")
                 .description("")
+                .isEssential(true)
+                .isChecked(true)
                 .build();
     }
 
@@ -56,11 +66,14 @@ public class ApiBody extends BaseTimeEntity {
                 .bodyKey(originBody.getBodyKey())
                 .bodyValue(originBody.getBodyValue())
                 .description(originBody.getDescription())
+                .isEssential(originBody.getIsEssential())
+                .isChecked(originBody.getIsChecked())
                 .build();
     }
 
-    public void updateBodyValue(String bodyValue) {
+    public void updateBodyValue(String bodyValue, Boolean isChecked) {
         this.bodyValue = bodyValue;
+        this.isChecked = isChecked;
     }
 }
 
