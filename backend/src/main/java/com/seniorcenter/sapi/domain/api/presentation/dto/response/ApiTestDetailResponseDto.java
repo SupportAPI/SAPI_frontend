@@ -11,6 +11,7 @@ public record ApiTestDetailResponseDto(
 	String name,
 	String method,
 	String path,
+	String category,
 	TestStatus localStatus,
 	TestStatus serverStatus,
 	String managerEmail,

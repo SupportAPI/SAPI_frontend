@@ -426,6 +426,7 @@ public class ApiService {
             api.getName(),
             api.getMethod().name(),
             api.getPath(),
+            api.getCategory(),
             specification.getLocalStatus(),
             specification.getServerStatus(),
             managerEmail,
