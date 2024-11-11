@@ -186,7 +186,21 @@ public class ApiService {
                     header.getId().toString(),
                     header.getHeaderKey(),
                     header.getHeaderValue(),
-                    header.getDescription()
+                    header.getDescription(),
+                    header.getIsEssential(),
+                    header.getIsChecked()
+                );
+            })
+            .toList();
+
+        // Path Variable 처리
+        List<ApiDetailResponseDto.Parameters.PathVariables> pathVariables = api.getPathVariables().stream()
+            .map(queryParameter -> {
+                return new ApiDetailResponseDto.Parameters.PathVariables(
+                    queryParameter.getId().toString(),
+                    queryParameter.getVariableKey(),
+                    queryParameter.getVariableValue(),
+                    queryParameter.getDescription()
                 );
             })
             .toList();
@@ -201,7 +215,9 @@ public class ApiService {
                     queryParameter.getId().toString(),
                     queryParameter.getParamKey(),
                     queryParameter.getParamValue(),
-                    queryParameter.getDescription()
+                    queryParameter.getDescription(),
+                    queryParameter.getIsEssential(),
+                    queryParameter.getIsChecked()
                 );
             })
             .toList();
@@ -216,7 +232,9 @@ public class ApiService {
                     cookie.getId().toString(),
                     cookie.getCookieKey(),
                     cookie.getCookieValue(),
-                    cookie.getDescription()
+                    cookie.getDescription(),
+                    cookie.getIsEssential(),
+                    cookie.getIsChecked()
                 );
             })
             .toList();
@@ -224,6 +242,7 @@ public class ApiService {
         ApiDetailResponseDto.Parameters parameters = new ApiDetailResponseDto.Parameters(
             api.getAuthenticationType().name(),
             headers,
+            pathVariables,
             queryParameters,
             cookies
         );
@@ -254,7 +273,9 @@ public class ApiService {
                     formData.getBodyKey(),
                     formData.getBodyValue(),
                     formData.getParameterType().name(),
-                    formData.getDescription()
+                    formData.getDescription(),
+                    formData.getIsEssential(),
+                    formData.getIsChecked()
                 );
             })
             .toList();
@@ -334,7 +355,9 @@ public class ApiService {
                     header.getId().toString(),
                     header.getHeaderKey(),
                     header.getHeaderValue(),
-                    header.getDescription()
+                    header.getDescription(),
+                    header.getIsEssential(),
+                    header.getIsChecked()
                 );
             })
             .toList();
@@ -358,7 +381,9 @@ public class ApiService {
                     queryParameter.getId().toString(),
                     queryParameter.getParamKey(),
                     queryParameter.getParamValue(),
-                    queryParameter.getDescription()
+                    queryParameter.getDescription(),
+                    queryParameter.getIsEssential(),
+                    queryParameter.getIsChecked()
                 );
             })
             .toList();
@@ -370,7 +395,9 @@ public class ApiService {
                     cookie.getId().toString(),
                     cookie.getCookieKey(),
                     cookie.getCookieValue(),
-                    cookie.getDescription()
+                    cookie.getDescription(),
+                    cookie.getIsEssential(),
+                    cookie.getIsChecked()
                 );
             })
             .toList();
@@ -403,7 +430,9 @@ public class ApiService {
                     formData.getBodyKey(),
                     formData.getBodyValue(),
                     formData.getParameterType().name(),
-                    formData.getDescription()
+                    formData.getDescription(),
+                    formData.getIsEssential(),
+                    formData.getIsChecked()
                 );
             })
             .toList();
@@ -441,7 +470,7 @@ public class ApiService {
         requestDto.parameters().headers().forEach(headerDto -> {
             apiHeaderRepository.findById(Long.parseLong(headerDto.headerId()))
                 .ifPresent(header -> {
-                    header.updateApiHeaderValue(headerDto.headerValue());
+                    header.updateApiHeaderValue(headerDto.headerValue(), headerDto.isChecked());
                     apiHeaderRepository.save(header);
                 });
         });
@@ -457,7 +486,8 @@ public class ApiService {
         requestDto.parameters().queryParameters().forEach(queryParameterDto -> {
             apiQueryParameterRepository.findById(Long.parseLong(queryParameterDto.queryParameterId()))
                 .ifPresent(queryParameter -> {
-                    queryParameter.updateApiQueryParameterValue(queryParameterDto.queryParameterValue());
+                    queryParameter.updateApiQueryParameterValue(queryParameterDto.queryParameterValue(),
+                        queryParameterDto.isChecked());
                     apiQueryParameterRepository.save(queryParameter);
                 });
         });
@@ -465,7 +495,7 @@ public class ApiService {
         requestDto.parameters().cookies().forEach(cookieDto -> {
             apiCookieRepository.findById(Long.parseLong(cookieDto.cookieId()))
                 .ifPresent(cookie -> {
-                    cookie.updateCookieValue(cookieDto.cookieValue());
+                    cookie.updateCookieValue(cookieDto.cookieValue(), cookieDto.isChecked());
                     apiCookieRepository.save(cookie);
                 });
         });
@@ -473,7 +503,7 @@ public class ApiService {
         if (requestDto.request().json() != null) {
             apiBodyRepository.findById(Long.parseLong(requestDto.request().json().jsonDataId()))
                 .ifPresent(body -> {
-                    body.updateBodyValue(requestDto.request().json().jsonDataValue());
+                    body.updateBodyValue(requestDto.request().json().jsonDataValue(), true);
                     apiBodyRepository.save(body);
                 });
         }
@@ -481,7 +511,7 @@ public class ApiService {
         requestDto.request().formData().forEach(formDataDto -> {
             apiBodyRepository.findById(Long.parseLong(formDataDto.formDataId()))
                 .ifPresent(body -> {
-                    body.updateBodyValue(formDataDto.formDataValue());
+                    body.updateBodyValue(formDataDto.formDataValue(), formDataDto.isChecked());
                     apiBodyRepository.save(body);
                 });
         });
