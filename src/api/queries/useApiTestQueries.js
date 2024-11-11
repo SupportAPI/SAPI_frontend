@@ -44,13 +44,27 @@ export const useFetchApiDetail = (workspaceId, apiId) => {
 };
 
 // 3. API Detail 수정 (개별)
-export const patchApiDetail = async (workspaceId, apiId) => {
+export const patchApiDetail = async (workspaceId, apiId, apiTestDetails) => {
   const accessToken = getToken();
 
-  const response = await axios.patch(`${base_URL}/api/workspaces/${workspaceId}/api-tests/${apiId}`, {
+  const response = await axios.patch(`${base_URL}/api/workspaces/${workspaceId}/api-tests/${apiId}`, apiTestDetails, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
   });
+  return response.data.data;
+};
+
+// 4. API TEST Request
+export const requestApiTest = async (workspaceId, apiDetail) => {
+  const accessToken = getToken();
+
+  const response = await axios.post(`${base_URL}/api/workspaces/${workspaceId}/test`, apiDetail, {
+    headers: {
+      Content_Type: 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return response.data.data;
 };
