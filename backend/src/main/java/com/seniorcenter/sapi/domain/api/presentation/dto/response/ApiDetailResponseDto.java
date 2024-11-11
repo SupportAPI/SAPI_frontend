@@ -26,28 +26,42 @@ public record ApiDetailResponseDto(
     public record Parameters(
             String authType,
             List<Header> headers,
+            List<ApiDetailResponseDto.Parameters.PathVariables> pathVariables,
             List<QueryParameter> queryParameters,
             List<Cookie> cookies
     ) {
         public record Header(
-                String headerId,
-                String headerKey,
-                String headerValue,
-                String headerDescription
+                String id,
+                String key,
+                String value,
+                String description,
+                Boolean isEssential,
+                Boolean isChecked
+        ) {}
+
+        public record PathVariables(
+            String id,
+            String key,
+            String value,
+            String description
         ) {}
 
         public record QueryParameter(
-                String queryParameterId,
-                String queryParameterKey,
-                String queryParameterValue,
-                String queryParameterDescription
+                String id,
+                String key,
+                String value,
+                String description,
+                Boolean isEssential,
+                Boolean isChecked
         ) {}
 
         public record Cookie(
-                String cookieId,
-                String cookieKey,
-                String cookieValue,
-                String cookieDescription
+                String id,
+                String key,
+                String value,
+                String description,
+                Boolean isEssential,
+                Boolean isChecked
         ) {}
     }
 
@@ -57,24 +71,26 @@ public record ApiDetailResponseDto(
             List<FormData> formData
     ) {
         public record JsonData(
-                String jsonDataId,
-                String jsonDataValue
+                String id,
+                String value
         ) {}
 
         public record FormData(
-                String formDataId,
-                String formDataKey,
-                String formDataValue,
-                String formDataType,
-                String formDataDescription
+                String id,
+                String key,
+                String value,
+                String type,
+                String description,
+                Boolean isEssential,
+                Boolean isChecked
         ) {}
     }
 
     public record Response(
-            String responseId,
-            String responseCode,
-            String responseDescription,
-            String responseContentType,
-            String ResponseBodyData
+            String id,
+            String code,
+            String description,
+            String contentType,
+            String bodyData
     ) {}
 }

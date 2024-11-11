@@ -28,31 +28,37 @@ public record ApiTestDetailResponseDto(
 		List<ApiTestDetailResponseDto.Parameters.Cookie> cookies
 	) {
 		public record Header(
-			String headerId,
-			String headerKey,
-			String headerValue,
-			String headerDescription
+			String id,
+			String key,
+			String value,
+			String description,
+			Boolean isEssential,
+			Boolean isChecked
 		) {}
 
 		public record PathVariables(
-			String pathVariableId,
-			String pathVariableKey,
-			String pathVariableValue,
-			String pathVariableDescription
+			String id,
+			String key,
+			String value,
+			String description
 		) {}
 
 		public record QueryParameter(
-			String queryParameterId,
-			String queryParameterKey,
-			String queryParameterValue,
-			String queryParameterDescription
+			String id,
+			String key,
+			String value,
+			String description,
+			Boolean isEssential,
+			Boolean isChecked
 		) {}
 
 		public record Cookie(
-			String cookieId,
-			String cookieKey,
-			String cookieValue,
-			String cookieDescription
+			String id,
+			String key,
+			String value,
+			String description,
+			Boolean isEssential,
+			Boolean isChecked
 		) {}
 	}
 
@@ -62,16 +68,18 @@ public record ApiTestDetailResponseDto(
 		List<ApiTestDetailResponseDto.Request.FormData> formData
 	) {
 		public record JsonData(
-			String jsonDataId,
-			String jsonDataValue
+			String id,
+			String value
 		) {}
 
 		public record FormData(
-			String formDataId,
-			String formDataKey,
-			String formDataValue,
-			String formDataType,
-			String formDataDescription
+			String id,
+			String key,
+			String value,
+			String type,
+			String description,
+			Boolean isEssential,
+			Boolean isChecked
 		) {}
 	}
 }
