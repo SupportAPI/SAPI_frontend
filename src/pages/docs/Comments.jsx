@@ -209,6 +209,18 @@ const Comments = ({ docsId, workspaceId }) => {
     }
   };
 
+  // 3. 엔터 입력 시 작성/수정 전송 함수
+  const handleKeyDownSend = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // 기본 줄바꿈 동작 방지
+      if (editingMessageId) {
+        handleSaveEdit();
+      } else {
+        handleSave();
+      }
+    }
+  };
+
   //  <------ 메세지 작성 ------>
   // 1. 댓글 입력창 입력 시 호출되는 함수
   const handleInput = (e) => {
@@ -279,7 +291,7 @@ const Comments = ({ docsId, workspaceId }) => {
   };
 
   // 3. 메시지 전송 함수
-  const sendMessage = () => {
+  const handleSave = () => {
     if (stompClientRef.current && stompClientRef.current.connected && sendContent) {
       const parsedMessage = parseMessage(sendContent);
       stompClientRef.current.publish({
@@ -497,17 +509,6 @@ const Comments = ({ docsId, workspaceId }) => {
     setShowDeleteModal(false);
   };
 
-  // 무한 스크롤시 스크롤 감지
-  useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll);
-    }
-    return () => {
-      if (scrollContainer) scrollContainer.removeEventListener('scroll', handleScroll);
-    };
-  }, [handleScroll]);
-
   // 스크롤 감지 후 무한 스크롤 데이터 로딩
   const handleScroll = () => {
     const scrollContainer = scrollContainerRef.current;
@@ -518,6 +519,17 @@ const Comments = ({ docsId, workspaceId }) => {
       if (index > 1) findMutation.mutate();
     }
   };
+
+  // 무한 스크롤시 스크롤 감지
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+    }
+    return () => {
+      if (scrollContainer) scrollContainer.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll]);
 
   // 태그된 유저 정보 확인
   const showUserInfo = (e, nickname, profileImage, userId) => {
@@ -590,6 +602,7 @@ const Comments = ({ docsId, workspaceId }) => {
                     <textarea
                       value={editContent}
                       onInput={handleEditInput}
+                      onKeyDown={handleKeyDownSend}
                       className='w-full p-1 rounded-md border border-gray-300 resize-none overflow-hidden'
                       style={{ height: 'auto' }}
                     />
@@ -649,9 +662,10 @@ const Comments = ({ docsId, workspaceId }) => {
               rows='1'
               placeholder='코멘트 입력'
               onInput={handleInput}
+              onKeyDown={handleKeyDownSend}
               value={sendContent}
             ></textarea>
-            <BsSend onClick={sendMessage} className='mt-1 text-4xl ml-1' />
+            <BsSend onClick={handleSave} className='mt-1 text-4xl ml-1' />
           </div>
         </div>
       </div>
