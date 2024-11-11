@@ -139,7 +139,7 @@ public class CommentService {
         }
         User writer = userRepository.findById(comment.getWriterId())
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
-        CommentResponseDto commentResponseDto = new CommentResponseDto(comment.getId(), writer.getNickname(), new ArrayList<>(), comment.getCreatedDate(), isHost);
+        CommentResponseDto commentResponseDto = new CommentResponseDto(comment.getId(), writer.getNickname(), writer.getProfileImage(), new ArrayList<>(), comment.getCreatedDate(), isHost);
         String text = comment.getComment();
         String[] split = text.split(Pattern.quote(splitText));
         for (String str : split) {
@@ -163,7 +163,7 @@ public class CommentService {
         }
         User writer = userRepository.findById(comment.getWriterId())
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
-        CommentResponseDto commentResponseDto = new CommentResponseDto(comment.getId(), writer.getNickname(), new ArrayList<>(), comment.getCreatedDate(), isHost);
+        CommentResponseDto commentResponseDto = new CommentResponseDto(comment.getId(), writer.getNickname(), writer.getProfileImage(), new ArrayList<>(), comment.getCreatedDate(), isHost);
         String text = comment.getComment();
         String[] split = text.split(Pattern.quote(splitText));
         for (String str : split) {
