@@ -15,13 +15,13 @@ import { toast } from 'react-toastify';
 
 const ApiTestDetail = () => {
   const { workspaceId, apiId } = useParams();
-  const { data: apiInfo, isLoading } = useFetchApiDetail(workspaceId, apiId); // isLoading 상태를 추가
-
+  const { data: apiInfo, isLoading, refetch } = useFetchApiDetail(workspaceId, apiId);
+  const [apiDetail, setApiDetail] = useState(null);
   const [apiData, setApiData] = useState([{ category: 'Uncategorized', name: 'New API' }]);
   const [apimethod, setApimethod] = useState('null');
   const [apiname, setApiname] = useState('null');
   const [apiUrl, setApiUrl] = useState('null');
-  const [activeTabContent, setActiveTabContent] = useState('Parameters'); // 기본 탭을 'Parameters'로 설정
+  const [activeTabContent, setActiveTabContent] = useState(null); // 기본 탭을 'Parameters'로 설정
   const [activeTabResult, setActiveTabResult] = useState('Body'); // 기본 탭을 'Parameters'로 설정
   const [copySuccess, setCopySuccess] = useState(false); // 복사 성공 여부 상태 추가
 
@@ -29,17 +29,40 @@ const ApiTestDetail = () => {
   const { addTab, openTabs, removeTab } = useTabStore();
   const { setMenu } = useNavbarStore();
 
+  const [renderApi, setRenderApi] = useState(false);
+
   const location = useLocation();
 
-  useEffect(() => {
-    if (!apiInfo) return;
-    setApiData({ category: `Uncategorized`, name: `${apiInfo.name}` }); // api 정보 탭에 추가
-    setApiname(apiInfo.name);
-    setApiUrl(apiInfo.path || 'Url이 존재하지 않습니다.'); // api 주소 추가
-    setApimethod(apiInfo.method);
-  }, [apiInfo]);
+  console.log('apidetail', apiDetail);
 
-  // Url 복사 기능df
+  useEffect(() => {
+    // 페이지 이동이나 location 변경 시 refetch로 데이터 다시 로딩
+    if (apiId) {
+      setActiveTabContent(null);
+      setRenderApi(false);
+      refetch();
+    }
+  }, [apiId, location.pathname, refetch]); // apiId 또는 경로가 변경될 때마다 refetch 호출
+
+  useEffect(() => {
+    if (apiInfo) {
+      setApiDetail(apiInfo);
+      setApiData({ category: 'Uncategorized', name: `${apiInfo.name}` });
+      setApiname(apiInfo.name);
+      setApiUrl(apiInfo.path || 'Url이 존재하지 않습니다.');
+      setApimethod(apiInfo.method);
+    }
+  }, [apiInfo]); // apiInfo만 의존성으로 추가
+
+  useEffect(() => {
+    if (!renderApi) {
+      console.log('들어옴?');
+      setActiveTabContent('Parameters');
+      setRenderApi(true);
+    }
+  }, [apiDetail]);
+
+  // Url 복사 기능
   const handleCopyAddress = () => {
     navigator.clipboard
       .writeText(apiUrl)
@@ -51,20 +74,27 @@ const ApiTestDetail = () => {
       .catch((error) => console.error('URL 복사에 실패했습니다:', error));
   };
 
+  const handleParamsChange = (newParams) => {
+    setApiDetail((prevDetail) => ({
+      ...prevDetail,
+      parameters: newParams,
+    }));
+  };
+
+  const handleBodyChange = (newBodies) => {
+    setApiDetail((prevDetail) => ({
+      ...prevDetail,
+      request: newBodies,
+    }));
+  };
+
   // Content Tap
   const renderTabContent = () => {
     switch (activeTabContent) {
       case 'Parameters':
-        return (
-          <ApiTestParameters
-            headers={apiInfo.parameters.headers}
-            pathVariables={apiInfo.parameters.pathVariables}
-            queryParameters={apiInfo.parameters.queryParameters}
-            cookies={apiInfo.parameters.cookies}
-          />
-        );
+        return <ApiTestParameters initialValues={apiDetail?.parameters || []} paramsChange={handleParamsChange} />;
       case 'Body':
-        return <ApiTestBody body={apiInfo.request} />;
+        return <ApiTestBody body={apiDetail?.request || []} bodyChange={handleBodyChange} />;
 
       default:
         return null;
@@ -108,7 +138,7 @@ const ApiTestDetail = () => {
   }
 
   return (
-    <div className='flex'>
+    <div className='flex p-4'>
       <div className='flex-1'>
         <div className='flex flex-col border-white p-2 h-full w-full'>
           {/* 상단 제목 단 */}
@@ -127,12 +157,12 @@ const ApiTestDetail = () => {
                 </div>
               </div>
               <div className='flex'>
-                <button className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
+                {/* <button className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
                   <div className='flex items-center'>
                     <RiArrowDropDownLine className='text-xl' />
                     Local
                   </div>
-                </button>
+                </button> */}
                 <button className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
                   TEST
                 </button>
@@ -169,7 +199,9 @@ const ApiTestDetail = () => {
               maxConstraints={[Infinity, 700]}
             >
               {/* 탭에 따른 내용 영역 */}
-              <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>{renderTabContent()}</div>
+              <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>
+                {activeTabContent && renderTabContent()}
+              </div>
             </ResizableBox>
 
             {/* 테스트 결과 영역 */}
