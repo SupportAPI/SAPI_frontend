@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { IoCopyOutline } from 'react-icons/io5';
+import { IoCopyOutline, IoCopy } from 'react-icons/io5';
 import { ResizableBox } from 'react-resizable';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 import { FaSave } from 'react-icons/fa';
@@ -10,33 +10,61 @@ import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useSidebarStore } from '../../stores/useSidebarStore';
 import { useTabStore } from '../../stores/useTabStore';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useFetchApiDetail } from '../../api/queries/useApiTestQueries';
+import { toast } from 'react-toastify';
 
 const ApiTestDetail = () => {
+  const { workspaceId, apiId } = useParams();
+  const { data: apiInfo, isLoading } = useFetchApiDetail(workspaceId, apiId); // isLoading 상태를 추가
+
   const [apiData, setApiData] = useState([{ category: 'Uncategorized', name: 'New API' }]);
-  const [apiDetail, setApiDetail] = useState(1);
-  const [apimethod, setApimethod] = useState('POST');
-  const [apiname, setApiname] = useState('API NAME');
-  const [apiUrl, setApiUrl] = useState('/api/memberships/membershipid/role');
+  const [apimethod, setApimethod] = useState('null');
+  const [apiname, setApiname] = useState('null');
+  const [apiUrl, setApiUrl] = useState('null');
   const [activeTabContent, setActiveTabContent] = useState('Parameters'); // 기본 탭을 'Parameters'로 설정
   const [activeTabResult, setActiveTabResult] = useState('Body'); // 기본 탭을 'Parameters'로 설정
+  const [copySuccess, setCopySuccess] = useState(false); // 복사 성공 여부 상태 추가
 
   const { expandedCategories, expandCategory } = useSidebarStore();
   const { addTab, openTabs, removeTab } = useTabStore();
   const { setMenu } = useNavbarStore();
-  const { workspaceId, apiId } = useParams();
+
   const location = useLocation();
 
+  useEffect(() => {
+    if (!apiInfo) return;
+    setApiData({ category: `Uncategorized`, name: `${apiInfo.name}` }); // api 정보 탭에 추가
+    setApiname(apiInfo.name);
+    setApiUrl(apiInfo.path || 'Url이 존재하지 않습니다.'); // api 주소 추가
+    setApimethod(apiInfo.method);
+  }, [apiInfo]);
+
+  // Url 복사 기능
   const handleCopyAddress = () => {
-    // Address 카피할 수 있는 기능 추가할 것
+    navigator.clipboard
+      .writeText(apiUrl)
+      .then(() => {
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 300); // 2초 후에 알림 숨기기
+        toast('클립보드에 복사되었습니다.');
+      })
+      .catch((error) => console.error('URL 복사에 실패했습니다:', error));
   };
 
   // Content Tap
   const renderTabContent = () => {
     switch (activeTabContent) {
       case 'Parameters':
-        return <ApiTestParameters />;
+        return (
+          <ApiTestParameters
+            headers={apiInfo.parameters.headers}
+            pathVariables={apiInfo.parameters.pathVariables}
+            queryParameters={apiInfo.parameters.queryParameters}
+            cookies={apiInfo.parameters.cookies}
+          />
+        );
       case 'Body':
-        return <ApiTestBody />;
+        return <ApiTestBody body={apiInfo.request} />;
 
       default:
         return null;
@@ -47,7 +75,11 @@ const ApiTestDetail = () => {
   const renderTabResult = () => {
     switch (activeTabResult) {
       case 'Body':
-        return <div>1</div>;
+        return (
+          <div>
+            <div>11</div>
+          </div>
+        );
       case 'Cookies':
         return <div>2</div>;
       case 'Headers':
@@ -59,7 +91,6 @@ const ApiTestDetail = () => {
 
   useEffect(() => {
     if (apiData && apiId) {
-      setApiDetail(apiData);
       const category = apiData.category;
       if (category && !expandedCategories[category]) expandCategory(category);
       if (!openTabs.find((tab) => tab.id === apiId)) {
@@ -68,12 +99,20 @@ const ApiTestDetail = () => {
     }
   }, [apiData, apiId, expandCategory, addTab, setMenu, expandedCategories, openTabs, location.pathname, workspaceId]);
 
+  if (isLoading) {
+    return <div>Loading...</div>; // 로딩 중일 때 표시할 내용
+  }
+
+  if (!apiInfo) {
+    return <div>Error: API data not found.</div>; // apiInfo가 없을 때 표시할 오류 메시지
+  }
+
   return (
-    <div className='flex h-full'>
-      <div className='flex-1 overflow-hidden'>
-        <div className='flex flex-col min-w-[900px] h-screen border-white p-2 rounded-lg'>
+    <div className='flex'>
+      <div className='flex-1'>
+        <div className='flex flex-col border-white p-2 h-full w-full'>
           {/* 상단 제목 단 */}
-          <div className='mb-4'>
+          <div className='mb-2'>
             <div className='flex justify-between items-center'>
               <div className='flex items-center'>
                 <div className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
@@ -83,9 +122,7 @@ const ApiTestDetail = () => {
                   <div className='text-xl font-semibold'>{apiname}</div>
                   <div className='flex items-center'>
                     <div className='max-w-[350px] mr-2 truncate'>{apiUrl}</div>
-                    <button onClick={handleCopyAddress}>
-                      <IoCopyOutline />
-                    </button>
+                    <button onClick={handleCopyAddress}>{copySuccess ? <IoCopy /> : <IoCopyOutline />}</button>
                   </div>
                 </div>
               </div>
@@ -123,48 +160,51 @@ const ApiTestDetail = () => {
           </div>
 
           {/* 화면 분할 */}
-          <ResizableBox
-            width={Infinity}
-            height={500}
-            resizeHandles={['se', 's', 'sw', 'ne', 'nw', 'n']}
-            minConstraints={[Infinity, 100]}
-            maxConstraints={[Infinity, 700]}
-          >
-            {/* 탭에 따른 내용 영역 */}
-            <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>{renderTabContent()}</div>
-          </ResizableBox>
+          <div>
+            <ResizableBox
+              width={Infinity}
+              height={400}
+              resizeHandles={['se', 's', 'sw', 'ne', 'nw', 'n']}
+              minConstraints={[Infinity, 100]}
+              maxConstraints={[Infinity, 700]}
+            >
+              {/* 탭에 따른 내용 영역 */}
+              <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>{renderTabContent()}</div>
+            </ResizableBox>
 
-          {/* 테스트 결과 영역 */}
-          <div className='flex-1 p-4 overflow-y-auto border-t-2 sidebar-scrollbar'>
-            {/* 탭 네비게이션 */}
-            <div className='flex mb-4'>
-              <button
-                className={`w-[60px] mr-3 mb-1  text-[13px] ${
-                  activeTabResult === 'Body' ? 'border-b-2 border-blue-500' : ''
-                }`}
-                onClick={() => setActiveTabResult('Body')}
-              >
-                Body
-              </button>
-              <button
-                className={`w-[60px] mr-3 mb-1 text-[13px] ${
-                  activeTabResult === 'Cookies' ? 'border-b-2 border-blue-500' : ''
-                }`}
-                onClick={() => setActiveTabResult('Cookies')}
-              >
-                Cookies
-              </button>
-              <button
-                className={`w-[60px] mr-3 mb-1 text-[13px] ${
-                  activeTabResult === 'Headers' ? 'border-b-2 border-blue-500' : ''
-                }`}
-                onClick={() => setActiveTabResult('Headers')}
-              >
-                Headers
-              </button>
-            </div>
-            <div className='border p-4 overflow-y-auto border-b h-full sidebar-scrollbar text-[13px]'>
-              {renderTabResult()}
+            {/* 테스트 결과 영역 */}
+            <div className='p-4 overflow-y-auto border-t-2 sidebar-scrollbar h-[400px]'>
+              {/* 탭 네비게이션 */}
+              <div className='mb-2 border-b'>Response</div>
+              <div className='flex mb-4'>
+                <button
+                  className={`w-[60px] mr-3 mb-1 text-[13px] ${
+                    activeTabResult === 'Body' ? 'border-b-2 border-blue-500' : ''
+                  }`}
+                  onClick={() => setActiveTabResult('Body')}
+                >
+                  Body
+                </button>
+                <button
+                  className={`w-[60px] mr-3 mb-1 text-[13px] ${
+                    activeTabResult === 'Cookies' ? 'border-b-2 border-blue-500' : ''
+                  }`}
+                  onClick={() => setActiveTabResult('Cookies')}
+                >
+                  Cookies
+                </button>
+                <button
+                  className={`w-[60px] mr-3 mb-1 text-[13px] ${
+                    activeTabResult === 'Headers' ? 'border-b-2 border-blue-500' : ''
+                  }`}
+                  onClick={() => setActiveTabResult('Headers')}
+                >
+                  Headers
+                </button>
+              </div>
+              <div className='border p-4 overflow-y-auto border-b sidebar-scrollbar text-[13px]'>
+                {renderTabResult()}
+              </div>
             </div>
           </div>
         </div>
