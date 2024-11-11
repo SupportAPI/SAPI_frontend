@@ -10,6 +10,7 @@ public record ApiNotificationResponseDto(
 	String fromName,
 	String message,
 	String notificationType,
+	Boolean isRead,
 	LocalDateTime createdDatetime
 ) {
 }
