@@ -8,6 +8,7 @@ import java.util.List;
 public record CommentResponseDto(
         Long commentId,
         String writerNickname,
+        String writerProfileImage,
         List<CommentPart> comment,
         LocalDateTime createdDate,
         boolean isHost
