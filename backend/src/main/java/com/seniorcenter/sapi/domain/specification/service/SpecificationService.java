@@ -3,6 +3,8 @@ package com.seniorcenter.sapi.domain.specification.service;
 import com.seniorcenter.sapi.domain.api.domain.*;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.*;
+import com.seniorcenter.sapi.domain.category.domain.Category;
+import com.seniorcenter.sapi.domain.category.domain.repository.CategoryRepository;
 import com.seniorcenter.sapi.domain.notification.domain.NotificationType;
 import com.seniorcenter.sapi.domain.notification.util.SseUtils;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
@@ -50,6 +52,7 @@ public class SpecificationService {
     private final ApiResponseRepository apiResponseRepository;
     private final StatisticsService statisticsService;
     private final SseUtils sseUtils;
+    private final CategoryRepository categoryRepository;
 
     @Transactional
     public void createSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
@@ -61,6 +64,10 @@ public class SpecificationService {
 
         Workspace workspace = workspaceRepository.findById(worksapceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
+
+        Category category = Category.createCategory("미설정", workspace);
+        categoryRepository.save(category);
+
         Specification specification = Specification.createSpecification(api.getId(), workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
@@ -137,11 +144,14 @@ public class SpecificationService {
 
     @Transactional
     public UUID createSpecificationByApi(UUID workspaceId) {
-        String tempLambdaId = "1"; // 임시 lambda ID
         Api api = Api.createApi();
         apiRepository.save(api);
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
+
+        Category category = Category.createCategory("미설정", workspace);
+        categoryRepository.save(category);
+
         Specification specification = Specification.createSpecification(api.getId(), workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
@@ -182,8 +192,8 @@ public class SpecificationService {
         apiQueryParameterRepository.saveAll(newQueryParameter);
 
         List<ApiPathVariable> newPathVariable = originApi.getPathVariables().stream()
-            .map(pathVariable -> ApiPathVariable.copyApiPathVariable(newApi, pathVariable))
-            .collect(Collectors.toList());
+                .map(pathVariable -> ApiPathVariable.copyApiPathVariable(newApi, pathVariable))
+                .collect(Collectors.toList());
         apiPathVariableRepository.saveAll(newPathVariable);
 
         List<ApiBody> newBodies = originApi.getBodies().stream()
@@ -192,8 +202,8 @@ public class SpecificationService {
         apiBodyRepository.saveAll(newBodies);
 
         List<ApiResponse> newResponses = originApi.getResponses().stream()
-                        .map(response -> ApiResponse.copyApiResponse(newApi, response))
-                                .collect(Collectors.toList());
+                .map(response -> ApiResponse.copyApiResponse(newApi, response))
+                .collect(Collectors.toList());
         apiResponseRepository.saveAll(newResponses);
 
         apiLambdaService.createLambda(specificationId);
@@ -202,7 +212,7 @@ public class SpecificationService {
 
         if (specification.getManager() != null) {
             sseUtils.sendApiNotification(specification.getManager(), originApi.getId(),
-                specification.getWorkspace().getId(), NotificationType.API_CONFIRM);
+                    specification.getWorkspace().getId(), NotificationType.API_CONFIRM);
         }
 
         return new SpecificationResponseDto(originApi, specification);
