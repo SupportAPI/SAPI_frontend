@@ -112,7 +112,7 @@ public class Api extends BaseTimeEntity {
         this.name = name;
     }
 
-    public void updateMethod(HttpMethod method) {
-        this.method = method;
+    public void updateMethod(String method) {
+        this.method = HttpMethod.valueOf(method);
     }
 }

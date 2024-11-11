@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seniorcenter.sapi.domain.api.domain.*;
 import com.seniorcenter.sapi.domain.api.domain.enums.AuthenticationType;
-import com.seniorcenter.sapi.domain.api.domain.enums.HttpMethod;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiBodyRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiCookieRepository;
@@ -194,7 +193,7 @@ public class ApiService {
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
-        api.updateMethod(HttpMethod.valueOf(data.value()));
+        api.updateMethod(data.value());
     }
 
     public void updateDescription(ApiMessage message, UUID workspaceId, UUID apiId) {
