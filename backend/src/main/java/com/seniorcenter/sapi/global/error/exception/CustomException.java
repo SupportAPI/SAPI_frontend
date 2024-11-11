@@ -41,6 +41,8 @@ public enum CustomException {
     NOT_FOUND_QUERY_PARAMETER(404, "해당하는 쿼리 파라미터를 찾을 수 없습니다."),
     NOT_FOUND_HEADER(404, "해당하는 HEADER 정보를 찾을 수 없습니다."),
     NOT_FOUNT_COOKIE(404, "해당하는 COOKIE 정보를 찾을 수 없습니다."),
+    NOT_FOUND_ENVIRONMENT(404, "해당하는 환경변수를 찾을 수 없습니다."),
+    NOT_FOUND_ENVIRONMENT_CATEGORY(404, "해당하는 환경변수 카테고리를 찾을 수 없습니다."),
 
     /* 409 중복된 리소스 */
     EMAIL_ALREADY_VERIFIED(409, "이 이메일은 이미 인증되었습니다"),
