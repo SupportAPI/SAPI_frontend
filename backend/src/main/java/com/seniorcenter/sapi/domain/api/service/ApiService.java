@@ -1,5 +1,7 @@
 package com.seniorcenter.sapi.domain.api.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seniorcenter.sapi.domain.api.domain.*;
 import com.seniorcenter.sapi.domain.api.domain.enums.AuthenticationType;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
@@ -15,6 +17,7 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailRespo
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.*;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
 import com.seniorcenter.sapi.domain.category.domain.Category;
@@ -24,23 +27,34 @@ import com.seniorcenter.sapi.domain.api.util.ValueUtils;
 import com.seniorcenter.sapi.domain.category.service.CategoryService;
 import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepository;
 import com.seniorcenter.sapi.domain.occupation.service.OccupationService;
+import com.seniorcenter.sapi.domain.proxy.service.ProxyService;
+import com.seniorcenter.sapi.domain.proxy.service.ServerRequestInfoDto;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
+import com.seniorcenter.sapi.domain.specification.domain.TestStatus;
 import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
 import com.seniorcenter.sapi.domain.user.domain.User;
+import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -67,6 +81,8 @@ public class ApiService {
     private final SimpMessageSendingOperations messagingTemplate;
     private final ValueUtils valueUtils;
     private final UserUtils userUtils;
+    private final WorkspaceRepository workspaceRepository;
+    private final ProxyService proxyService;
     private final KeyValueUtils keyValueUtils;
 
     @Transactional
@@ -567,5 +583,262 @@ public class ApiService {
                     apiBodyRepository.save(body);
                 });
         });
+    }
+
+    public TestResponseDto testDefaultRequest(String workspaceId, Map<String, String> headers, HttpMethod method, HttpServletRequest request) {
+        String path = request.getRequestURI().replace("/api/workspaces/" + workspaceId + "/test", "");
+        String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
+        String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
+        String domain = testType.equals("Local")
+            ? headers.get("sapi-local-domain")
+            : workspaceRepository.findById(UUID.fromString(workspaceId))
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
+
+        String url = domain + path + queryString;
+
+        Api matchingApi = getMatchingApi(workspaceId, method, path);
+
+        ApiResponse http2xxResponse = matchingApi.getResponses() != null
+            ? matchingApi.getResponses().stream()
+            .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
+            .findFirst()
+            .orElse(null)
+            : null;
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        headers.forEach((key, value) -> {
+            if (!"sapi-local-domain".contains(key.toLowerCase())) {
+                httpHeaders.add(key, value);
+            }
+        });
+
+        ServerRequestInfoDto serverRequestInfoDto = new ServerRequestInfoDto(url, httpHeaders);
+
+        long startTime = System.currentTimeMillis();
+
+        Mono<ResponseEntity<byte[]>> responseEntityMono = proxyService.formDataRequest(serverRequestInfoDto, Map.of(), Map.of(), method);
+
+        return responseEntityMono.map(responseEntity -> toTestResponseDto(responseEntity, httpHeaders, Map.of(), http2xxResponse, startTime, testType)).block();
+    }
+
+
+    public TestResponseDto testFormDataRequest(String workspaceId, Map<String, String> headers, HttpMethod method, Map<String, Object> formParams, Map<String, MultipartFile> files, HttpServletRequest request) {
+        String path = request.getRequestURI().replace("/api/workspaces/" + workspaceId + "/test", "");
+        String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
+        String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
+        String domain = testType.equals("Local")
+            ? headers.get("sapi-local-domain")
+            : workspaceRepository.findById(UUID.fromString(workspaceId))
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
+
+        String url = domain + path + queryString;
+
+        Api matchingApi = getMatchingApi(workspaceId, method, path);
+
+        ApiResponse http2xxResponse = matchingApi.getResponses() != null
+            ? matchingApi.getResponses().stream()
+            .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
+            .findFirst()
+            .orElse(null)
+            : null;
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        headers.forEach((key, value) -> {
+            if (!"sapi-local-domain".equalsIgnoreCase(key)) {
+                httpHeaders.add(key, value);
+            }
+        });
+
+        ServerRequestInfoDto serverRequestInfoDto = new ServerRequestInfoDto(url, httpHeaders);
+
+        long startTime = System.currentTimeMillis();
+
+        Mono<ResponseEntity<byte[]>> responseEntityMono = proxyService.formDataRequest(serverRequestInfoDto, formParams, files, method);
+
+        return responseEntityMono.map(responseEntity -> toTestResponseDto(responseEntity, httpHeaders, formParams, http2xxResponse, startTime, testType)).block();
+
+    }
+
+    public TestResponseDto testJsonRequest(String workspaceId, Map<String, String> headers, HttpMethod method, Map<String, Object> body, HttpServletRequest request) {
+        String path = request.getRequestURI().replace("/api/workspaces/" + workspaceId + "/test", "");
+        String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
+        String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
+        String domain = testType.equals("Local")
+            ? headers.get("sapi-local-domain")
+            : workspaceRepository.findById(UUID.fromString(workspaceId))
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
+
+        String url = domain + path + queryString;
+
+        Api matchingApi = getMatchingApi(workspaceId, method, path);
+
+        ApiResponse http2xxResponse = matchingApi.getResponses() != null
+            ? matchingApi.getResponses().stream()
+            .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
+            .findFirst()
+            .orElse(null)
+            : null;
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        headers.forEach((key, value) -> {
+            if (!"sapi-local-domain".equalsIgnoreCase(key)) {
+                httpHeaders.add(key, value);
+            }
+        });
+
+        ServerRequestInfoDto serverRequestInfoDto = new ServerRequestInfoDto(url, httpHeaders);
+
+        long startTime = System.currentTimeMillis();
+
+        Mono<ResponseEntity<byte[]>> responseEntityMono = proxyService.jsonRequest(serverRequestInfoDto, body, method);
+
+        return responseEntityMono.map(responseEntity -> toTestResponseDto(responseEntity, httpHeaders, body, http2xxResponse, startTime, testType)).block();
+    }
+
+    private Api getMatchingApi(String workspaceId, HttpMethod method, String path) {
+        List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(UUID.fromString(workspaceId));
+
+        List<UUID> apiIds = specifications.stream()
+            .filter(specification -> !specification.getConfirmedApiId().equals(""))
+            .map(Specification::getConfirmedApiId)
+            .toList();
+
+        List<Api> apiList = apiRepository.findAllById(apiIds);
+
+        return apiList.stream()
+            .filter(api -> api.getMethod().getValue().equals(method.name()) && pathMatches(api.getPath(), path))
+            .findFirst()
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+    }
+
+    private boolean pathMatches(String path, String requestedPath) {
+        String regex = path.replaceAll("\\{[^/]+\\}", "[^/]+");
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(requestedPath);
+
+        return matcher.matches();
+    }
+
+    private TestResponseDto toTestResponseDto(ResponseEntity<byte[]> responseEntity, HttpHeaders httpHeaders, Map<String, Object> requestBody, ApiResponse mockResponse, long startTime, String testType) {
+        long responseTime = System.currentTimeMillis() - startTime;
+
+        // 응답 헤더 및 바디 크기 계산
+        long responseHeaderSize = responseEntity.getHeaders().toString().getBytes().length;
+        long responseBodySize = responseEntity.getBody() != null ? responseEntity.getBody().length : 0;
+
+        // 요청 헤더 및 바디 크기 계산
+        long requestHeaderSize = httpHeaders.toString().getBytes().length;
+        long requestBodySize = requestBody.toString().getBytes().length;
+
+        Map<String, String> cookies = responseEntity.getHeaders().get("Set-Cookie") != null
+            ? Map.of("Set-Cookie", String.join("; ", responseEntity.getHeaders().get("Set-Cookie")))
+            : Map.of();
+
+        // 응답 바디와 목 바디를 비교하여 구조 차이 찾기
+        String responseBodyStr = responseEntity.getBody() != null ? new String(responseEntity.getBody()) : null;
+        Map<String, Object> responseBodyMap = parseJsonToMap(responseBodyStr);
+        Map<String, Object> mockBodyMap = parseJsonToMap(mockResponse.getBodyData());
+
+        List<String> differences = findStructureDifferences(responseBodyMap, mockBodyMap, "");
+        String status;
+        int code;
+        String message;
+
+        if (differences.isEmpty()) {
+            status = TestStatus.SUCCESS.name();
+            code = responseEntity.getStatusCodeValue();
+            message = null;
+        } else {
+            status = TestStatus.FAIL.name();
+            code = 422; // 422 Unprocessable Entity (구조 불일치 시 사용)
+            message = String.join("; ", differences);
+        }
+
+
+        return new TestResponseDto(
+            status,
+            code,
+            responseBodyStr,
+            mockResponse.getBodyData(),
+            responseEntity.getHeaders().toSingleValueMap(),
+            cookies,
+            Map.of(
+                "Headers", requestHeaderSize + " B",
+                "Body", requestBodySize + " B"
+            ),
+            Map.of(
+                "Headers", responseHeaderSize + " B",
+                "Body", responseBodySize + " B"
+            ),
+            responseTime,
+            testType,
+            message
+        );
+    }
+
+    private static Map<String, Object> parseJsonToMap(String json) {
+        if (json == null || json.isEmpty()) {
+            return new HashMap<>();
+        }
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse JSON to Map", e);
+        }
+    }
+
+    private static List<String> findStructureDifferences(Map<String, Object> currentObj, Map<String, Object> actualObj, String path) {
+        List<String> differences = new ArrayList<>();
+
+        // 두 객체가 null일 경우 차이 없음
+        if ((currentObj == null || actualObj == null) && currentObj == actualObj) {
+            return differences;
+        }
+
+        // currentObj가 null이거나 undefined일 경우
+        if (currentObj == null) {
+            differences.add("필수 필드 '" + path + "'가 null 또는 undefined 입니다.");
+            return differences;
+        }
+
+        // actualObj가 null이거나 undefined일 경우
+        if (actualObj == null) {
+            differences.add("입력받은 필드 '" + path + "'가 null 또는 undefined 입니다.");
+            return differences;
+        }
+
+        var currentKeys = currentObj.keySet();
+        var actualKeys = actualObj.keySet();
+
+        // actualObj에 있는 키들이 currentObj에 있는지 검사
+        for (String key : actualKeys) {
+            String currentObjPath = path.isEmpty() ? key : path + "." + key;
+            if (!currentObj.containsKey(key)) {
+                differences.add("필수 필드 '" + currentObjPath + "'가 누락되었습니다.");
+                continue;
+            }
+            if (currentObj.get(key) instanceof Map && actualObj.get(key) instanceof Map) {
+                // Map 타입인 경우 재귀적으로 비교
+                differences.addAll(findStructureDifferences(
+                    (Map<String, Object>) currentObj.get(key),
+                    (Map<String, Object>) actualObj.get(key),
+                    currentObjPath
+                ));
+            } else if (!currentObj.get(key).getClass().equals(actualObj.get(key).getClass())) {
+                differences.add("'" + currentObjPath + "' 필드는 " + actualObj.get(key).getClass().getSimpleName() +
+                    " 타입이어야 하지만, " + currentObj.get(key).getClass().getSimpleName() + " 타입이 입력되었습니다.");
+            }
+        }
+
+        for (String key : currentKeys) {
+            String currentObjPath = path.isEmpty() ? key : path + "." + key;
+            if (!actualObj.containsKey(key)) {
+                differences.add("허용되지 않는 추가 필드 '" + currentObjPath + "'가 있습니다.");
+            }
+        }
+
+        return differences;
     }
 }

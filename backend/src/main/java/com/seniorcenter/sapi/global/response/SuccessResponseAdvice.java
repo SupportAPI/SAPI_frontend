@@ -3,6 +3,7 @@ package com.seniorcenter.sapi.global.response;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.seniorcenter.sapi.global.annotation.ExcludeFromAdvice;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,10 +24,11 @@ public class SuccessResponseAdvice implements ResponseBodyAdvice {
 			.registerModule(new JavaTimeModule())
 			.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-	@Override
-	public boolean supports(MethodParameter returnType, Class converterType) {
-		return true;
-	}
+    @Override
+    public boolean supports(MethodParameter returnType, Class converterType) {
+        // ExcludeFromAdvice 어노테이션이 있는 경우 Advice를 적용하지 않음
+        return !returnType.getContainingClass().isAnnotationPresent(ExcludeFromAdvice.class);
+    }
 
 	@Override
 	public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
