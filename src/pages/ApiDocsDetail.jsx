@@ -328,9 +328,11 @@ const ApiDocsDetail = () => {
       </div>
 
       <div
-        className={`transition-width duration-300 p-8 mr-[50px] relative overflow-y-auto ${
-          activeRightTab ? 'w-[500px] min-w-[500px] max-w-[500px]' : 'w-[350px] min-w-[350px] max-w-[350px]'
-        } ${activeRightTab ? 'border-l' : ''} sidebar-scrollbar h-[775px] pb-5`}
+        className={`transition-width duration-300 p-8 mr-[50px] relative ${
+          activeRightTab === 'comment' ? '' : 'overflow-y-auto'
+        } ${activeRightTab ? 'w-[500px] min-w-[500px] max-w-[500px]' : 'w-[350px] min-w-[350px] max-w-[350px]'} ${
+          activeRightTab ? 'border-l' : ''
+        } sidebar-scrollbar h-[775px] pb-5`}
       >
         {activeRightTab && (
           <button
@@ -362,10 +364,7 @@ const ApiDocsDetail = () => {
           />
         )}
         {activeRightTab === 'info' && (
-          <Info
-            createdData = {apiDetail?.createdDate}
-            lastModifiedDate = {apiDetail?.lastModifyDate}
-          />
+          <Info createdData={apiDetail?.createdDate} lastModifiedDate={apiDetail?.lastModifyDate} />
         )}
       </div>
 
