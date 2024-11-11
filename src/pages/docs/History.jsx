@@ -5,7 +5,7 @@ const History = ({ openHistoryDetail }) => {
   const data = [
     {
       createdDate: '2024-11-09T12:00:00.000Z',
-      apiId: 'fa9f27d8-28a2-47b5-9877-35c155823b57',
+      apiId: 'fa9f27d8-28a2-47b5-9877-35c155823b57asajdkhaskljdhasdhasjdhasdasdasdasdasdasdadasdasddasdasd',
       nickname: 'user1',
     },
     {
@@ -60,7 +60,7 @@ const History = ({ openHistoryDetail }) => {
   };
 
   return (
-    <div className='w-full flex flex-col mb-4 overflow-y-auto sidebar-scrollbar'>
+    <div className='w-full flex flex-col mb-4 overflow-y-auto  overflow-x-hidden sidebar-scrollbar'>
       <p className='text-2xl font-bold mb-4'>API History</p>
       <hr className='border-t border-gray-300 mb-3 w-full' />
       {data?.length === 0 ? (
@@ -73,23 +73,23 @@ const History = ({ openHistoryDetail }) => {
             <div
               key={history.apiId}
               onClick={() => openHistoryDetail(history.apiId)}
-              className='w-full flex flex-row text-[#666666] mt-4 border rounded-lg'
+              className='w-full flex flex-row text-[#666666] mt-4 border rounded-lg p-1'
             >
               <div className='w-full flex flex-col ml-1 p-3'>
-                <div className='flex flex-row justify-between'>
-                  <div className='flex flex-row'>
-                    <p>명세 확정일 : </p>
-                    <span className='text-sm mx-1 mt-0.5'>
-                      {new Date(history.createdDate).toLocaleString('ko-KR', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                  </div>
-                  <FaEllipsisH className='cursor-pointer mt-1' size={16} onClick={() => handleHistory(history.apiId)} />
+                <div className='flex flex-row'>
+                  <p className='break-words max-w-[100%]'>API ID : {history.apiId}</p> {/* 스타일 추가 */}
+                </div>
+                <div className='flex flex-row'>
+                  <p>명세 확정일 : </p>
+                  <span className='text-sm mx-1 mt-0.5'>
+                    {new Date(history.createdDate).toLocaleString('ko-KR', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
                 </div>
                 <p>명세 확정자 : {history.nickname}</p>
               </div>

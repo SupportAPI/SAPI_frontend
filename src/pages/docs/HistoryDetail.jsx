@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 
 import { PiArrowFatLeftFill } from 'react-icons/pi';
 import { FaReply, FaUndo, FaUndoAlt } from 'react-icons/fa';
+import { MdHistory } from 'react-icons/md';
 import { FaArrowLeft } from 'react-icons/fa6';
 
 import Parameters from '../docs/Parameters';
@@ -141,12 +142,12 @@ const HistoryDetail = ({ apiId, closeHistoryDetail }) => {
 
   return (
     <>
-      <div className='flex flex-row'>
+      <div className='flex flex-row mt-3'>
         <FaArrowLeft onClick={closeHistoryDetail} className='text-black hover:text-[#4C5E65] mt-1' size={28} />
-        <h2 className='text-2xl font-bold mb-4 ml-3'>History Detail - {dummyData.id}</h2>
+        <h2 className='text-2xl font-bold mb-4 ml-3'>History Detail - {apiId}</h2>
       </div>
       <div className='flex flex-1 flex-col'>
-        <div className='flex items-baseline space-x-1 mb-8 justify-between'>
+        <div className='flex items-baseline space-x-2 mb-8 justify-between'>
           <div className='inline-flex items-baseline space-x-1'>
             <p ref={categoryRef} className='focus:outline-none w-auto max-w-[200px] text-[18px] px-2'>
               {dummyData?.category.value || ''}
@@ -163,6 +164,12 @@ const HistoryDetail = ({ apiId, closeHistoryDetail }) => {
               readOnly
               placeholder='Enter API Name'
             />
+          </div>
+          <div className='flex space-x-4'>
+            <button className='flex items-center h-8 text-[18px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
+              <MdHistory />
+              <span>Rollback</span>
+            </button>
           </div>
         </div>
 

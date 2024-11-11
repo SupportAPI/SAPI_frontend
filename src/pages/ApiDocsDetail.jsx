@@ -177,8 +177,17 @@ const ApiDocsDetail = () => {
 
   // 히스토리 영역
   const openHistoryDetail = (apiId) => {
-    setIsHistoryDetailOpen((prev) => !prev);
-    setHistoryApiId(apiId);
+    if (historyApiId === apiId) {
+      if (isHistoryDetailOpen) {
+        setHistoryApiId(null);
+        setIsHistoryDetailOpen(false);
+      }
+    } else {
+      if (!isHistoryDetailOpen) {
+        setIsHistoryDetailOpen(true);
+      }
+      setHistoryApiId(apiId);
+    }
   };
 
   // History Detail 창 닫기 함수
