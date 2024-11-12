@@ -1,6 +1,6 @@
 package com.seniorcenter.sapi.domain.apifile.domain.repository;
 
-import com.seniorcenter.sapi.domain.apifile.presentation.ApiFile;
+import com.seniorcenter.sapi.domain.apifile.domain.ApiFile;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import org.springframework.data.jpa.repository.JpaRepository;
 
