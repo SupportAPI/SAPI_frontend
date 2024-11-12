@@ -3,6 +3,7 @@ import {
   useAddEnvironment,
   useFetchEnvironmentList,
   useEditEnvironmentName,
+  useDeleteEnvironment,
 } from '../../api/queries/useEnvironmentQueries';
 import { useTabStore } from '../../stores/useTabStore';
 import { useState, useEffect, useRef } from 'react';
@@ -22,6 +23,7 @@ const EnvironmentSidebar = () => {
   const [isEditing, setIsEditing] = useState(null); // 현재 편집 중인 id 저장
   const [editName, setEditName] = useState(''); // 편집 중인 이름 저장
   const setRef = useRef(null);
+  const deleteRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const [addTime, setAddTime] = useState(false);
   const [paths, setPaths] = useState([]);
@@ -32,7 +34,8 @@ const EnvironmentSidebar = () => {
     refetch: envAddRefetch,
   } = useAddEnvironment(workspaceId, newEnvironment.name);
 
-  const { mutate: editEnvironmentName } = useEditEnvironmentName();
+  const { mutate: editEnvironmentName } = useEditEnvironmentName(workspaceId);
+  const { mutate: deleteEnvironment } = useDeleteEnvironment(workspaceId);
 
   const {
     data: environmentList,
@@ -40,6 +43,8 @@ const EnvironmentSidebar = () => {
     error: isListError,
     refetch: listRefetch,
   } = useFetchEnvironmentList(workspaceId);
+
+  console.log(environmentList);
 
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
@@ -56,11 +61,7 @@ const EnvironmentSidebar = () => {
         path: `/workspace/${workspaceId}/environment/${env.categoryId}`,
       }));
 
-      setPaths((prevPaths) => {
-        const existingIds = prevPaths.map((path) => path.id);
-        const uniquePaths = updatedPaths.filter((newPath) => !existingIds.includes(newPath.id));
-        return [...prevPaths, ...uniquePaths];
-      });
+      setPaths(updatedPaths);
     }
   }, [environmentList]);
 
@@ -98,12 +99,19 @@ const EnvironmentSidebar = () => {
 
   const handleCategoryOption = (e, categoryId) => {
     e.stopPropagation();
+    console.log('ㅋㅋ');
     setSelectedCategoryId((prev) => (prev === categoryId ? null : categoryId)); // 현재 id 토글
   };
 
+  console.log(selectedCategoryId);
+
   const handleClickOutside = (event) => {
     if (setRef.current && !setRef.current.contains(event.target)) {
+      console.log('ㅋㅋ');
       setSelectedCategoryId(null);
+    }
+    if (deleteRef.current && !deleteRef.current.contains(event.target)) {
+      setShowDeleteModal(false);
     }
   };
 
@@ -124,15 +132,22 @@ const EnvironmentSidebar = () => {
     setIsEditing(null); // 편집 모드 종료
     setEditName(''); // 임시 이름 초기화
   };
+
   const handleBlurSave = (categoryId) => {
     if (isEditing === categoryId) {
       handleSaveEdit(categoryId);
     }
   };
 
-  const handleDelete = (e, categoryId) => {
+  const handleDelete = (e) => {
     e.stopPropagation();
     setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = (e) => {
+    e.stopPropagation();
+    deleteEnvironment(selectedCategoryId);
+    setShowDeleteModal(false);
   };
 
   useEffect(() => {
@@ -143,7 +158,6 @@ const EnvironmentSidebar = () => {
         path: `/workspace/${workspaceId}/environment/${envData.id}`,
       };
       setPaths((prevPaths) => [...prevPaths, newPath]);
-      setAddId((prevId) => prevId + 1); // 고유한 id 증가
       setShowInputEnvironment(false);
       setNewEnvironment({ name: '' });
       setAddTime(false); // 다음 호출을 위해 리셋
@@ -239,7 +253,7 @@ const EnvironmentSidebar = () => {
           )}
           {showDeleteModal && (
             <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
-              <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
+              <div ref={deleteRef} className='bg-white p-6 rounded-lg shadow-lg w-80'>
                 <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
                 <p className='mb-6'>선택한 API 문서를 삭제하시겠습니까?</p>
                 <div className='flex justify-end space-x-4'>
@@ -250,7 +264,7 @@ const EnvironmentSidebar = () => {
                     취소
                   </button>
                   <button
-                    onClick={handleConfirmDelete}
+                    onClick={(e) => handleConfirmDelete(e)}
                     className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
                   >
                     삭제

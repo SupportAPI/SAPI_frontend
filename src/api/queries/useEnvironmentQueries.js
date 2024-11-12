@@ -27,9 +27,12 @@ export const addEnvironment = async (workspaceId, name) => {
   }
 };
 
-export const useAddEnvironment = (workspaceId, name) => {
-  return useQuery(['workspaceId', workspaceId, name], () => addEnvironment(workspaceId, name), {
-    enabled: !!workspaceId && !!name,
+export const useAddEnvironment = (workspaceId) => {
+  const queryClient = useQueryClient();
+  return useMutation((name) => addEnvironment(workspaceId, name), {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['environmentList', workspaceId]);
+    },
   });
 };
 
@@ -54,7 +57,7 @@ export const fetchEnvironmentList = async (workspaceId) => {
 };
 
 export const useFetchEnvironmentList = (workspaceId) => {
-  return useQuery(['workspaceId', workspaceId], () => fetchEnvironmentList(workspaceId));
+  return useQuery(['environmentList', workspaceId], () => fetchEnvironmentList(workspaceId));
 };
 
 export const fetchEnvironment = async (categoryId) => {
@@ -74,7 +77,7 @@ export const fetchEnvironment = async (categoryId) => {
 };
 
 export const useFetchEnvironment = (categoryId) => {
-  return useQuery(['categoryId', categoryId], () => fetchEnvironment(categoryId), {
+  return useQuery(['environment', categoryId], () => fetchEnvironment(categoryId), {
     enabled: !!categoryId,
   });
 };
@@ -102,12 +105,37 @@ export const editEnvironmentName = async (categoryId, name) => {
 };
 
 // 환경 변수 이름 수정 함수
-export const useEditEnvironmentName = () => {
+export const useEditEnvironmentName = (workspaceId) => {
   const queryClient = useQueryClient();
   return useMutation(({ categoryId, name }) => editEnvironmentName(categoryId, name), {
     onSuccess: () => {
       // 수정 후 관련 데이터를 갱신
-      queryClient.invalidateQueries(['workspaceId']);
+      queryClient.invalidateQueries(['environmentList', workspaceId]);
+    },
+  });
+};
+
+export const deleteEnvironment = async (categoryId) => {
+  try {
+    const accessToken = getToken();
+    const response = await axios.delete(`${base_URL}/api/environment-categories/${categoryId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('dont delete category', error);
+    throw error;
+  }
+};
+
+export const useDeleteEnvironment = (workspaceId) => {
+  const queryClient = useQueryClient();
+  return useMutation((categoryId) => deleteEnvironment(categoryId), {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['environmentList', workspaceId]);
     },
   });
 };
