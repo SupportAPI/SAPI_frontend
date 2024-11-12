@@ -613,7 +613,7 @@ public class ApiService {
         });
     }
 
-    public TestResponseDto testDefaultRequest(String workspaceId, Map<String, String> headers, HttpMethod method, HttpServletRequest request) {
+    public TestResponseDto testDefaultRequest(String workspaceId, Map<String, String> headers, HttpServletRequest request) {
         String path = request.getRequestURI().replace("/api/workspaces/" + workspaceId + "/test", "");
         String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
         String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
@@ -623,7 +623,7 @@ public class ApiService {
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
 
         String url = domain + path + queryString;
-
+        HttpMethod method = HttpMethod.valueOf(headers.get("sapi-method"));
         Api matchingApi = getMatchingApi(workspaceId, method, path);
 
         ApiResponse http2xxResponse = matchingApi.getResponses() != null
@@ -650,7 +650,7 @@ public class ApiService {
     }
 
 
-    public TestResponseDto testFormDataRequest(String workspaceId, Map<String, String> headers, HttpMethod method, Map<String, Object> formParams, Map<String, MultipartFile> files, HttpServletRequest request) {
+    public TestResponseDto testFormDataRequest(String workspaceId, Map<String, String> headers, Map<String, Object> formParams, Map<String, MultipartFile> files, HttpServletRequest request) {
         String path = request.getRequestURI().replace("/api/workspaces/" + workspaceId + "/test", "");
         String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
         String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
@@ -660,7 +660,7 @@ public class ApiService {
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
 
         String url = domain + path + queryString;
-
+        HttpMethod method = HttpMethod.valueOf(headers.get("sapi-method"));
         Api matchingApi = getMatchingApi(workspaceId, method, path);
 
         ApiResponse http2xxResponse = matchingApi.getResponses() != null
@@ -687,7 +687,7 @@ public class ApiService {
 
     }
 
-    public TestResponseDto testJsonRequest(String workspaceId, Map<String, String> headers, HttpMethod method, Map<String, Object> body, HttpServletRequest request) {
+    public TestResponseDto testJsonRequest(String workspaceId, Map<String, String> headers, Map<String, Object> body, HttpServletRequest request) {
         String path = request.getRequestURI().replace("/api/workspaces/" + workspaceId + "/test", "");
         String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
         String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
@@ -697,7 +697,7 @@ public class ApiService {
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
 
         String url = domain + path + queryString;
-
+        HttpMethod method = HttpMethod.valueOf(headers.get("sapi-method"));
         Api matchingApi = getMatchingApi(workspaceId, method, path);
 
         ApiResponse http2xxResponse = matchingApi.getResponses() != null

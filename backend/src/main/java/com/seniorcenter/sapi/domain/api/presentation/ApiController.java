@@ -53,10 +53,9 @@ public class ApiController {
     public TestResponseDto testDefaultRequest(
         @PathVariable("workspaceId") String workspaceId,
         @RequestHeader(required = false) Map<String, String> headers,
-        HttpMethod method,
         HttpServletRequest request
     ) {
-        return apiService.testDefaultRequest(workspaceId, headers, method, request);
+        return apiService.testDefaultRequest(workspaceId, headers, request);
     }
 
     @RequestMapping(value = "/workspaces/{workspaceId}/test/**", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -65,10 +64,9 @@ public class ApiController {
         @RequestHeader(required = false) Map<String, String> headers,
         @RequestParam Map<String, MultipartFile> files,
         @RequestParam(required = false) Map<String, Object> formParams,
-        HttpMethod method,
         HttpServletRequest request
     ) {
-        return apiService.testFormDataRequest(workspaceId, headers, method, formParams, files, request);
+        return apiService.testFormDataRequest(workspaceId, headers, formParams, files, request);
     }
 
     @RequestMapping(value = "/workspaces/{workspaceId}/test/**", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -76,10 +74,9 @@ public class ApiController {
         @PathVariable("workspaceId") String workspaceId,
         @RequestHeader(required = false) Map<String, String> headers,
         @RequestBody Map<String, Object> body,
-        HttpMethod method,
         HttpServletRequest request
     ) {
-        return apiService.testJsonRequest(workspaceId, headers, method, body, request);
+        return apiService.testJsonRequest(workspaceId, headers, body, request);
     }
 
 }
