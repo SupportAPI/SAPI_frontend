@@ -1,20 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import { useWebSocket } from '../../contexts/WebSocketContext';
 
-const Parameters = ({ paramsChange, initialValues, workspaceId, apiId }) => {
+const Parameters = ({ paramsChange, initialValues, workspaceId, apiId, handleOccupationState }) => {
   const [header, setHeader] = useState(initialValues?.headers || []);
-  const [authType, setAuthType] = useState(initialValues?.authType || 'None');
+  const [authType, setAuthType] = useState(initialValues?.authType);
   const [authorization, setAuthorization] = useState('');
   const [queryParameter, setQueryParameter] = useState(initialValues?.queryParameters || []);
   const [cookie, setCookie] = useState(initialValues?.cookies || []);
   const { publish } = useWebSocket();
 
+  // 점유상태에 쓸 아이디들
+  const occupationAuthType = `${apiId}-authtype`;
+  const occupationQueryParpameter = `${apiId}-queryparameter`;
+
+  const authtypeRef = useRef(null);
+  const queryparameterRef = useRef(null);
+
   useEffect(() => {
+    // 내부 상태를 분명하게 설정하기 위해 개별적으로 업데이트
     setHeader(initialValues?.headers || []);
     setAuthType(initialValues?.authType || 'None');
     setQueryParameter(initialValues?.queryParameters || []);
     setCookie(initialValues?.cookies || []);
+    // setAuthorization(''); // 필요 시 초기화
   }, [initialValues]);
 
   useEffect(() => {
@@ -26,14 +35,6 @@ const Parameters = ({ paramsChange, initialValues, workspaceId, apiId }) => {
       cookie,
     });
   }, [header, authType, authorization, queryParameter, cookie, paramsChange]);
-
-  const handleAuthTypeChange = (type) => {
-    setAuthType(type);
-
-    if (type === 'Bearer') setAuthorization('Bearer <token>');
-    else if (type === 'Basic') setAuthorization('Basic <credentials>');
-    else setAuthorization('');
-  };
 
   useEffect(() => {
     setHeader((prevHeaders) => {
@@ -68,7 +69,6 @@ const Parameters = ({ paramsChange, initialValues, workspaceId, apiId }) => {
   };
 
   const handleAddQueryParam = () => {
-    console.log(apiId);
     publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
       apiType: 'PARAMETERS_QUERY_PARAMETERS',
       actionType: 'ADD',
@@ -76,16 +76,49 @@ const Parameters = ({ paramsChange, initialValues, workspaceId, apiId }) => {
     });
   };
 
+  const handleRemoveQueryParam = (queryParameterId) => {
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'PARAMETERS_QUERY_PARAMETERS',
+      actionType: 'DELETE',
+      message: {
+        id: queryParameterId,
+      },
+    });
+  };
+
   const handleAddCookie = () => setCookie([...cookie, { cookieKey: '', cookieValue: '' }]);
 
-  const handleQueryParamChange = (queryParameterId, type, value) => {
+  const updateQueryParameterById = (queryParameterId, type, value) => {
+    const updatedQueryParameters = queryParameter.map((param) => {
+      if (String(param.id) === String(queryParameterId)) {
+        if (type === 'KEY') {
+          return {
+            ...param,
+            ['key']: value,
+          };
+        } else if (type === 'VALUE') {
+          return {
+            ...param,
+            ['value']: value,
+          };
+        }
+      }
+      return param;
+    });
+
+    return updatedQueryParameters;
+  };
+
+  const handleQueryParamChange = async (queryParameterId, type, value) => {
+    const updatedparameters = await updateQueryParameterById(queryParameterId, type, value);
+    setQueryParameter(updatedparameters);
     publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
       apiType: 'PARAMETERS_QUERY_PARAMETERS',
       actionType: 'UPDATE',
       message: {
-        id: queryParameterId,
+        id: `${queryParameterId}`,
         type: type,
-        value: value,
+        value: JSON.stringify(updatedparameters),
       },
     });
   };
@@ -96,18 +129,22 @@ const Parameters = ({ paramsChange, initialValues, workspaceId, apiId }) => {
     setCookie(updatedCookies);
   };
 
-  const handleRemoveQueryParam = (queryParameterId) => {
-    console.log(queryParameterId);
+  const handleRemoveCookie = (index) => setCookie(cookie.filter((_, i) => i !== index));
+
+  const handleAuthTypeChange = (type) => {
+    const newAuthType = type;
+    setAuthType(type);
+
+    if (type === 'Bearer') setAuthorization('Bearer <token>');
+    else if (type === 'Basic') setAuthorization('Basic <credentials>');
+    else setAuthorization('');
+
     publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
-      apiType: 'QUERY_PARAMETERS',
-      actionType: 'DELETE',
-      message: {
-        id: { queryParameterId },
-      },
+      apiType: 'PARAMETERS_AUTH_TYPE',
+      actionType: 'UPDATE',
+      message: { value: newAuthType },
     });
   };
-
-  const handleRemoveCookie = (index) => setCookie(cookie.filter((_, i) => i !== index));
 
   return (
     <div className='pt-4'>
@@ -116,7 +153,13 @@ const Parameters = ({ paramsChange, initialValues, workspaceId, apiId }) => {
         <label className='block text-[18px] font-semibold h-8'>Auth Type</label>
         <select
           value={authType}
+          ref={authtypeRef}
           onChange={(e) => handleAuthTypeChange(e.target.value)}
+          onFocus={() => {
+            handleOccupationState(occupationAuthType, 'UPDATE');
+            // handleInputFocus(); // 얘 는 어따가 쓰는애임??
+          }}
+          onBlur={() => handleOccupationState(occupationAuthType, 'DELETE')}
           className='border rounded px-2 py-1 w-full h-10'
         >
           <option value='NOAUTH'>No Auth</option>
@@ -225,12 +268,19 @@ const Parameters = ({ paramsChange, initialValues, workspaceId, apiId }) => {
             <tbody>
               {queryParameter.map((param, index) => (
                 <tr key={index}>
+                  <td>Check Box</td>
+                  <td>isEssential?</td>
                   <td className='border p-2 h-10'>
                     <input
                       type='text'
                       placeholder='Key'
-                      value={param.queryParameterKey}
-                      onChange={(e) => handleQueryParamChange(param.queryParameterId, 'KEY', e.target.value)}
+                      value={param.key}
+                      ref={queryparameterRef}
+                      onChange={(e) => handleQueryParamChange(param.id, 'KEY', e.target.value)}
+                      onFocus={() => {
+                        handleOccupationState(occupationQueryParpameter, 'UPDATE');
+                        // handleInputFocus();
+                      }}
                       className='w-full border-none outline-none'
                     />
                   </td>
@@ -238,14 +288,16 @@ const Parameters = ({ paramsChange, initialValues, workspaceId, apiId }) => {
                     <input
                       type='text'
                       placeholder='Value'
-                      value={param.queryParameterValue}
-                      onChange={(e) => handleQueryParamChange(param.queryParameterId, 'VALUE', e.target.value)}
+                      value={param.value}
+                      onChange={(e) => handleQueryParamChange(param.id, 'VALUE', e.target.value)}
                       className='w-full border-none outline-none'
                     />
                   </td>
                   <td
                     className='border p-2 text-center cursor-pointer text-red-500'
-                    onClick={() => handleRemoveQueryParam(param.queryParameterId)}
+                    onClick={() => {
+                      handleRemoveQueryParam(param.id);
+                    }}
                   >
                     🗑️
                   </td>

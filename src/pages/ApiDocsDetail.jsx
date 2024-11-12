@@ -6,7 +6,6 @@ import { useNavbarStore } from '../stores/useNavbarStore';
 import { useSidebarStore } from '../stores/useSidebarStore';
 import { useTabStore } from '../stores/useTabStore';
 import apiHandler from '../handlers/apiMessagehandler';
-
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { useOccupationState } from '../api/queries/useWorkspaceQueries';
 import LeftSection from './docs/LeftSection';
@@ -14,7 +13,7 @@ import RightSection from './docs/RightSection';
 
 const ApiDocsDetail = () => {
   const { workspaceId, apiId } = useParams();
-  const { data: apiDocDetailData, isLoading: isApiDocDetailLoading } = useApiDocDetail(workspaceId, apiId);
+  const { data: apiDocDetailData, isLoading: isApiDocDetailLoading, refetch } = useApiDocDetail(workspaceId, apiId);
   const {
     data: categoryListData,
     isLoading: isCategoryListLoading,
@@ -76,7 +75,10 @@ const ApiDocsDetail = () => {
       const subscription = subscribe(subscriptionPath, (data) => {
         switch (data.apiType) {
           case 'PARAMETERS_QUERY_PARAMETERS':
-            apiHandler.handleQueryParameterData(data, setApiDocDetail);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            apiHandler.handleQueryParameterData(data, setApiDocDetail, refetch);
             break;
           case 'CATEGORY':
             apiHandler.handleCategoryData(data, setApiDocDetail);
@@ -88,12 +90,19 @@ const ApiDocsDetail = () => {
           case 'API_NAME':
             apiHandler.handleApiNameHandler(data, setApiDocDetail);
             break;
+          case 'API_METHOD':
+            apiHandler.handleApiMethodHandler(data, setApiDocDetail);
+            break;
           case 'API_PATH':
             apiHandler.handlePathHandler(data, setApiDocDetail);
             break;
           case 'API_DESCRIPTION':
             apiHandler.handleDescriptionHandler(data, setApiDocDetail);
             break;
+          case 'PARAMETERS_AUTH_TYPE':
+            apiHandler.handleAuthTypeHandler(data, setApiDocDetail);
+            break;
+
           default:
             console.warn(`Unhandled message type: ${data.apiType}`);
         }
@@ -117,8 +126,8 @@ const ApiDocsDetail = () => {
       {/* 왼쪽 섹션 헤더 */}
       <LeftSection
         apiDocDetail={apiDocDetail}
-        categoryList={categoryList}
         apiId={apiId}
+        categoryList={categoryList}
         workspaceId={workspaceId}
         occupationState={occupationState}
         handleOccupationState={handleOccupationState}

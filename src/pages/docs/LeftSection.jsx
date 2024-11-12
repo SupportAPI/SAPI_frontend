@@ -2,40 +2,42 @@ import { useEffect, useState, useRef } from 'react';
 import { TiDeleteOutline } from 'react-icons/ti';
 import { FaDownload, FaSave, FaShareAlt, FaTrashAlt } from 'react-icons/fa';
 import { useWebSocket } from '../../contexts/WebSocketContext';
-import useAuthStore from '../../stores/useAuthStore';
 import { FiChevronDown } from 'react-icons/fi';
 import Parameters from './Parameters';
 import Request from './Request';
 import Response from './Response';
 
 const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupationState, handleOccupationState }) => {
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  const { publish } = useWebSocket();
-  const [showCategoryDeleteModal, setShowCategoryDeleteModal] = useState(false);
   const [category, setCategory] = useState(apiDocDetail.category || {});
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showCategoryDeleteModal, setShowCategoryDeleteModal] = useState(false);
+  const [filteredCategoryList, setFilteredCategoryList] = useState(categoryList);
+
   const [name, setName] = useState(apiDocDetail.name || '');
   const [method, setMethod] = useState(apiDocDetail.method || '');
   const [path, setPath] = useState(apiDocDetail.path || '');
   const [description, setDescription] = useState(apiDocDetail.description || '');
-  const [filteredCategoryList, setFilteredCategoryList] = useState(categoryList);
   const [showMethodDropdown, setShowMethodDropdown] = useState(false);
 
+  const { publish } = useWebSocket();
   const [activeLeftTab, setActiveLeftTab] = useState('parameters');
 
   // 점유상태에 쓸 아이디들
   const occupationCategoryId = `${apiId}-category`;
   const occupationNameId = `${apiId}-name`;
 
-  const occupationApiPath = `${apiId}-path`;
-  const occupationDescription = `${apiId}-description`;
-
-  const pathRef = useRef(null);
-  const descriptionRef = useRef(null);
-
   const categoryRef = useRef(null);
   const nameRef = useRef(null);
   const categoryDropdownRef = useRef(null);
   const methodDropdownRef = useRef(null);
+
+  const occupationMethod = `${apiId}-method`;
+  const occupationApiPath = `${apiId}-path`;
+  const occupationDescription = `${apiId}-description`;
+
+  const methodRef = useRef(null);
+  const pathRef = useRef(null);
+  const descriptionRef = useRef(null);
 
   const methodStyles = {
     GET: 'text-blue-500',
@@ -116,7 +118,17 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
     });
   };
 
-  // 이름 변경하면 서버로 UPDATE 보냄 (소켓)
+  const handleMethodSelect = (selectedMethod) => {
+    const newMethod = selectedMethod;
+    setMethod(selectedMethod);
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'API_METHOD',
+      actionType: 'UPDATE',
+      message: { value: newMethod },
+    });
+    setShowMethodDropdown(false);
+  };
+
   const handlePathChange = (e) => {
     const newPath = e.target.value;
     setPath(newPath);
@@ -127,7 +139,6 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
     });
   };
 
-  // 이름 변경하면 서버로 UPDATE 보냄 (소켓)
   const handleDescriptionChange = (e) => {
     const newDescription = e.target.value;
     setDescription(newDescription);
@@ -164,11 +175,6 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
     if (apiDocDetail.description) setDescription(apiDocDetail.description);
   }, [apiDocDetail]);
 
-  const handleMethodSelect = (selectedMethod) => {
-    setMethod(selectedMethod);
-    setShowMethodDropdown(false);
-  };
-
   const handleParamsChange = (newParams) => {};
 
   const handleRequestChange = (newRequest) => {};
@@ -181,15 +187,15 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
         <div className='inline-flex items-baseline relative'>
           <input
             type='text'
-            ref={categoryRef}
             className={`truncate rounded-md focus:outline-none w-auto max-w-[200px] text-[24px] px-2 focus:shadow-lg 'ring-blue-400' transition-shadow duration-200 h-10`}
+            ref={categoryRef}
             placeholder='Enter Category'
             value={category.name || ''}
             onFocus={() => {
               handleOccupationState(occupationCategoryId, 'ADD');
               handleInputFocus();
-            }} // onFocus -> input 클릭시 이벤트
-            onBlur={() => handleOccupationState(occupationCategoryId, 'DELETE')} // onBlur -> input 뗄때 이벤트
+            }}
+            onBlur={() => handleOccupationState(occupationCategoryId, 'DELETE')}
             onChange={handleCategoryChange}
             onKeyDown={handleCategoryKeyDown}
           />
@@ -287,23 +293,29 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
         <div className='relative'>
           <div className='flex items-center space-x-2'>
             <button
-              className={`px-4 py-2 w-[150px] rounded-md border ${
-                methodStyles[apiDocDetail?.method]
-              } border-gray-300 h-10`}
-              // onClick={() => setShowDropdown((prev) => !prev)}
+              className={`px-4 py-2 w-[150px] rounded-md border ${methodStyles[method]} border-gray-300 h-10`}
+              onClick={() => {
+                setShowMethodDropdown((prev) => !prev);
+              }}
+              ref={methodRef}
+              onFocus={() => {
+                handleOccupationState(occupationMethod, 'UPDATE');
+                handleInputFocus();
+              }}
+              onBlur={() => handleOccupationState(occupationMethod, 'DELETE')}
             >
               <div className='flex justify-between items-center'>
-                <span>{apiDocDetail?.method}</span>
+                <span>{method}</span>
                 <FiChevronDown className='ml-2' color='black' />
               </div>
             </button>
 
             <input
-              ref={pathRef}
               type='text'
               className='border rounded px-2 py-1 flex-grow h-10'
               placeholder='Enter URL'
               value={path || ''}
+              ref={pathRef}
               onChange={handlePathChange}
               onFocus={() => {
                 handleOccupationState(occupationApiPath, 'UPDATE');
@@ -369,10 +381,12 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
       <div>
         {activeLeftTab === 'parameters' && (
           <Parameters
+            key={apiDocDetail?.parameters ? JSON.stringify(apiDocDetail.parameters) : 'parameters-default'}
             paramsChange={handleParamsChange}
             initialValues={apiDocDetail?.parameters}
             workspaceId={workspaceId}
             apiId={apiId}
+            handleOccupationState={handleOccupationState}
           />
         )}
         {activeLeftTab === 'request' && (

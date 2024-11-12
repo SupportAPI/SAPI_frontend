@@ -1,8 +1,3 @@
-import ApiDocsDetail from '../pages/ApiDocsDetail';
-
-// 쿼리 파라미터 핸들러
-const handleQueryParameterData = (message, setApiDocDetail) => {};
-
 // 카테고리 핸들러
 const handleCategoryData = (data, setApiDocDetail) => {
   if (data.actionType === 'ADD' || data.actionType === 'UPDATE') {
@@ -38,6 +33,13 @@ const handleApiNameHandler = (data, setApiDocDetail) => {
 };
 
 // API Path 핸들러
+const handleApiMethodHandler = (data, setApiDocDetail) => {
+  if (data.actionType === 'UPDATE') {
+    setApiDocDetail(['method'], data.message.value);
+  }
+};
+
+// API Path 핸들러
 const handlePathHandler = (data, setApiDocDetail) => {
   if (data.actionType === 'UPDATE') {
     setApiDocDetail(['path'], data.message.value);
@@ -51,11 +53,33 @@ const handleDescriptionHandler = (data, setApiDocDetail) => {
   }
 };
 
+////// Parameter 영역
+
+// Auth Type 핸들러
+const handleAuthTypeHandler = (data, setApiDocDetail) => {
+  if (data.actionType === 'UPDATE') {
+    setApiDocDetail(['parameters', 'authType'], data.message.value);
+  }
+};
+
+// 쿼리 파라미터 핸들러
+const handleQueryParameterData = (data, setApiDocDetail, refetch) => {
+  if (data.actionType === 'DELETE' || data.actionType === 'ADD') {
+    refetch(); // 이거 다시 고쳐줘야함
+  } else {
+    const parsedValue = JSON.parse(data.message.value);
+
+    setApiDocDetail(['parameters', 'queryParameters'], parsedValue);
+  }
+};
+
 export default {
   handleQueryParameterData,
   handleCategoryData,
   handleCategoryListData,
   handleApiNameHandler,
-  handleDescriptionHandler,
+  handleApiMethodHandler,
   handlePathHandler,
+  handleDescriptionHandler,
+  handleAuthTypeHandler,
 };

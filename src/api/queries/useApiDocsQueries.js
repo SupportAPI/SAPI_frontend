@@ -31,6 +31,7 @@ export const useDetailApiDocs = () => {
 // API 문서 조회 (Detail)
 export const fetchApiDocDetail = async (workspaceId, apiId) => {
   const response = await axiosInstance.get(`api/workspaces/${workspaceId}/apis/${apiId}`);
+
   return response.data.data;
 };
 
