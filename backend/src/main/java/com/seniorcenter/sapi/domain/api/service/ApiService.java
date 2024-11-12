@@ -143,7 +143,7 @@ public class ApiService {
             result = valueUtils.updateByValue(message);
         } else if (message.apiType().equals(ApiType.PARAMETERS_AUTH_TYPE)) {
             updateAuthType(message, workspaceId, apiId);
-            result = valueUtils.update(message);
+            result = valueUtils.updateByValue(message);
         } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
             result = apiQueryParameterService.updateApiQueryParameter(message, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
