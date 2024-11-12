@@ -370,12 +370,8 @@ const Environment = () => {
     <DndProvider backend={HTML5Backend}>
       <div className='p-8 overflow-y-scroll max-h-[680px]'>
         <div className='flex justify-between items-center mb-4'>
-          <h2 className='text-2xl font-bold'>Environment</h2>
+          <h2 className='text-2xl font-bold'>Environment - {}</h2>
           <div className='flex space-x-4'>
-            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-              <FaSave />
-              <span>Save</span>
-            </button>
             <button
               className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
               onClick={() => handleAddRow(-1)}
