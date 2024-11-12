@@ -1,4 +1,4 @@
-package com.seniorcenter.sapi.domain.api.presentation.dto.response;
+package com.seniorcenter.sapi.domain.apitest.presentation.dto.response;
 
 import java.util.UUID;
 
