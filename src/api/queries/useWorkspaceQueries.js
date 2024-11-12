@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { getToken } from '../../utils/cookies';
 import { toast } from 'react-toastify';
+import axiosInstance from '../axiosInstance';
 
 const base_URL = 'https://k11b305.p.ssafy.io';
 // const base_URL = 'http://192.168.31.35:8080'; // 세현 로컬
@@ -301,4 +302,14 @@ export const useFetchWorkspacesDetail = (workspaceId) => {
   return useQuery(['workspacesDetail', workspaceId], () => fetchWorkspacesDetail(workspaceId), {
     enabled: !!workspaceId, // workspaceId가 있을 때만 쿼리를 활성화
   });
+};
+
+// 워크스페이스 점유 상태
+export const fetchOccupationState = async (workspaceId) => {
+  const response = await axiosInstance.get(`${base_URL}/api/workspaces/${workspaceId}/occupations`);
+  return response.data.data;
+};
+
+export const useOccupationState = (workspaceId) => {
+  return useQuery(['workspaceId', workspaceId], () => fetchOccupationState(workspaceId));
 };
