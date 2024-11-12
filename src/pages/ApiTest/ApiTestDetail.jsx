@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { IoCopyOutline, IoCopy } from 'react-icons/io5';
 import { ResizableBox } from 'react-resizable';
-import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 import { FaSave } from 'react-icons/fa';
 import 'react-resizable/css/styles.css';
 import ApiTestParameters from './ApiTestParameters';
