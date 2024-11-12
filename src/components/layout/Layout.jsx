@@ -53,7 +53,10 @@ const Layout = ({ children }) => {
         <Navbar onMenuClick={handleMenuClick} />
         <div className='h-full'>{renderSidebar()}</div>
         <div className='flex-1 flex flex-col'>
-          <TabBar />
+          <div className='flex flex-row'>
+            <TabBar />
+            <div>ㅇㄹㄴㅇㄹ</div>
+          </div>
           <div className='flex-1'>{children}</div>
         </div>
       </div>
