@@ -1,17 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import {
-  FaTrashAlt,
-  FaPlus,
-  FaShareAlt,
-  FaDownload,
-  FaAngleDown,
-  FaGripVertical,
-  FaCheckSquare,
-  FaSquare,
-} from 'react-icons/fa';
+import { FaTrashAlt, FaPlus, FaAngleDown, FaGripVertical, FaCheckSquare, FaSquare, FaSave } from 'react-icons/fa';
 import { createPortal } from 'react-dom';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useParams } from 'react-router-dom';
 
 const ItemType = 'ROW';
 
@@ -127,7 +119,9 @@ const DraggableRow = ({
         onClick={(event) => handleType(event, environment.id)}
         style={{ minWidth: '110px' }}
       >
-        <span className='whitespace-nowrap overflow-hidden'>{environment.isSecreted ? 'Secret' : 'Default'}</span>
+        <span className='whitespace-nowrap overflow-hidden'>
+          {environment.type === 'SECRET' ? 'Secret' : 'Default'}
+        </span>
         <FaAngleDown className='text-2xl ml-2' />
       </td>
 
@@ -208,10 +202,10 @@ const DropdownMenu = ({ onClose, position, setIsSecreted }) => {
       className='absolute bg-white shadow-lg w-32 text-left z-50 border border-gray-200'
       style={{ top: position.top, left: position.left }}
     >
-      <li className='p-2 hover:bg-gray-100 cursor-pointer text-center' onClick={() => sendIsSecreted(true)}>
+      <li className='p-2 hover:bg-gray-100 cursor-pointer text-center' onClick={() => sendIsSecreted('SECRET')}>
         Secret
       </li>
-      <li className='p-2 hover:bg-gray-100 cursor-pointer text-center' onClick={() => sendIsSecreted(false)}>
+      <li className='p-2 hover:bg-gray-100 cursor-pointer text-center' onClick={() => sendIsSecreted('DEFAULT')}>
         Default
       </li>
     </ul>
@@ -219,20 +213,43 @@ const DropdownMenu = ({ onClose, position, setIsSecreted }) => {
 };
 
 const Environment = () => {
+  const { environmentId } = useParams();
   const [checkedNum, setCheckedNum] = useState(0);
   const [activeTypeId, setActiveTypeId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [data, setData] = useState([
-    { id: 1, variable: 'Authorization', isSecreted: true, value: 'werwrwer', description: '토큰값', isChecked: true },
+    {
+      id: 1,
+      variable: 'Authorization',
+      type: 'SECRET',
+      value: 'werwrwer',
+      description: '토큰값',
+      isChecked: true,
+    },
     {
       id: 2,
       variable: 'Authorization',
-      isSecreted: false,
+      type: 'DEFAULT',
       value: 'werwrwsdfsdfer',
       description: '토큰값',
       isChecked: false,
     },
   ]);
+
+  // const {
+  //   data: environmentData,
+  //   isLoading: isDataLoading,
+  //   error: isDataError,
+  //   refetch: envRefetch,
+  // } = environmentId ? useFetchEnvironment(environmentId) : { data: null, isLoading: false, error: null };
+
+  // useEffect(() => {
+  //   const processData = environmentData.map((item) => ({
+  //     ...item,
+  //     isChecked: false,
+  //   }));
+  //   setData(processData);
+  // }, [environmentData]);
 
   const handleDeleteCheckedRows = () => {
     setData((prevData) => {
@@ -242,7 +259,7 @@ const Environment = () => {
             {
               id: 1, // 초기 ID 값 설정
               variable: '',
-              isSecreted: false,
+              type: 'DEFAULT',
               value: '',
               description: '',
               isChecked: false,
@@ -313,9 +330,7 @@ const Environment = () => {
   };
 
   const handleIsSecreted = (isSecret) => {
-    setData((prevData) =>
-      prevData.map((item) => (item.id === activeTypeId ? { ...item, isSecreted: isSecret } : item))
-    );
+    setData((prevData) => prevData.map((item) => (item.id === activeTypeId ? { ...item, type: isSecret } : item)));
   };
 
   const handleAddRow = (currentId) => {
@@ -355,17 +370,17 @@ const Environment = () => {
     <DndProvider backend={HTML5Backend}>
       <div className='p-8 overflow-y-scroll max-h-[680px]'>
         <div className='flex justify-between items-center mb-4'>
-          <h2 className='text-2xl font-bold'>Environment</h2>
+          <h2 className='text-2xl font-bold'>Environment - {}</h2>
           <div className='flex space-x-4'>
             <button
-              className='flex items-center space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+              className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
               onClick={() => handleAddRow(-1)}
             >
               <FaPlus />
               <span>Add</span>
             </button>
             <button
-              className='flex items-center space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+              className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
               onClick={handleDeleteCheckedRows}
             >
               <FaTrashAlt />
