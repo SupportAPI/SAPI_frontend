@@ -31,23 +31,22 @@ export const useDetailApiDocs = () => {
 // API 문서 조회 (Detail)
 export const fetchApiDocDetail = async (workspaceId, apiId) => {
   const response = await axiosInstance.get(`api/workspaces/${workspaceId}/apis/${apiId}`);
+
   return response.data.data;
 };
 
-export const useApiDocDetail = () => {
-  const { workspaceId, apiId } = useParams();
+export const useApiDocDetail = (workspaceId, apiId) => {
   return useQuery(['apiDocDetail', workspaceId, apiId], () => fetchApiDocDetail(workspaceId, apiId));
 };
 
 // 워크스페이스 카테고리 조회
-export const fetchWorkspaceCategory = async (workspaceId) => {
+export const fetchWorkspaceCategoryList = async (workspaceId) => {
   const response = await axiosInstance.get(`api/workspaces/${workspaceId}/categories`);
   return response.data.data;
 };
 
-export const useWorkspaceCategory = () => {
-  const { workspaceId } = useParams();
-  return useQuery(['categories', workspaceId], () => fetchWorkspaceCategory(workspaceId));
+export const useWorkspaceCategoryList = (workspaceId) => {
+  return useQuery(['categories', workspaceId], () => fetchWorkspaceCategoryList(workspaceId));
 };
 
 // 새로운 API 문서 생성
