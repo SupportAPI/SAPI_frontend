@@ -2,7 +2,6 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useFetchApiList } from '../../api/queries/useApiTestQueries';
-import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useTabStore } from '../../stores/useTabStore';
 import { FaCheck, FaTimes } from 'react-icons/fa';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
@@ -16,7 +15,6 @@ const ApiTest = () => {
   const { addTab, openTabs } = useTabStore();
   const { data: dataTest = [], isLoading, error } = useFetchApiList(workspaceId);
   const navigate = useNavigate();
-  const { setMenu } = useNavbarStore();
 
   const [selectedItems, setSelectedItems] = useState({});
   const [isAllSelected, setIsAllSelected] = useState(false);

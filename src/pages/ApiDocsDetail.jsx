@@ -5,7 +5,7 @@ import { useNavbarStore } from '../stores/useNavbarStore';
 import { useSidebarStore } from '../stores/useSidebarStore';
 import { useTabStore } from '../stores/useTabStore';
 import { FiChevronDown, FiMessageSquare, FiCode, FiFileText, FiX } from 'react-icons/fi';
-import { FaDownload, FaSave, FaShareAlt, FaTrashAlt, FaInfoCircle } from 'react-icons/fa';
+import { FaDownload, FaSave, FaShareAlt, FaTrashAlt, FaInfoCircle, FaHistory } from 'react-icons/fa';
 import { useWebSocket } from '../contexts/WebSocketContext';
 
 import Parameters from './docs/Parameters';
@@ -15,6 +15,8 @@ import Comments from './docs/Comments';
 import Summary from './docs/Summary';
 import CodeSnippet from './docs/CodeSnippet';
 import Info from './docs/Info';
+import History from './docs/History';
+import HistoryDetail from './docs/HistoryDetail';
 
 const ApiDocsDetail = () => {
   const { workspaceId, apiId } = useParams();
@@ -34,6 +36,9 @@ const ApiDocsDetail = () => {
   const dropdownRef = useRef(null);
   const categoryRef = useRef(null);
   const nameRef = useRef(null);
+
+  const [isHistoryDetailOpen, setIsHistoryDetailOpen] = useState(false);
+  const [historyApiId, setHistoryApiId] = useState(null);
 
   console.log('details', apiDetail);
 
@@ -170,9 +175,30 @@ const ApiDocsDetail = () => {
     setShowDeleteModal(false);
   };
 
+  // 히스토리 영역
+  const openHistoryDetail = (apiId) => {
+    if (historyApiId === apiId) {
+      if (isHistoryDetailOpen) {
+        setHistoryApiId(null);
+        setIsHistoryDetailOpen(false);
+      }
+    } else {
+      if (!isHistoryDetailOpen) {
+        setIsHistoryDetailOpen(true);
+      }
+      setHistoryApiId(apiId);
+    }
+  };
+
+  // History Detail 창 닫기 함수
+  const closeHistoryDetail = () => {
+    setHistoryApiId(null);
+    setIsHistoryDetailOpen(false);
+  };
+
   return (
     <div className='flex h-[calc(100vh -104px)]'>
-      <div className='flex-1 p-8 overflow-y-auto h-[calc(100vh-104px)] sidebar-scrollbar scrollbar-gutter-stable'>
+      <div className='flex-1 p-8 overflow-y-auto h-[calc(100vh-104px)] sidebar-scrollbar scrollbar-gutter-stable relative'>
         <div className='flex items-baseline space-x-2 mb-8 justify-between'>
           <div className='inline-flex items-baseline space-x-1'>
             <input
@@ -325,12 +351,20 @@ const ApiDocsDetail = () => {
             <Response responseChange={handleResponseChange} initialValues={apiDetail?.response || []} />
           )}
         </div>
+        {/* History Detail 창, 클릭 시 덮어쓰도록 설정 */}
+        {isHistoryDetailOpen && (
+          <div className='absolute top-0 left-0 right-0 bottom-0 bg-white z-10 p-8 '>
+            <HistoryDetail closeHistoryDetail={closeHistoryDetail} apiId={historyApiId} />
+          </div>
+        )}
       </div>
 
       <div
-        className={`transition-width duration-300 p-8 mr-[50px] relative overflow-y-auto ${
-          activeRightTab ? 'w-[500px] min-w-[500px] max-w-[500px]' : 'w-[350px] min-w-[350px] max-w-[350px]'
-        } ${activeRightTab ? 'border-l' : ''} sidebar-scrollbar h-[775px] pb-5`}
+        className={`transition-width duration-300 p-8 mr-[50px] relative ${
+          activeRightTab === 'comment' ? '' : 'overflow-y-auto'
+        } ${activeRightTab ? 'w-[500px] min-w-[500px] max-w-[500px]' : 'w-[350px] min-w-[350px] max-w-[350px]'} ${
+          activeRightTab ? 'border-l' : ''
+        } sidebar-scrollbar h-[775px] pb-5`}
       >
         {activeRightTab && (
           <button
@@ -362,11 +396,9 @@ const ApiDocsDetail = () => {
           />
         )}
         {activeRightTab === 'info' && (
-          <Info
-            createdData = {apiDetail?.createdDate}
-            lastModifiedDate = {apiDetail?.lastModifyDate}
-          />
+          <Info createdData={apiDetail?.createdDate} lastModifiedDate={apiDetail?.lastModifyDate} />
         )}
+        {activeRightTab === 'history' && <History openHistoryDetail={openHistoryDetail} />}
       </div>
 
       <div className='absolute right-0 top-[104px] h-[calc(100vh-104px)] w-[50px] flex flex-col items-center pt-4 bg-white shadow-lg'>
@@ -384,6 +416,11 @@ const ApiDocsDetail = () => {
           className={`cursor-pointer mb-4 ${activeRightTab === 'summary' ? 'text-blue-500' : 'text-gray-500'}`}
           size={24}
           onClick={() => toggleRightTab('summary')}
+        />
+        <FaHistory
+          className={`cursor-pointer mb-4 ${activeRightTab === 'history' ? 'text-blue-500' : 'text-gray-500'}`}
+          size={24}
+          onClick={() => toggleRightTab('history')}
         />
         <FaInfoCircle
           className={`cursor-pointer mb-4 ${activeRightTab === 'info' ? 'text-blue-500' : 'text-gray-500'}`}

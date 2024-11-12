@@ -6,160 +6,71 @@ import { useMutation } from 'react-query';
 import SockJS from 'sockjs-client';
 import { findComments, findIndex, findUsers } from '../../api/queries/useCommentsQueries';
 import { getToken } from '../../utils/cookies';
-import User2 from '../../assets/workspace/basic_image.png';
+import { fetchUserInfo } from '../../api/queries/useAPIUserQueries';
+import useAuthStore from '../../stores/useAuthStore';
 
 const Comments = ({ docsId, workspaceId }) => {
+  // 드롭다운 불러오는 변수들
+  // 1. 클릭 시 유저 정보 불러오기
+  const [showUser, setShowUser] = useState(false);
+  // 2. 유저 태그 시 유저 정보 불러오기
+  const [showDropdown, setShowDropdown] = useState(false);
+  // 3. 수정/삭제 버튼 드롭다운 불러오기
   const [showOptionsDropdown, setShowOptionsDropdown] = useState(false);
+  // 4. 코멘트 삭제시 재확인용
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // 드롭다운 위치 관련 변수
+  // 1. 유저 정보 위치
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  // 2. 수정/삭제 위치
+  const [optionsDropdownPosition, setOptionsDropdownPosition] = useState({ top: 0, left: 0 });
+
+  // 유저 정보 관련 변수
   const [userSuggestions, setUserSuggestions] = useState([]);
   const [user, setUser] = useState({});
-  const [showUser, setShowUser] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
-  const [initIndex, setInitIndex] = useState(-1);
-  const [index, setIndex] = useState(-1);
-  const [messages, setMessages] = useState([]);
+  const [myInfo, setMyInfo] = useState([]);
+
   const scrollContainerRef = useRef(null);
   const textareaRef = useRef(null);
   const setRef = useRef(null);
   const deleteRef = useRef(null);
   const infoRef = useRef(null);
-  const [optionsDropdownPosition, setOptionsDropdownPosition] = useState({ top: 0, left: 0 });
+  const stompClientRef = useRef(null); // stompClient를 useRef로 선언
+
+  const [initIndex, setInitIndex] = useState(-1);
+  const [index, setIndex] = useState(-1);
+  const [messages, setMessages] = useState([]);
   const [editingMessageId, setEditingMessageId] = useState(null); // 수정 중인 메시지 ID
   const [selectedMessageId, setSelectedMessageId] = useState(null); // 드롭다운에서 선택된 메시지 ID
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const [sendContent, setSendContent] = useState('');
-  const [sendParsedMessage, setSendParsedMessage] = useState([]); // 메시지 작성 중의 파싱된 메시지 배열
   const [editContent, setEditContent] = useState(''); // 수정 중인 콘텐츠
-  const [editParsedMessage, setEditParsedMessage] = useState([]); // 수정 중의 파싱된 메시지 배열
 
-  const [sending, setSending] = useState(false);
+  const [sendContent, setSendContent] = useState(''); // 사용자 입력 텍스트
+  const [internalMessage, setInternalMessage] = useState(''); // 내부 저장 메시지 형식: [닉네임:아이디]
+  const [taggedUsers, setTaggedUsers] = useState([]); // 태그된 유저 리스트
 
-  const stompClientRef = useRef(null); // stompClient를 useRef로 선언
   const accessToken = getToken();
+  const { userId } = useAuthStore();
 
-  const handleIconClick = (e, messageId) => {
-    e.stopPropagation();
-    setSelectedMessageId(messageId); // 선택된 메시지 ID 설정
-    const iconRect = e.currentTarget.getBoundingClientRect();
-    const containerRect = scrollContainerRef.current.getBoundingClientRect();
-    const calculatedTop = iconRect.top - containerRect.top + 75;
-    const calculatedLeft = iconRect.left - containerRect.left + 20;
-    const dropdownHeight = 15;
-    const dropdownWidth = 50;
-    let adjustedTop = calculatedTop;
-    let adjustedLeft = calculatedLeft;
-    if (adjustedTop + dropdownHeight > scrollContainerRef.current.clientHeight) {
-      adjustedTop = calculatedTop - dropdownHeight - e.currentTarget.offsetHeight - 5;
-    }
-    if (adjustedLeft + dropdownWidth > scrollContainerRef.current.clientWidth) {
-      adjustedLeft = scrollContainerRef.current.clientWidth - dropdownWidth - 10;
-    }
-    setOptionsDropdownPosition({ top: adjustedTop, left: adjustedLeft });
-    setShowOptionsDropdown(!showOptionsDropdown);
-  };
-
-  // 수정 취소 시 상태 초기화
-  const handleCancelEdit = () => {
-    setEditingMessageId(null);
-    setEditContent('');
-    setEditParsedMessage([]); // 수정 중 파싱된 메시지 초기화
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeleteModal(false);
-  };
-
-  // 삭제 버튼 클릭 핸들러
-  const handleDeleteClick = (e) => {
-    e.stopPropagation();
-    setShowDeleteModal(true);
-    setShowOptionsDropdown(false);
-  };
-
-  const deleteComment = (e) => {
-    e.stopPropagation();
-    const deleteTargetId = messages.find((msg) => msg.commentId === selectedMessageId);
-    stompClientRef.current.publish({
-      destination: `/ws/pub/docs/${docsId}/comments`,
-      body: JSON.stringify({
-        type: 'DELETE',
-        message: deleteTargetId.commentId,
-      }),
-    });
-    setShowDeleteModal(false);
-  };
-
-  // 수정 버튼 클릭 핸들러
-  const handleEditClick = () => {
-    const messageToEdit = messages.find((msg) => msg.commentId === selectedMessageId);
-    if (messageToEdit) {
-      setEditingMessageId(selectedMessageId);
-      setEditContent(messageToEdit.comment[0]?.value || ''); // 현재 메시지 내용을 입력 필드에 설정
-      setEditParsedMessage([]); // 편집 상태 초기화
-    }
-    setShowOptionsDropdown(false); // 옵션 드롭다운 닫기
-  };
-
-  // 수정 내용 저장 핸들러
-  const handleSaveEdit = () => {
-    if (stompClientRef.current && stompClientRef.current.connected) {
-      if (editContent) {
-        setEditParsedMessage((prevParsed) => [...prevParsed, { type: 'TEXT', value: editContent }]);
-        setSending(true);
-      }
-    }
-  };
-
+  // 초반 화면 렌더링 시 소켓 연결 + 최근 인덱스 불러오기
   useEffect(() => {
-    if (sending) {
-      console.log(editParsedMessage);
-      stompClientRef.current.publish({
-        destination: `/ws/pub/docs/${docsId}/comments`,
-        body: JSON.stringify({
-          type: 'UPDATE',
-          message: {
-            commentId: selectedMessageId,
-            message: editParsedMessage,
-          },
-        }),
-      });
-      setSending(false);
-      setEditingMessageId(null); // 수정 모드 종료
-      setEditContent(''); // 수정 필드 초기화
-      setEditParsedMessage([]); // 편집 상태 초기화
-    }
-  }, [editParsedMessage]);
+    document.addEventListener('click', handleClickOutside);
+    connect();
+    indexMutation.mutate();
+    findMyInfoMutation.mutate();
+    return () => {
+      stompClientRef.current.disconnect();
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
 
-  const handleEditInput = (e) => {
-    const textarea = e.target;
-    const content = textarea.value;
-    setEditContent(content);
-    textarea.style.height = 'auto';
-    textarea.style.height = `${textarea.scrollHeight}px`;
+  // 최근 인덱스 호출 완료 -> 코멘트들 불러오기
+  useEffect(() => {
+    if (initIndex !== -1) findInitMutation.mutate();
+  }, [initIndex]);
 
-    const cursorPosition = textarea.selectionStart;
-    const lastChar = content[cursorPosition - 1]?.normalize('NFC');
-
-    const atIndex = content.lastIndexOf('@');
-    if (atIndex !== -1 && cursorPosition > atIndex && /^[가-힣]$/.test(lastChar)) {
-      const searchQuery = content.substring(atIndex + 1, cursorPosition);
-      if (searchQuery) {
-        // 사용자 검색 결과에 따라 handleSelectUser 호출 준비
-        findUserMutation.mutate(searchQuery, {
-          onSuccess: (response) => {
-            setUserSuggestions(response);
-            setDropdownPosition({ top: top + window.scrollY, left: left + window.scrollX });
-            setShowDropdown(true);
-          },
-        });
-      }
-    } else {
-      setShowDropdown(false);
-    }
-  };
-
-  // 드롭다운 바깥 선택 시 꺼짐
+  // 드롭다운 바깥 선택 시 꺼지는 함수
   const handleClickOutside = (event) => {
     if (setRef.current && !setRef.current.contains(event.target)) {
       setShowOptionsDropdown(false);
@@ -172,101 +83,10 @@ const Comments = ({ docsId, workspaceId }) => {
     }
   };
 
-  // 드롭다운 열렸을 때 스크롤 방지
-  const preventScroll = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.style.overflowY = 'hidden';
-      scrollContainerRef.current.style.paddingRight = '8px';
-    }
-  };
-
-  const allowScroll = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.style.overflowY = 'auto';
-      scrollContainerRef.current.style.paddingRight = '0';
-    }
-  };
-
-  useEffect(() => {
-    if (showOptionsDropdown) {
-      preventScroll();
-    } else {
-      allowScroll();
-    }
-  }, [showOptionsDropdown]);
-
-  const indexMutation = useMutation(() => findIndex(docsId), {
-    onSuccess: (response) => {
-      if (response !== undefined) setInitIndex(response);
-    },
-
-    onError: (error) => console.error('Index fetch error:', error),
-  });
-
-  const findInitMutation = useMutation(() => findComments(initIndex, 5, docsId), {
-    onSuccess: (response) => {
-      console.log(response);
-      setMessages((prevMessages) => [...prevMessages, ...response]);
-      setIndex(Math.min(...response.map((message) => message.id)));
-    },
-    onError: (error) => console.error('Find comments error:', error),
-  });
-
-  const findMutation = useMutation(() => findComments(index, 5, docsId), {
-    onSuccess: (response) => {
-      console.log(response);
-      setMessages((prevMessages) => [...prevMessages, ...response]);
-      setIndex(Math.min(...response.map((message) => message.id)));
-    },
-    onError: (error) => console.error('Find comments error:', error),
-  });
-
-  const findUserMutation = useMutation((searchQuery) => findUsers(workspaceId, searchQuery), {
-    onSuccess: (response) => {
-      setUserSuggestions(response);
-      console.log('코멘트태그', response);
-    },
-    onError: (error) => console.error('User fetch error:', error),
-  });
-
-  // const connect = () => {
-  //   const socket = new SockJS('http://192.168.31.219:8080/ws/ws-stomp');
-  //   stompClientRef.current = Stomp.over(socket); // stompClientRef에 STOMP client를 저장
-
-  //   stompClientRef.current.connect(
-  //     {
-  //       Authorization: `Bearer ${accessToken}`, // 헤더로 토큰 전달
-  //     },
-  //     (frame) => {
-  //       console.log('Connected:', JSON.stringify(frame.headers));
-
-  //       // 구독 시작
-  //       stompClientRef.current.subscribe(`/ws/sub/docs/6ee8aa57-0f62-426b-902a-fd6bda70b9e7/comments`, (message) => {
-  //         console.log('Received data:', message);
-  //         const receivedMessage = JSON.parse(message.body);
-  //         setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
-  //       });
-  //     },
-  //     (error) => {
-  //       console.error('Connection error:', error);
-  //     }
-  //   );
-
-  //   // 디버그 메시지 출력 설정
-  //   stompClientRef.current.debug = (str) => {
-  //     console.log(str);
-  //   };
-
-  //   // STOMP 오류 핸들링
-  //   stompClientRef.current.onStompError = (frame) => {
-  //     console.error('STOMP error:', frame);
-  //   };
-  // };
-
-  // pathvariable
+  // 소켓 연결 함수
   const connect = () => {
     // accessToken을 URL에 포함
-    const socket = new SockJS(`http://192.168.31.219:8080/ws/ws-stomp?accessToken=${accessToken}`);
+    const socket = new SockJS(`https://k11b305.p.ssafy.io/ws/ws-stomp?accessToken=${accessToken}`);
     stompClientRef.current = Stomp.over(socket); // stompClientRef에 STOMP client를 저장
 
     stompClientRef.current.connect(
@@ -285,19 +105,16 @@ const Comments = ({ docsId, workspaceId }) => {
           if (type === 'ADD') {
             console.log('ADD 성공');
             if (receivedMessage) {
-              // receivedMessage가 있는지 확인
               setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
             }
           } else if (type === 'UPDATE') {
             if (receivedMessage) {
-              // receivedMessage가 있는지 확인
               setMessages((prevMessages) =>
                 prevMessages.map((msg) => (msg.commentId === receivedMessage.commentId ? receivedMessage : msg))
               );
             }
           } else if (type === 'DELETE') {
             if (receivedMessage && receivedMessage) {
-              // receivedMessage와 commentId가 있는지 확인
               setMessages((prevMessages) => prevMessages.filter((msg) => msg.commentId !== receivedMessage));
             }
           }
@@ -319,21 +136,394 @@ const Comments = ({ docsId, workspaceId }) => {
     };
   };
 
-  useEffect(() => {
-    document.addEventListener('click', handleClickOutside);
-    connect();
-    console.log(docsId);
-    indexMutation.mutate();
-    return () => {
-      stompClientRef.current.disconnect();
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, []);
+  // 리액트 쿼리 호출 함수들
 
-  useEffect(() => {
-    if (initIndex !== -1) findInitMutation.mutate();
-  }, [initIndex]);
+  // 채팅 최근 인덱스
+  const indexMutation = useMutation(() => findIndex(docsId), {
+    onSuccess: (response) => {
+      if (response !== undefined) setInitIndex(response);
+    },
 
+    onError: (error) => console.error('Index fetch error:', error),
+  });
+
+  // 처음 메세지 불러오기
+  const findInitMutation = useMutation(() => findComments(initIndex, 5, docsId), {
+    onSuccess: (response) => {
+      setMessages((prevMessages) => [...prevMessages, ...response]);
+      setIndex(Math.min(...response.map((message) => message.id)));
+    },
+    onError: (error) => console.error('Find comments error:', error),
+  });
+
+  // 메세지 불러오기
+  const findMutation = useMutation(() => findComments(index, 5, docsId), {
+    onSuccess: (response) => {
+      setMessages((prevMessages) => [...prevMessages, ...response]);
+      setIndex(Math.min(...response.map((message) => message.id)));
+    },
+    onError: (error) => console.error('Find comments error:', error),
+  });
+
+  console.log(messages);
+
+  // 유저 태그 시 유저 정보 불러오기
+  const findUserMutation = useMutation(({ searchQuery, startIndex, endIndex }) => findUsers(workspaceId, searchQuery), {
+    onSuccess: (response, variables) => {
+      console.log('Received searchQuery:', variables.searchQuery); // variables.searchQuery로 접근
+      setUserSuggestions({
+        startIndex: variables.startIndex,
+        endIndex: variables.endIndex,
+        response: response,
+      });
+    },
+    onError: (error) => console.error('User fetch error:', error),
+  });
+
+  // 본인 정보 불러오기
+  const findMyInfoMutation = useMutation(() => fetchUserInfo(userId), {
+    onSuccess: (response) => {
+      setMyInfo(response);
+    },
+    onError: (error) => console.error('정보를 불러오는데 실패했습니다.', error),
+  });
+
+  // 메세지 작성/수정 시 공통 사용 함수들
+  // 1. 유저 선택 시 처리 - 일반 메시지와 수정 모드 구분
+  const handleSelectUser = (nickname, userId, isEditing) => {
+    if (!isEditing) {
+      const newContent = `${sendContent.substring(
+        0,
+        userSuggestions.startIndex
+      )}@${nickname}-${userId}${sendContent.substring(userSuggestions.endIndex)}`;
+
+      // 업데이트된 content를 sendContent에 저장
+      setSendContent(newContent);
+    } else {
+      const newContent = `${editContent.substring(
+        0,
+        userSuggestions.startIndex
+      )}@${nickname}-${userId}${editContent.substring(userSuggestions.endIndex)}`;
+
+      // 업데이트된 content를 sendContent에 저장
+      setEditContent(newContent);
+    }
+
+    // 태그된 유저 추가
+    setShowDropdown(false);
+  };
+
+  // 2. 유저 태그 드롭다운에서 유저 선택 시 호출되는 함수
+  const handleUserClick = (nickname, userId) => {
+    // isEditing이 true이면 수정 모드에서 handleSelectUser 호출
+    if (editingMessageId) {
+      handleSelectUser(nickname, userId, true);
+    } else {
+      handleSelectUser(nickname, userId, false);
+    }
+  };
+
+  // 3. 엔터 입력 시 작성/수정 전송 함수
+  const handleKeyDownSend = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // 기본 줄바꿈 동작 방지
+      if (editingMessageId) {
+        handleSaveEdit();
+      } else {
+        handleSave();
+      }
+    }
+  };
+
+  //  <------ 메세지 작성 ------>
+  // 1. 댓글 입력창 입력 시 호출되는 함수
+  const handleInput = (e) => {
+    const textarea = e.target;
+    const content = textarea.value;
+
+    // `sendContent` 값을 업데이트하여 입력이 반영되도록 설정
+    setSendContent(content);
+
+    // '@' 입력 시 유저 검색 시작
+    const cursorPosition = textarea.selectionStart;
+    const closestAtIndex = content.lastIndexOf('@', cursorPosition - 1);
+
+    let searchQuery = '';
+    let endIndex = content.length; // 기본값을 텍스트 끝으로 설정
+
+    if (closestAtIndex !== -1) {
+      const spaceIndex = content.indexOf(' ', closestAtIndex + 1);
+
+      // 공백이 없다면 끝까지, 있다면 공백 전까지 자르기
+      if (spaceIndex === -1) {
+        searchQuery = content.slice(closestAtIndex + 1);
+      } else {
+        searchQuery = content.slice(closestAtIndex + 1, spaceIndex);
+        endIndex = spaceIndex;
+      }
+
+      console.log('추출된 태그 검색어:', searchQuery);
+
+      if (searchQuery) {
+        findUserMutation.mutate({
+          searchQuery: searchQuery,
+          startIndex: closestAtIndex,
+          endIndex: endIndex,
+        });
+
+        const { top, left } = textarea.getBoundingClientRect();
+        const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
+          left: left - containerLeft + scrollContainerRef.current.scrollLeft,
+        });
+        setShowDropdown(true);
+      } else {
+        setShowDropdown(false);
+      }
+    } else {
+      setShowDropdown(false);
+    }
+
+    // textarea 높이 자동 조정 (검색 로직 이후에 수행)
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+
+  // 2. 댓글 작성 요청 시 json 파싱
+  const parseMessage = (messageText) => {
+    return messageText.split(/(@\S+?-\S+)/).map((part) => {
+      // '@문자1-문자2' 패턴을 매칭하여 분리
+      const match = part.match(/^@(\S+?)-(\S+)$/);
+      if (match) {
+        // return { type: 'USER', value: match[2] };
+        return { type: 'USER', value: match[2], nickname: match[1] };
+      }
+      // 다른 텍스트는 TEXT 타입으로 처리
+      return { type: 'TEXT', value: part };
+    });
+  };
+
+  // 3. 메시지 전송 함수
+  const handleSave = () => {
+    if (stompClientRef.current && stompClientRef.current.connected && sendContent) {
+      const parsedMessage = parseMessage(sendContent);
+      stompClientRef.current.publish({
+        destination: `/ws/pub/docs/${docsId}/comments`,
+        body: JSON.stringify({
+          type: 'ADD',
+          message: parsedMessage,
+        }),
+      });
+      setSendContent('');
+      setInternalMessage('');
+      setTaggedUsers([]);
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    }
+  };
+
+  //  <------ 메세지 수정 ------>
+  // 1. 댓글 수정창 값 입력 시 호출되는 함수
+  const handleEditInput = (e) => {
+    const textarea = e.target;
+    const content = textarea.value;
+
+    setEditContent(content);
+
+    // '@' 입력 시 유저 검색 시작
+    const cursorPosition = textarea.selectionStart;
+    const closestAtIndex = content.lastIndexOf('@', cursorPosition - 1);
+
+    let searchQuery = '';
+    let endIndex = content.length; // 기본값을 텍스트 끝으로 설정
+    if (closestAtIndex !== -1) {
+      const spaceIndex = content.indexOf(' ', closestAtIndex + 1);
+
+      // 공백이 없다면 끝까지, 있다면 공백 전까지 자르기
+      if (spaceIndex === -1) {
+        searchQuery = content.slice(closestAtIndex + 1);
+      } else {
+        searchQuery = content.slice(closestAtIndex + 1, spaceIndex);
+        endIndex = spaceIndex;
+      }
+
+      console.log('추출된 태그 검색어:', searchQuery);
+
+      if (searchQuery) {
+        findUserMutation.mutate({
+          searchQuery: searchQuery,
+          startIndex: closestAtIndex,
+          endIndex: endIndex,
+        });
+
+        const { top, left } = textarea.getBoundingClientRect();
+        const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
+          left: left - containerLeft + scrollContainerRef.current.scrollLeft,
+        });
+        setShowDropdown(true);
+      } else {
+        setShowDropdown(false);
+      }
+    } else {
+      setShowDropdown(false);
+    }
+
+    // textarea 높이 자동 조정 (검색 로직 이후에 수행)
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+
+  // 2. 메세지 수정 요청 시 파싱 함수
+  const parseEditMessage = (messageText) => {
+    return messageText.split(/(@\S+?-\S+)/).map((part) => {
+      // '@문자1-문자2' 패턴을 매칭하여 분리
+      const match = part.match(/^@(\S+?)-(\S+)$/);
+      if (match) {
+        // return { type: 'USER', value: match[2] };
+        return { type: 'USER', value: match[2], nickname: match[1] };
+      }
+      // 다른 텍스트는 TEXT 타입으로 처리
+      return { type: 'TEXT', value: part };
+    });
+  };
+
+  // 3. 수정 전송 함수
+  const handleSaveEdit = () => {
+    if (stompClientRef.current && stompClientRef.current.connected && editContent) {
+      console.log('수정2', editContent);
+      const parsedMessage = parseEditMessage(editContent);
+      console.log(parsedMessage);
+      stompClientRef.current.publish({
+        destination: `/ws/pub/docs/${docsId}/comments`,
+        body: JSON.stringify({
+          type: 'UPDATE',
+          message: {
+            commentId: editingMessageId,
+            message: parsedMessage,
+          },
+        }),
+      });
+      setEditContent('');
+      setTaggedUsers([]);
+      setEditingMessageId(null);
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    }
+  };
+
+  // 더보기 아이콘 (수정/삭제) 클릭
+  const handleMoreIconClick = (e, messageId) => {
+    e.stopPropagation();
+    setSelectedMessageId(messageId); // 선택된 메시지 ID 설정
+
+    const iconRect = e.currentTarget.getBoundingClientRect();
+    const containerRect = scrollContainerRef.current.getBoundingClientRect();
+
+    const calculatedTop = iconRect.top - containerRect.top + 75;
+    const calculatedLeft = iconRect.left - containerRect.left + 20;
+
+    const dropdownHeight = 15;
+    const dropdownWidth = 50;
+
+    let adjustedTop = calculatedTop;
+    let adjustedLeft = calculatedLeft;
+
+    if (adjustedTop + dropdownHeight > scrollContainerRef.current.clientHeight) {
+      adjustedTop = calculatedTop - dropdownHeight - e.currentTarget.offsetHeight - 5;
+    }
+    if (adjustedLeft + dropdownWidth > scrollContainerRef.current.clientWidth) {
+      adjustedLeft = scrollContainerRef.current.clientWidth - dropdownWidth - 10;
+    }
+
+    setOptionsDropdownPosition({ top: adjustedTop, left: adjustedLeft });
+    setShowOptionsDropdown(!showOptionsDropdown);
+  };
+
+  // 수정, 삭제 드롭다운 열렸을 때 스크롤 방지
+  useEffect(() => {
+    if (showOptionsDropdown) {
+      preventScroll();
+    } else {
+      allowScroll();
+    }
+  }, [showOptionsDropdown]);
+
+  // 스크롤 허용 함수
+  const allowScroll = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.overflowY = 'auto';
+      scrollContainerRef.current.style.paddingRight = '0';
+    }
+  };
+
+  // 스크롤 금지 함수
+  const preventScroll = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.overflowY = 'hidden';
+      scrollContainerRef.current.style.paddingRight = '8px';
+    }
+  };
+
+  // <------ 메세지 수정 버튼 클릭 ------>
+  // 1. 수정 버튼 -> 수정 시작 시 호출되는 함수
+  const handleEditClick = () => {
+    const messageToEdit = messages.find((msg) => msg.commentId === selectedMessageId);
+    console.log(messageToEdit);
+    if (messageToEdit) {
+      setEditingMessageId(selectedMessageId);
+
+      let newEditContent = '';
+
+      messageToEdit.comment.forEach((part) => {
+        if (part.type === 'USER') {
+          // type이 USER인 경우
+          newEditContent += `@${part.value.nickname}-${part.value.userId}`;
+        } else if (part.type === 'TEXT') {
+          // type이 TEXT인 경우
+          newEditContent += part.value;
+        }
+      });
+
+      setEditContent(newEditContent.trim()); // 최종 editContent 설정
+    }
+    setShowOptionsDropdown(false); // 옵션 드롭다운 닫기
+  };
+
+  // 2. 수정 취소 시 상태 초기화
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditContent('');
+  };
+
+  // <------ 메세지 삭제 버튼 클릭 ------>
+  // 1. 삭제 버튼 클릭 핸들러
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    setShowDeleteModal(true);
+    setShowOptionsDropdown(false);
+  };
+
+  // 2. 삭제 취소
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+  };
+
+  // 3. 삭제 클릭 시
+  const deleteComment = (e) => {
+    e.stopPropagation();
+    const deleteTargetId = messages.find((msg) => msg.commentId === selectedMessageId);
+    stompClientRef.current.publish({
+      destination: `/ws/pub/docs/${docsId}/comments`,
+      body: JSON.stringify({
+        type: 'DELETE',
+        message: deleteTargetId.commentId,
+      }),
+    });
+    setShowDeleteModal(false);
+  };
+
+  // 스크롤 감지 후 무한 스크롤 데이터 로딩
   const handleScroll = () => {
     const scrollContainer = scrollContainerRef.current;
     if (
@@ -344,6 +534,7 @@ const Comments = ({ docsId, workspaceId }) => {
     }
   };
 
+  // 무한 스크롤시 스크롤 감지
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     if (scrollContainer) {
@@ -354,38 +545,7 @@ const Comments = ({ docsId, workspaceId }) => {
     };
   }, [handleScroll]);
 
-  const handleInput = (e) => {
-    const textarea = e.target;
-    const content = textarea.value;
-    setSendContent(content);
-    textarea.style.height = 'auto';
-    textarea.style.height = `${textarea.scrollHeight}px`;
-
-    const cursorPosition = textarea.selectionStart;
-    const lastChar = content[cursorPosition - 1]?.normalize('NFC');
-
-    const atIndex = content.lastIndexOf('@');
-    if (atIndex !== -1 && cursorPosition > atIndex && /^[가-힣]$/.test(lastChar)) {
-      const searchQuery = content.substring(atIndex + 1, cursorPosition);
-      console.log('searchQuery', searchQuery);
-      if (searchQuery) {
-        findUserMutation.mutate(searchQuery);
-
-        const { top, left } = textarea.getBoundingClientRect();
-        const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
-
-        // 부모 컨테이너 기준으로 상대 위치를 계산
-        setDropdownPosition({
-          top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
-          left: left - containerLeft + scrollContainerRef.current.scrollLeft,
-        });
-        setShowDropdown(true);
-      }
-    } else {
-      setShowDropdown(false);
-    }
-  };
-
+  // 태그된 유저 정보 확인
   const showUserInfo = (e, nickname, profileImage, userId) => {
     e.stopPropagation(); // 이벤트 전파 중단
 
@@ -421,103 +581,24 @@ const Comments = ({ docsId, workspaceId }) => {
     }
   };
 
-  // 유저 선택 시 처리 - 일반 메시지와 수정 모드 구분
-  const handleSelectUser = (nickname, userId, isEditing = false) => {
-    const content = isEditing ? editContent : sendContent;
-    const atIndex = content.lastIndexOf('@');
-    const newContent = `${content.substring(0, atIndex)}@${nickname} `;
-
-    if (isEditing) {
-      setEditContent(newContent);
-      const textBefore = content.substring(0, atIndex);
-      setEditParsedMessage((prevParsed) => [
-        ...prevParsed,
-        { type: 'TEXT', value: textBefore },
-        { type: 'USER', value: userId },
-      ]);
-    } else {
-      setSendContent(newContent);
-      const textBefore = content.substring(0, atIndex);
-      setSendParsedMessage((prevParsed) => [
-        ...prevParsed,
-        { type: 'TEXT', value: textBefore },
-        { type: 'USER', value: userId },
-      ]);
-    }
-
-    setShowDropdown(false);
-  };
-
-  const sendMessage = () => {
-    if (stompClientRef.current && stompClientRef.current.connected) {
-      if (sendContent) {
-        const parsedMessage = [];
-
-        // `@` 기호의 마지막 위치 찾기
-        const lastAtIndex = sendContent.lastIndexOf('@');
-
-        if (lastAtIndex !== -1) {
-          // `@` 기호 이후 첫 번째 공백 위치 찾기
-          const spaceIndex = sendContent.indexOf(' ', lastAtIndex);
-
-          // 남은 텍스트: 공백 뒤의 텍스트만 추출
-          const remainingText = spaceIndex !== -1 ? sendContent.substring(spaceIndex + 1) : '';
-
-          // 기존 파싱된 메시지에 남은 텍스트 추가
-          setSendParsedMessage((prevParsed) => [...prevParsed, { type: 'TEXT', value: remainingText }]);
-        } else {
-          // `@`가 없을 때 전체 텍스트를 `TEXT`로 추가
-          setSendParsedMessage([{ type: 'TEXT', value: sendContent }]);
-        }
-
-        setSending(true);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (sending) {
-      console.log('메세지보내기직전!', sendParsedMessage);
-      stompClientRef.current.publish({
-        destination: `/ws/pub/docs/${docsId}/comments`,
-        body: JSON.stringify({
-          type: 'ADD',
-          message: sendParsedMessage,
-        }),
-      });
-      setSending(false);
-      setSendContent('');
-      setSendParsedMessage([]);
-      if (textareaRef.current) textareaRef.current.style.height = 'auto';
-    }
-  }, [sendParsedMessage]);
-
-  const handleUserClick = (nickname, userId) => {
-    // isEditing이 true이면 수정 모드에서 handleSelectUser 호출
-    if (editingMessageId) {
-      handleSelectUser(nickname, userId, true);
-    } else {
-      handleSelectUser(nickname, userId, false);
-    }
-  };
-
-  console.log('데이터', userSuggestions);
-  console.log('드롭다운', showDropdown);
-
   return (
     <div
       ref={scrollContainerRef}
-      className='w-full h-[700px] bg-[#F8FCFF] flex flex-col justify-start pt-5 pb-24 overflow-y-auto box-border sidebar-scrollbar'
+      className='mt-5 w-full h-[calc(100vh-255px)] bg-white flex flex-col justify-start pt-5 pb-24 overflow-y-auto box-border sidebar-scrollbar'
     >
       <div className='flex flex-col space-y-4 flex-grow'>
         {messages.map((message) => (
           <div key={message.commentId} className='flex flex-col'>
             <div className={`flex ${message.isHost ? 'justify-end' : 'justify-start'}`}>
               {!message.isHost && (
-                <img className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain' src={User2} alt='Profile' />
+                <img
+                  className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain'
+                  src={message?.writerProfileImage}
+                  alt='Profile'
+                />
               )}
               <div
-                className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#D7E9F4] ${
+                className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#E9F2F5] ${
                   message.isHost ? 'ml-auto text-right' : 'text-left'
                 }`}
               >
@@ -526,7 +607,7 @@ const Comments = ({ docsId, workspaceId }) => {
                     <>
                       <FaEllipsisH
                         className='mt-1 ml-2 cursor-pointer'
-                        onClick={(e) => handleIconClick(e, message.commentId)}
+                        onClick={(e) => handleMoreIconClick(e, message.commentId)}
                       />
                       <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
                     </>
@@ -539,6 +620,7 @@ const Comments = ({ docsId, workspaceId }) => {
                     <textarea
                       value={editContent}
                       onInput={handleEditInput}
+                      onKeyDown={handleKeyDownSend}
                       className='w-full p-1 rounded-md border border-gray-300 resize-none overflow-hidden'
                       style={{ height: 'auto' }}
                     />
@@ -573,7 +655,11 @@ const Comments = ({ docsId, workspaceId }) => {
                 )}
               </div>
               {message.isHost && (
-                <img className='w-[40px] h-[40px] rounded-full mr-5 ml-3 object-contain' src={User2} alt='Profile' />
+                <img
+                  className='w-[40px] h-[40px] rounded-full mr-5 ml-3 object-contain'
+                  src={message?.writerProfileImage}
+                  alt='Profile'
+                />
               )}
             </div>
             <div className={`flex ${message.isHost ? 'justify-end mr-[72px]' : 'justify-start ml-[72px]'}`}>
@@ -589,18 +675,23 @@ const Comments = ({ docsId, workspaceId }) => {
             </div>
           </div>
         ))}
-        <div className='absolute bottom-5'>
-          <div className='flex flex-row w-full rounded-[10px] ml-6 bg-[#D7E9F4] p-3'>
-            <img className='w-[40px] h-[40px] rounded-full mr-3 object-contain' src={User2} alt='Profile' />
+        <div className='absolute bottom-10'>
+          <div className='flex flex-row w-full rounded-[10px] ml-6 bg-[#E9F2F5] p-3'>
+            <img
+              className='w-[40px] h-[40px] rounded-full mr-3 object-contain'
+              src={myInfo?.profileImage}
+              alt='Profile'
+            />
             <textarea
               ref={textareaRef}
               className='text-xl pt-2 bg-transparent w-full flex-grow resize-none overflow-hidden'
               rows='1'
               placeholder='코멘트 입력'
               onInput={handleInput}
+              onKeyDown={handleKeyDownSend}
               value={sendContent}
             ></textarea>
-            <BsSend onClick={sendMessage} className='mt-1 text-4xl ml-1' />
+            <BsSend onClick={handleSave} className='mt-1 text-4xl ml-1' />
           </div>
         </div>
       </div>
@@ -639,7 +730,7 @@ const Comments = ({ docsId, workspaceId }) => {
           </li>
         </ul>
       )}
-      {showDropdown && userSuggestions && userSuggestions.length > 0 && (
+      {showDropdown && userSuggestions.response && userSuggestions.response.length > 0 && (
         <ul
           style={{
             position: 'absolute',
@@ -648,7 +739,7 @@ const Comments = ({ docsId, workspaceId }) => {
           }}
           className='bg-[#EDF7FF] border border-gray-300 w-56 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
         >
-          {userSuggestions.map((user) => (
+          {userSuggestions.response.map((user) => (
             <li
               key={user.userId}
               onClick={() => handleUserClick(user.nickname, user.userId)}
