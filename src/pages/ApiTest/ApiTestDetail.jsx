@@ -46,7 +46,7 @@ const ApiTestDetail = () => {
     onError: (error) => console.error('저장 실패!', error),
   });
 
-  const requestApiTestMutation = useMutation(() => requestApiTest(workspaceId, apiDetail), {
+  const requestApiTestMutation = useMutation(() => requestApiTest(workspaceId, apiDetail, apiDetail.path), {
     onSuccess: (response) => {
       setTestResult(response);
       console.log('테스트 완료', response);
