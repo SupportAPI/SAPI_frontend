@@ -78,3 +78,36 @@ export const useFetchEnvironment = (categoryId) => {
     enabled: !!categoryId,
   });
 };
+
+export const editEnvironmentName = async (categoryId, name) => {
+  try {
+    const accessToken = getToken();
+    const response = await axios.patch(
+      `${base_URL}/api/environment-categories/${categoryId}`,
+      {
+        name,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data.data;
+  } catch (error) {
+    console.error('dont edit category name', error);
+    throw error;
+  }
+};
+
+// 환경 변수 이름 수정 함수
+export const useEditEnvironmentName = () => {
+  const queryClient = useQueryClient();
+  return useMutation(({ categoryId, name }) => editEnvironmentName(categoryId, name), {
+    onSuccess: () => {
+      // 수정 후 관련 데이터를 갱신
+      queryClient.invalidateQueries(['workspaceId']);
+    },
+  });
+};
