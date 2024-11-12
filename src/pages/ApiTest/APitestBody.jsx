@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { toast } from 'react-toastify';
+import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
 
 const ApiTestParameters = ({ body, bodyChange }) => {
-  const [bodyType, setBodyType] = useState(body.bodyType); // NONE, JSON, FORM_DATA
+  const [bodyType, setBodyType] = useState(body.bodyType);
   const [json, setJson] = useState(body.json || { id: '', value: '{}' });
-  const [formData, setFormData] = useState(body.formData || []); // formData가 없을 경우 빈 배열로 초기화
+  const [formData, setFormData] = useState(body.formData || []);
+  const { environment } = useEnvironmentStore();
+  const [envDropdown, setEnvDropdown] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     bodyChange({
@@ -28,7 +32,6 @@ const ApiTestParameters = ({ body, bodyChange }) => {
     }
   };
 
-  // 맨 처음 들어오면 바로 JSON 정렬
   useEffect(() => {
     setBodyType('JSON');
     try {
@@ -42,11 +45,78 @@ const ApiTestParameters = ({ body, bodyChange }) => {
     }
   }, []);
 
+  const handleJsonEditorChange = (value) => {
+    setJson({ ...json, value });
+
+    const nearestStartIndex = value.lastIndexOf('{{');
+    if (nearestStartIndex !== -1) {
+      const afterStart = value.slice(nearestStartIndex + 2);
+      const firstSpaceIndex = afterStart.search(/\s|}}/);
+      const searchValue = firstSpaceIndex === -1 ? afterStart : afterStart.slice(0, firstSpaceIndex);
+
+      setEnvDropdown(environment?.filter((env) => env.value.startsWith(searchValue)));
+      setShowDropdown(true);
+    } else {
+      setShowDropdown(false);
+    }
+  };
+
   const handleInputChange = (e, index) => {
     const { value } = e.target;
+    const cursorPosition = e.target.selectionStart;
     const updatedFormData = [...formData];
     updatedFormData[index].value = value;
     setFormData(updatedFormData);
+
+    // Detect nearest `{{` and update envDropdown
+    const nearestStartIndex = value.lastIndexOf('{{', cursorPosition - 1);
+    if (nearestStartIndex !== -1) {
+      const afterStart = value.slice(nearestStartIndex + 2);
+      const firstSpaceIndex = afterStart.search(/\s|}}/);
+      const searchValue = firstSpaceIndex === -1 ? afterStart : afterStart.slice(0, firstSpaceIndex);
+
+      setEnvDropdown(environment?.filter((env) => env.value.startsWith(searchValue)));
+      setShowDropdown(true);
+    } else {
+      setShowDropdown(false);
+    }
+  };
+
+  const handleEnvironmentSelect = (selectedVariable, index) => {
+    const updatedFormData = [...formData];
+    const originalValue = updatedFormData[index].value;
+
+    const nearestStartIndex = originalValue.lastIndexOf('{{');
+    if (nearestStartIndex !== -1) {
+      const afterStart = originalValue.slice(nearestStartIndex + 2);
+      const firstSpaceIndex = afterStart.search(/\s|}}/);
+      const endIndex = firstSpaceIndex === -1 ? originalValue.length : nearestStartIndex + 2 + firstSpaceIndex;
+
+      const newValue =
+        originalValue.slice(0, nearestStartIndex) + `{{${selectedVariable}}}` + originalValue.slice(endIndex);
+
+      updatedFormData[index].value = newValue;
+      setFormData(updatedFormData);
+    }
+
+    setShowDropdown(false);
+  };
+
+  const handleEnvironmentSelectInJson = (selectedVariable) => {
+    const originalValue = json.value;
+    const nearestStartIndex = originalValue.lastIndexOf('{{');
+
+    if (nearestStartIndex !== -1) {
+      const afterStart = originalValue.slice(nearestStartIndex + 2);
+      const firstSpaceIndex = afterStart.search(/\s|}}/);
+      const endIndex = firstSpaceIndex === -1 ? originalValue.length : nearestStartIndex + 2 + firstSpaceIndex;
+
+      const newValue =
+        originalValue.slice(0, nearestStartIndex) + `{{${selectedVariable}}}` + originalValue.slice(endIndex);
+
+      setJson({ ...json, value: newValue });
+      setShowDropdown(false);
+    }
   };
 
   const renderFormDataTable = () => (
@@ -63,13 +133,26 @@ const ApiTestParameters = ({ body, bodyChange }) => {
           {formData.map((item, index) => (
             <tr key={index} className='hover:bg-gray-50'>
               <td className='py-2 px-4 text-sm border text-center'>{item.key}</td>
-              <td className='py-2 px-4 border text-center'>
+              <td className='py-2 px-4 border text-center relative'>
                 <input
                   type='text'
                   value={item.value}
                   onChange={(e) => handleInputChange(e, index)}
                   className='w-full text-sm border p-1 text-center'
                 />
+                {showDropdown && (
+                  <div className='absolute left-0 right-0 bg-white border border-gray-300 mt-1 z-10'>
+                    {envDropdown.map((env, i) => (
+                      <div
+                        key={i}
+                        onClick={() => handleEnvironmentSelect(env.variable, index)}
+                        className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
+                      >
+                        {env.variable}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </td>
             </tr>
           ))}
@@ -79,7 +162,7 @@ const ApiTestParameters = ({ body, bodyChange }) => {
   );
 
   if (!json) {
-    return <div>Loading...</div>; // 로딩 중일 때 표시할 내용
+    return <div>Loading...</div>;
   }
 
   return (
@@ -99,12 +182,7 @@ const ApiTestParameters = ({ body, bodyChange }) => {
             height='200px'
             language='json'
             value={json.value || '{}'}
-            onChange={(value) =>
-              setJson({
-                id: json.id,
-                value: value || '{}',
-              })
-            }
+            onChange={handleJsonEditorChange}
             options={{
               automaticLayout: true,
               autoClosingBrackets: 'always',
@@ -119,6 +197,19 @@ const ApiTestParameters = ({ body, bodyChange }) => {
               },
             }}
           />
+          {showDropdown && (
+            <div className='absolute left-0 right-0 bg-white border border-gray-300 mt-1 z-10'>
+              {envDropdown.map((env, i) => (
+                <div
+                  key={i}
+                  onClick={() => handleEnvironmentSelectInJson(env.variable)}
+                  className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
+                >
+                  {env.variable}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
