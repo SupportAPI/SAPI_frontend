@@ -1,7 +1,7 @@
 package com.seniorcenter.sapi.domain.apifile.service;
 
 import com.seniorcenter.sapi.domain.apifile.domain.repository.ApiFileRepository;
-import com.seniorcenter.sapi.domain.apifile.presentation.ApiFile;
+import com.seniorcenter.sapi.domain.apifile.domain.ApiFile;
 import com.seniorcenter.sapi.domain.apifile.presentation.dto.response.FileInfoResponseDto;
 import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepository;
 import com.seniorcenter.sapi.domain.user.domain.User;

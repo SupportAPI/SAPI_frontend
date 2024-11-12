@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.seniorcenter.sapi.domain.api.domain.QApi;
-import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiTestResponseDto;
+import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.ApiTestResponseDto;
 import com.seniorcenter.sapi.domain.specification.domain.QSpecification;
 import com.seniorcenter.sapi.domain.user.domain.QUser;
 

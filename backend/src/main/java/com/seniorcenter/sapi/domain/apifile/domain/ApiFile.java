@@ -1,4 +1,4 @@
-package com.seniorcenter.sapi.domain.apifile.presentation;
+package com.seniorcenter.sapi.domain.apifile.domain;
 
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.global.database.BaseTimeEntity;
