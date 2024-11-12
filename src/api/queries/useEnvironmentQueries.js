@@ -74,5 +74,7 @@ export const fetchEnvironment = async (categoryId) => {
 };
 
 export const useFetchEnvironment = (categoryId) => {
-  return useQuery(['categoryId', categoryId], () => fetchEnvironment(categoryId));
+  return useQuery(['categoryId', categoryId], () => fetchEnvironment(categoryId), {
+    enabled: !!categoryId,
+  });
 };

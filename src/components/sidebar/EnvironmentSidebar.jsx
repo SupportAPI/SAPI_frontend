@@ -79,9 +79,9 @@ const EnvironmentSidebar = () => {
   useEffect(() => {
     if (envData) {
       const newPath = {
-        id: addId,
+        id: envData.id,
         name: newEnvironment.name,
-        path: `/workspace/${workspaceId}/environment/${addId}`,
+        path: `/workspace/${workspaceId}/environment/${envData.id}`,
       };
       setPaths((prevPaths) => [...prevPaths, newPath]);
       setAddId((prevId) => prevId + 1); // 고유한 id 증가
