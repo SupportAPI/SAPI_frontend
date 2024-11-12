@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAddEnvironment, useFetchEnvironmentList } from '../../api/queries/useEnvironmentQueries';
 import { useTabStore } from '../../stores/useTabStore';
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
@@ -10,10 +11,38 @@ const EnvironmentSidebar = () => {
   const location = useLocation();
   const { workspaceId } = useParams();
   const [showInputEnvironment, setShowInputEnvironment] = useState(false);
-  const [newEnvironment, setNewEnvironment] = useState({ name: '' });
+  const [newEnvironment, setNewEnvironment] = useState({ name: null });
   const [addTime, setAddTime] = useState(false);
-  const [addId, setAddId] = useState(2); // 임시값, 첫 id는 1로 시작
-  const [paths, setPaths] = useState([{ id: 1, name: 'Global', path: `/workspace/${workspaceId}/environment/1` }]);
+  const [paths, setPaths] = useState([]);
+  const {
+    data: envData = null,
+    error: envError,
+    isLoading: envLoading,
+    refetch: envAddRefetch,
+  } = useAddEnvironment(workspaceId, newEnvironment.name);
+
+  const {
+    data: environmentList,
+    isLoading: isListLoading,
+    error: isListError,
+    refetch: listRefetch,
+  } = useFetchEnvironmentList(workspaceId);
+
+  useEffect(() => {
+    if (environmentList) {
+      const updatedPaths = environmentList.map((env) => ({
+        id: env.categoryId,
+        name: env.categoryName,
+        path: `/workspace/${workspaceId}/environment/${env.categoryId}`,
+      }));
+
+      setPaths((prevPaths) => {
+        const existingIds = prevPaths.map((path) => path.id);
+        const uniquePaths = updatedPaths.filter((newPath) => !existingIds.includes(newPath.id));
+        return [...prevPaths, ...uniquePaths];
+      });
+    }
+  }, [environmentList]);
 
   const handleAddEnvironment = () => {
     setShowInputEnvironment(true);
@@ -44,11 +73,11 @@ const EnvironmentSidebar = () => {
   };
 
   const addEnvironment = () => {
-    setAddTime(true);
+    envAddRefetch(workspaceId, newEnvironment.name);
   };
 
   useEffect(() => {
-    if (addTime) {
+    if (envData) {
       const newPath = {
         id: addId,
         name: newEnvironment.name,
@@ -60,7 +89,7 @@ const EnvironmentSidebar = () => {
       setNewEnvironment({ name: '' });
       setAddTime(false); // 다음 호출을 위해 리셋
     }
-  }, [addTime]);
+  }, [envData]);
 
   return (
     <div className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm'>

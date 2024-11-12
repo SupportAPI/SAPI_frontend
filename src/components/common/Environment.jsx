@@ -18,6 +18,14 @@ const Environment = ({ workspaceId }) => {
     listRefetch(workspaceId);
   }, [workspaceId]);
 
+  // environmentList가 로드된 후 가장 낮은 categoryId를 기본 선택 값으로 설정
+  useEffect(() => {
+    if (environmentList && environmentList.length > 0) {
+      const minCategoryId = Math.min(...environmentList.map((env) => env.categoryId));
+      setSelectedCategoryId(minCategoryId);
+    }
+  }, [environmentList]);
+
   // 선택된 categoryId가 있을 때만 useFetchEnvironment 쿼리를 활성화
   //   const {
   //     data: environmentData,
