@@ -562,6 +562,7 @@ public class ApiService {
         );
     }
 
+    @Transactional
     public void updateTestApi(UUID workspaceId, UUID apiId, UpdateApiDetailRequestDto requestDto) {
         requestDto.parameters().headers().forEach(headerDto -> {
             apiHeaderRepository.findById(Long.parseLong(headerDto.headerId()))
