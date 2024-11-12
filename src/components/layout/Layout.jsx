@@ -7,8 +7,11 @@ import DashboardSidebar from '../sidebar/DashboardSidebar';
 import TabBar from '../common/TabBar';
 import { useNavbarStore } from '../../stores/useNavbarStore';
 import EnvironmentSidebar from '../sidebar/EnvironmentSidebar';
+import Environment from '../common/Environment';
+import { useParams } from 'react-router-dom';
 
 const Layout = ({ children }) => {
+  const { workspaceId } = useParams();
   const { menu, setMenu, setApiData, apiData } = useNavbarStore();
 
   const { refetch } = useQuery(
@@ -53,9 +56,9 @@ const Layout = ({ children }) => {
         <Navbar onMenuClick={handleMenuClick} />
         <div className='h-full'>{renderSidebar()}</div>
         <div className='flex-1 flex flex-col'>
-          <div className='flex flex-row'>
+          <div className='flex flex-row justify-between'>
             <TabBar />
-            <div>ㅇㄹㄴㅇㄹ</div>
+            <Environment workspaceId={workspaceId} />
           </div>
           <div className='flex-1'>{children}</div>
         </div>
