@@ -60,12 +60,16 @@ export const patchApiDetail = async (workspaceId, apiId, apiTestDetails) => {
 export const requestApiTest = async (workspaceId, apiDetail) => {
   const accessToken = getToken();
 
-  const response = await axios.get(`${base_URL}/api/workspaces/${workspaceId}/test`, {
-    params: apiDetail, // 쿼리 파라미터로 전달
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  const response = await axios.post(
+    `${base_URL}/api/workspaces/${workspaceId}/test`,
+    { apiDetail },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        'sapi-method': 'GET',
+      },
+    }
+  );
   return response.data.data;
 };
