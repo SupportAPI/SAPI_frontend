@@ -119,4 +119,8 @@ public class Api extends BaseTimeEntity {
     public void updateBodyType(BodyType bodyType) {
         this.bodyType = bodyType;
     }
+
+    public void updateCategory(String category){
+        this.category = category;
+    }
 }
