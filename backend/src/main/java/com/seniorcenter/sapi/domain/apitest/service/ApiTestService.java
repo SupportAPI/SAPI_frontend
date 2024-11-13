@@ -1,11 +1,10 @@
 package com.seniorcenter.sapi.domain.apitest.service;
 
+import com.seniorcenter.sapi.domain.apitest.presentation.dto.request.TestApiRequestDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.request.UpdateApiDetailRequestDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.ApiTestDetailResponseDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.ApiTestResponseDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.TestResponseDto;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -18,9 +17,7 @@ public interface ApiTestService {
 
     void updateTestApi(UUID workspaceId, UUID apiId, UpdateApiDetailRequestDto requestDto);
 
-    TestResponseDto testDefaultRequest(String workspaceId, Map<String, String> headers, HttpServletRequest request);
+    TestResponseDto requestTestApi(UUID workspaceId, TestApiRequestDto requestTestApiRequestDto, Map<String, String> headers);
 
-    TestResponseDto testFormDataRequest(String workspaceId, Map<String, String> headers, Map<String, Object> formParams, Map<String, MultipartFile> files, HttpServletRequest request);
-
-    TestResponseDto testJsonRequest(String workspaceId, Map<String, String> headers, Map<String, Object> body, HttpServletRequest request);
+    TestResponseDto requestTestApiBySpecificationId(UUID workspaceId, UUID specificationId, Map<String, String> headers);
 }
