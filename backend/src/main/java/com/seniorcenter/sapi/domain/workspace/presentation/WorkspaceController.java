@@ -46,7 +46,7 @@ public class WorkspaceController {
 	@PatchMapping("/{workspaceId}")
 	public void updateWorkspace(@PathVariable UUID workspaceId,
 		@RequestPart("requestDto") UpdateWorkspaceRequestDto requestDto,
-		@RequestPart(value = "mainImage") MultipartFile mainImage) {
+		@RequestPart(value = "mainImage", required = false) MultipartFile mainImage) {
 		workspaceService.updateWorkspace(workspaceId, requestDto, mainImage);
 	}
 
