@@ -22,6 +22,8 @@ import com.seniorcenter.sapi.domain.membership.presentation.dto.response.MemberI
 import com.seniorcenter.sapi.domain.notification.domain.NotificationType;
 import com.seniorcenter.sapi.domain.notification.util.SseUtils;
 import com.seniorcenter.sapi.domain.user.domain.User;
+import com.seniorcenter.sapi.domain.user.domain.repository.UserRepository;
+import com.seniorcenter.sapi.domain.user.presentation.dto.response.UserResponseDto;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
@@ -37,6 +39,7 @@ public class MembershipServiceImpl implements MembershipService {
 
 	private final MembershipRepository membershipRepository;
 	private final WorkspaceRepository workspaceRepository;
+	private final UserRepository userRepository;
 	private final UserUtils userUtils;
 	private final SseUtils sseUtils;
 
@@ -175,6 +178,14 @@ public class MembershipServiceImpl implements MembershipService {
 				membership.getWorkspace().getDescription(),
 				membership.getWorkspace().getMainImage()
 			))
+			.collect(Collectors.toList());
+	}
+
+	public List<UserResponseDto> getPendingUsersInWorkspace(UUID workspaceId) {
+		List<User> pendingUsers = userRepository.findPendingUsersByWorkspaceId(workspaceId);
+
+		return pendingUsers.stream()
+			.map(user -> new UserResponseDto(user.getId(), user.getEmail(), user.getNickname(), user.getProfileImage()))
 			.collect(Collectors.toList());
 	}
 
