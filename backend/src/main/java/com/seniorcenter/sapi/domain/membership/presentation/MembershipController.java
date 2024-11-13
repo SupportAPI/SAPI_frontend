@@ -20,6 +20,7 @@ import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMe
 import com.seniorcenter.sapi.domain.membership.presentation.dto.response.InvitedWorkspaceInfoResponseDto;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.response.MemberInfoResponseDto;
 import com.seniorcenter.sapi.domain.membership.service.MembershipService;
+import com.seniorcenter.sapi.domain.user.presentation.dto.response.UserResponseDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,6 +44,11 @@ public class MembershipController {
 	@GetMapping("/invited")
 	public List<InvitedWorkspaceInfoResponseDto> getInvitedWorkspaces() {
 		return membershipService.getInvitedMemberships();
+	}
+
+	@GetMapping("/invited-members")
+	public List<UserResponseDto> getPendingUsersInWorkspace(@RequestParam UUID workspaceId) {
+		return membershipService.getPendingUsersInWorkspace(workspaceId);
 	}
 
 	@PatchMapping("/{membershipId}/accept")
