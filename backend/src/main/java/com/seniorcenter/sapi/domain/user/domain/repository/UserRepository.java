@@ -22,4 +22,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	@Query("SELECT u FROM User u WHERE u.nickname LIKE %:nicknameValue% AND u.id IN " +
 		"(SELECT m.user.id FROM Membership m WHERE m.workspace.id = :workspaceId)")
 	List<User> findUsersInWorkspaceWithNickname(@Param("workspaceId") UUID workspaceId, @Param("nicknameValue") String nicknameValue, Pageable pageable);
+
+	@Query("SELECT m.user FROM Membership m WHERE m.workspace.id = :workspaceId AND m.inviteStatus = 'PENDING'")
+	List<User> findPendingUsersByWorkspaceId(@Param("workspaceId") UUID workspaceId);
 }
