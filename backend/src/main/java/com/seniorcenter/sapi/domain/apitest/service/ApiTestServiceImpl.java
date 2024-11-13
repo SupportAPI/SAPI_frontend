@@ -458,23 +458,6 @@ public class ApiTestServiceImpl implements ApiTestService {
         return toTestResponseDto(responseEntity, httpHeaders, requestBody, http2xxResponse, startTime, testType);
     }
 
-
-    private Api getMatchingApi(String workspaceId, HttpMethod method, String path) {
-        List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(UUID.fromString(workspaceId));
-
-        List<UUID> apiIds = specifications.stream()
-            .filter(specification -> !specification.getConfirmedApiId().equals(""))
-            .map(Specification::getConfirmedApiId)
-            .toList();
-
-        List<Api> apiList = apiRepository.findAllById(apiIds);
-
-        return apiList.stream()
-            .filter(api -> api.getMethod().getValue().equals(method.name()) && pathMatches(api.getPath(), path))
-            .findFirst()
-            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
-    }
-
     private boolean pathMatches(String path, String requestedPath) {
         String regex = path.replaceAll("\\{[^/]+\\}", "[^/]+");
         Pattern pattern = Pattern.compile(regex);
@@ -485,6 +468,30 @@ public class ApiTestServiceImpl implements ApiTestService {
 
     private TestResponseDto toTestResponseDto(ResponseEntity<byte[]> responseEntity, HttpHeaders httpHeaders, Map<String, Object> requestBody, ApiResponse mockResponse, long startTime, String testType) {
         long responseTime = System.currentTimeMillis() - startTime;
+
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+            // 2xx가 아닌 경우 에러 상태와 메시지를 반환
+
+            return new TestResponseDto(
+                TestStatus.FAIL.name(),
+                responseEntity.getStatusCodeValue(),
+                "",
+                mockResponse != null ? mockResponse.getBodyData() : "",
+                responseEntity.getHeaders().toSingleValueMap(),
+                Map.of(),
+                Map.of(
+                    "Headers", httpHeaders.toString().getBytes().length + " B",
+                    "Body", requestBody.toString().getBytes().length + " B"
+                ),
+                Map.of(
+                    "Headers", responseEntity.getHeaders().toString().getBytes().length + " B",
+                    "Body", responseEntity.getBody() != null ? responseEntity.getBody().length + " B" : "0 B"
+                ),
+                responseTime,
+                testType,
+                new String(responseEntity.getBody())
+            );
+        }
 
         // 응답 헤더 및 바디 크기 계산
         long responseHeaderSize = responseEntity.getHeaders().toString().getBytes().length;
@@ -499,9 +506,9 @@ public class ApiTestServiceImpl implements ApiTestService {
             : Map.of();
 
         // 응답 바디와 목 바디를 비교하여 구조 차이 찾기
-        String responseBodyStr = responseEntity.getBody() != null ? new String(responseEntity.getBody()) : null;
+        String responseBodyStr = responseEntity.getBody() != null ? new String(responseEntity.getBody()) : "";
         Map<String, Object> responseBodyMap = parseJsonToMap(responseBodyStr);
-        Map<String, Object> mockBodyMap = parseJsonToMap(mockResponse.getBodyData());
+        Map<String, Object> mockBodyMap = parseJsonToMap(mockResponse != null ? mockResponse.getBodyData() : "");
 
         List<String> differences = findStructureDifferences(responseBodyMap, mockBodyMap, "");
         String status;
@@ -518,12 +525,11 @@ public class ApiTestServiceImpl implements ApiTestService {
             message = String.join("; ", differences);
         }
 
-
         return new TestResponseDto(
             status,
             code,
             responseBodyStr,
-            mockResponse.getBodyData(),
+            mockResponse != null ? mockResponse.getBodyData() : "",
             responseEntity.getHeaders().toSingleValueMap(),
             cookies,
             Map.of(
