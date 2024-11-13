@@ -7,6 +7,7 @@ import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.SaveDataRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
@@ -116,7 +117,11 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.API_NAME)) {
             result = valueUtils.updateByValue(message);
         } else if (message.apiType().equals(ApiType.CATEGORY)) {
-            result = valueUtils.update(message);
+            UpdateIdValueRequestDto updateIdValueRequestDto = valueUtils.update(message);
+            Api api = apiRepository.findById(apiId)
+                    .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+            api.updateCategory(updateIdValueRequestDto.value());
+            result = updateIdValueRequestDto;
         } else if (message.apiType().equals(ApiType.API_DESCRIPTION)) {
             result = valueUtils.updateByValue(message);
         } else if (message.apiType().equals(ApiType.PARAMETERS_AUTH_TYPE)) {
