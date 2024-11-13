@@ -44,7 +44,7 @@ public class CategoryService {
     }
 
     @Transactional
-    public CategoryResponseDto createCategory(ApiMessage message, UUID workspaceId) {
+    public IdValueDto createCategory(ApiMessage message, UUID workspaceId) {
         CreateCategoryRequestDto createCategoryRequestDto = categoryUtils.createCategory(message);
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
@@ -55,7 +55,7 @@ public class CategoryService {
 
         Category category = Category.createCategory(createCategoryRequestDto.value(), workspace);
         categoryRepository.save(category);
-        return new CategoryResponseDto(category);
+        return new IdValueDto(category.getId(),category.getName());
     }
 
     @Transactional
