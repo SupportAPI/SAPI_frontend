@@ -2,8 +2,8 @@ import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { getToken } from '../../utils/cookies';
 
-const base_URL = 'https://k11b305.p.ssafy.io'; // 본 /서버
-// const base_URL = 'http://192.168.31.35:8080'; // 세현 서버
+// const base_URL = 'https://k11b305.p.ssafy.io'; // 본 /서버
+const base_URL = 'http://192.168.31.66:8080'; // 세현 서버
 
 // 1. Api List 호출 (전체)
 export const fetchApiList = async (workspaceId) => {
@@ -96,5 +96,19 @@ export const requestApiTest = async (workspaceId, apiDetail, path = '') => {
     headers,
     params: queryParams, // 동적으로 만든 queryParams 추가
   });
-  return response.data.data;
+
+  export const requestApiTest = async (workspaceId, apiDetail) => {
+    const accessToken = getToken();
+    const response = await axios.post(
+      `${base_URL}/api/workspaces/${workspaceId}/request`,
+      { ...apiDetail },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data.data;
+  };
 };

@@ -14,6 +14,16 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
   const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
+    if (initialValues) {
+      setHeaders(initialValues?.headers || []);
+      setPathVariables(initialValues?.pathVariables || []);
+      setQueryParameters(initialValues?.queryParameters || []);
+      setCookies(initialValues?.cookies || []);
+      setAuthType(initialValues?.authType || 'None');
+    }
+  }, [initialValues]);
+
+  useEffect(() => {
     paramsChange({
       headers,
       pathVariables,
