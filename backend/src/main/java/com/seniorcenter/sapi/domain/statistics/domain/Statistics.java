@@ -32,7 +32,7 @@ public class Statistics {
 	@JoinColumn(name = "workspace_id", nullable = false)
 	private Workspace workspace;
 
-	@Column(nullable = false)
+	@Column
 	private Long userId;
 
 	@Column(nullable = false)
