@@ -3,6 +3,7 @@ package com.seniorcenter.sapi.domain.api.service;
 import com.seniorcenter.sapi.domain.api.domain.Api;
 import com.seniorcenter.sapi.domain.api.domain.ApiType;
 import com.seniorcenter.sapi.domain.api.domain.enums.AuthenticationType;
+import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.api.presentation.dto.ParametersDto;
@@ -60,6 +61,7 @@ public class ApiService {
     private final UserUtils userUtils;
     private final KeyValueUtils keyValueUtils;
     private final RedisUtil redisUtil;
+    private final ApiBodyService apiBodyService;
 
     @Transactional
     public void createApi(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
@@ -76,6 +78,8 @@ public class ApiService {
             result = apiHeaderService.createApiHeader(workspaceId);
         } else if (message.apiType().equals(ApiType.OCCUPATION)) {
             result = occupationService.createOccupaction(workspaceId, message, user);
+        } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
+            result = apiBodyService.createApiBody(apiId);
         }
 
         messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
@@ -90,7 +94,7 @@ public class ApiService {
 
         Object result = null;
         if (message.apiType().equals(ApiType.CATEGORY)) {
-            result = categoryService.removeCategory(message);
+            result = categoryService.removeCategory(workspaceId, message);
         } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
             result = apiQueryParameterService.removeApiQueryParameter(message, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
@@ -99,6 +103,8 @@ public class ApiService {
             result = apiHeaderService.removeApiHeader(message, workspaceId);
         } else if (message.apiType().equals(ApiType.OCCUPATION)) {
             result = occupationService.removeOccupaction(workspaceId, message);
+        } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
+            result = apiBodyService.createApiBody(apiId);
         }
 
         messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
@@ -128,6 +134,9 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.API_METHOD)) {
             updateMethod(message, apiId);
             result = valueUtils.updateByValue(message);
+        } else if (message.apiType().equals(ApiType.REQUEST_TYPE)) {
+            updateRequestType(message, apiId);
+            result = valueUtils.updateByValue(message);
         }
 
         messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
@@ -150,6 +159,14 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.API_NAME)) {
             updateApiName(message, workspaceId, apiId);
         }
+    }
+
+    public void updateRequestType(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
+        api.updateBodyType(BodyType.valueOf(data.value()));
     }
 
     public void updatePath(ApiMessage message, UUID workspaceId, UUID apiId) {
