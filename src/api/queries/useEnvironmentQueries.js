@@ -63,7 +63,7 @@ export const useFetchEnvironmentList = (workspaceId) => {
 export const fetchEnvironment = async (categoryId) => {
   try {
     const accessToken = getToken();
-    const response = await axios.get(`${base_URL}/api/environment-categories/${categoryId}`, {
+    const response = await axios.get(`${base_URL}/api/environment-categories/${categoryId}/environments`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
@@ -79,6 +79,17 @@ export const fetchEnvironment = async (categoryId) => {
 export const useFetchEnvironment = (categoryId) => {
   return useQuery(['environment', categoryId], () => fetchEnvironment(categoryId), {
     enabled: !!categoryId,
+  });
+};
+
+export const editEnvironment = async (categoryId, environmentId) => {};
+
+export const useEditEnvironment = (categoryId, environmentId) => {
+  const queryClient = useQueryClient();
+  return useMutation(({ categoryId, environmentId }) => editEnvironment(categoryId, environmentId), {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['environment', categoryId]);
+    },
   });
 };
 

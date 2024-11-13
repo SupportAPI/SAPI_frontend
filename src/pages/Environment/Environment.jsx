@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useParams } from 'react-router-dom';
+import { useFetchEnvironment } from '../../api/queries/useEnvironmentQueries';
 
 const ItemType = 'ROW';
 
@@ -236,20 +237,22 @@ const Environment = () => {
     },
   ]);
 
-  // const {
-  //   data: environmentData,
-  //   isLoading: isDataLoading,
-  //   error: isDataError,
-  //   refetch: envRefetch,
-  // } = environmentId ? useFetchEnvironment(environmentId) : { data: null, isLoading: false, error: null };
+  const {
+    data: environmentData = null,
+    isLoading: isDataLoading = false,
+    error: isDataError = null,
+    refetch: envRefetch,
+  } = environmentId ? useFetchEnvironment(environmentId) : {};
 
-  // useEffect(() => {
-  //   const processData = environmentData.map((item) => ({
-  //     ...item,
-  //     isChecked: false,
-  //   }));
-  //   setData(processData);
-  // }, [environmentData]);
+  useEffect(() => {
+    if (Array.isArray(environmentData)) {
+      const processData = environmentData.map((item) => ({
+        ...item,
+        isChecked: false,
+      }));
+      setData(processData);
+    }
+  }, [environmentData]);
 
   const handleDeleteCheckedRows = () => {
     setData((prevData) => {
@@ -360,7 +363,7 @@ const Environment = () => {
       const updatedData = [...prevData];
       const [movedItem] = updatedData.splice(fromIndex, 1);
       updatedData.splice(toIndex, 0, movedItem);
-      return updatedData.map((item, index) => ({ ...item, id: index + 1 }));
+      return updatedData.map((item, index) => ({ ...item, orderIndex: index + 1 }));
     });
   };
 
@@ -427,9 +430,9 @@ const Environment = () => {
             <tbody>
               {data.map((environment, index) => (
                 <DraggableRow
-                  key={environment.id}
+                  key={environment.orderIndex}
                   environment={environment}
-                  index={index}
+                  index={environment.orderIndex}
                   moveRow={moveRow}
                   handleIsChecked={handleIsChecked}
                   handleType={handleType}

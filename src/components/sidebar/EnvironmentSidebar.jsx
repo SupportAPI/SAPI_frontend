@@ -56,9 +56,9 @@ const EnvironmentSidebar = () => {
   useEffect(() => {
     if (environmentList) {
       const updatedPaths = environmentList.map((env) => ({
-        id: env.categoryId,
-        name: env.categoryName,
-        path: `/workspace/${workspaceId}/environment/${env.categoryId}`,
+        id: env.id,
+        name: env.name,
+        path: `/workspace/${workspaceId}/environment/${env.id}`,
       }));
 
       setPaths(updatedPaths);
