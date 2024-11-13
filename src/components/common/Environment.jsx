@@ -9,6 +9,7 @@ const Environment = ({ workspaceId }) => {
     error: isListError,
     refetch: listRefetch,
   } = useFetchEnvironmentList(workspaceId);
+
   const { environment, setEnvironment } = useEnvironmentStore();
 
   // 선택된 categoryId를 저장할 상태 추가
