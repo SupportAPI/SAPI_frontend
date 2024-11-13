@@ -14,6 +14,7 @@ public record EnvironmentListResponseDto(
 		String variable,
 		EnvironmentType type,
 		String value,
-		String description
+		String description,
+		Integer orderIndex
 	) {}
 }
