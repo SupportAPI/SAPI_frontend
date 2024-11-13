@@ -38,10 +38,10 @@ public class ApiPathVariable {
 		this.description = description;
 	}
 
-	public static ApiPathVariable createApiPathVariable(Api api) {
+	public static ApiPathVariable createApiPathVariable(Api api, String variableKey) {
 		return ApiPathVariable.builder()
 			.api(api)
-			.variableKey("")
+			.variableKey(variableKey)
 			.variableValue("")
 			.description("")
 			.build();

@@ -6,6 +6,9 @@ import com.seniorcenter.sapi.domain.api.domain.enums.AuthenticationType;
 import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
+import com.seniorcenter.sapi.domain.api.presentation.dto.ParametersDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.RequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.ResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.SaveDataRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
@@ -267,12 +270,12 @@ public class ApiService {
         AtomicReference<LocalDateTime> lastModifyDate = new AtomicReference<>(api.getLastModifyDate());
 
         // 헤더 처리
-        List<ApiDetailResponseDto.Parameters.Header> headers = api.getHeaders().stream()
+        List<ParametersDto.Header> headers = api.getHeaders().stream()
                 .map(header -> {
                     if (header.getLastModifyDate().isAfter(lastModifyDate.get())) {
                         lastModifyDate.set(header.getLastModifyDate());
                     }
-                    return new ApiDetailResponseDto.Parameters.Header(
+                    return new ParametersDto.Header(
                             header.getId().toString(),
                             header.getHeaderKey(),
                             header.getHeaderValue(),
@@ -284,9 +287,9 @@ public class ApiService {
                 .toList();
 
         // Path Variable 처리
-        List<ApiDetailResponseDto.Parameters.PathVariables> pathVariables = api.getPathVariables().stream()
+        List<ParametersDto.PathVariable> pathVariables = api.getPathVariables().stream()
                 .map(queryParameter -> {
-                    return new ApiDetailResponseDto.Parameters.PathVariables(
+                    return new ParametersDto.PathVariable(
                             queryParameter.getId().toString(),
                             queryParameter.getVariableKey(),
                             queryParameter.getVariableValue(),
@@ -296,12 +299,12 @@ public class ApiService {
                 .toList();
 
         // 쿼리 파라미터 처리
-        List<ApiDetailResponseDto.Parameters.QueryParameter> queryParameters = api.getQueryParameters().stream()
+        List<ParametersDto.QueryParameter> queryParameters = api.getQueryParameters().stream()
                 .map(queryParameter -> {
                     if (queryParameter.getLastModifyDate().isAfter(lastModifyDate.get())) {
                         lastModifyDate.set(queryParameter.getLastModifyDate());
                     }
-                    return new ApiDetailResponseDto.Parameters.QueryParameter(
+                    return new ParametersDto.QueryParameter(
                             queryParameter.getId().toString(),
                             queryParameter.getParamKey(),
                             queryParameter.getParamValue(),
@@ -313,12 +316,12 @@ public class ApiService {
                 .toList();
 
         // Parameters 쿠키 처리
-        List<ApiDetailResponseDto.Parameters.Cookie> cookies = api.getCookies().stream()
+        List<ParametersDto.Cookie> cookies = api.getCookies().stream()
                 .map(cookie -> {
                     if (cookie.getLastModifyDate().isAfter(lastModifyDate.get())) {
                         lastModifyDate.set(cookie.getLastModifyDate());
                     }
-                    return new ApiDetailResponseDto.Parameters.Cookie(
+                    return new ParametersDto.Cookie(
                             cookie.getId().toString(),
                             cookie.getCookieKey(),
                             cookie.getCookieValue(),
@@ -329,7 +332,7 @@ public class ApiService {
                 })
                 .toList();
 
-        ApiDetailResponseDto.Parameters parameters = new ApiDetailResponseDto.Parameters(
+        ParametersDto parameters = new ParametersDto(
                 api.getAuthenticationType().name(),
                 headers,
                 pathVariables,
@@ -338,13 +341,13 @@ public class ApiService {
         );
 
         // Body JSON 및 FormData 처리
-        ApiDetailResponseDto.Request.JsonData jsonData = api.getBodies().stream()
+        RequestDto.JsonData jsonData = api.getBodies().stream()
                 .filter(body -> body.getParameterType() == ParameterType.JSON)
                 .map(body -> {
                     if (body.getLastModifyDate().isAfter(lastModifyDate.get())) {
                         lastModifyDate.set(body.getLastModifyDate());
                     }
-                    return new ApiDetailResponseDto.Request.JsonData(
+                    return new RequestDto.JsonData(
                             body.getId().toString(),
                             body.getBodyValue()
                     );
@@ -352,17 +355,18 @@ public class ApiService {
                 .findFirst()
                 .orElse(null);
 
-        List<ApiDetailResponseDto.Request.FormData> formDataList = api.getBodies().stream()
+        List<RequestDto.FormData> formDataList = api.getBodies().stream()
                 .filter(body -> body.getParameterType() == ParameterType.TEXT || body.getParameterType() == ParameterType.FILE)
                 .map(formData -> {
                     if (formData.getLastModifyDate().isAfter(lastModifyDate.get())) {
                         lastModifyDate.set(formData.getLastModifyDate());
                     }
-                    return new ApiDetailResponseDto.Request.FormData(
+                    return new RequestDto.FormData(
                             formData.getId().toString(),
                             formData.getBodyKey(),
                             formData.getBodyValue(),
                             formData.getParameterType().name(),
+                            null,
                             formData.getDescription(),
                             formData.getIsEssential(),
                             formData.getIsChecked()
@@ -370,19 +374,19 @@ public class ApiService {
                 })
                 .toList();
 
-        ApiDetailResponseDto.Request request = new ApiDetailResponseDto.Request(
+        RequestDto request = new RequestDto(
                 api.getBodyType(),
                 jsonData,
                 formDataList
         );
 
         // Responses 처리
-        List<ApiDetailResponseDto.Response> responseList = api.getResponses().stream()
+        List<ResponseDto> responseList = api.getResponses().stream()
                 .map(response -> {
                     if (response.getLastModifyDate().isAfter(lastModifyDate.get())) {
                         lastModifyDate.set(response.getLastModifyDate());
                     }
-                    return new ApiDetailResponseDto.Response(
+                    return new ResponseDto(
                             response.getId().toString(),
                             String.valueOf(response.getCode()),
                             response.getDescription(),

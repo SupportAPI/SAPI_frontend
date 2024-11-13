@@ -6,6 +6,7 @@ public record UpdateEnvironmentRequestDto(
 	String variable,
 	EnvironmentType type,
 	String value,
-	String description
+	String description,
+	Integer orderIndex
 ) {
 }

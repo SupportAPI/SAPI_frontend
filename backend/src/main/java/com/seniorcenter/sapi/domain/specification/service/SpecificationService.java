@@ -30,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -165,6 +167,17 @@ public class SpecificationService {
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
         Api originApi = apiRepository.findTopBySpecificationIdOrderByCreatedDateDesc(specificationId).orElseThrow();
         specification.updateConfirmedApiId(originApi.getId());
+
+        List<ApiPathVariable> pathVariables = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\\{([^}]+)\\}");
+        Matcher matcher = pattern.matcher(originApi.getPath());
+
+        while (matcher.find()) {
+            pathVariables.add(ApiPathVariable.createApiPathVariable(originApi, matcher.group(1)));
+        }
+        apiPathVariableRepository.deleteAllByApi(originApi);
+        apiPathVariableRepository.saveAll(pathVariables);
+
         Api newApi = Api.createApi();
         apiRepository.save(newApi);
         newApi.updateSpecification(specification);
