@@ -7,6 +7,7 @@ public record EnvironmentResponseDto(
 	String variable,
 	EnvironmentType type,
 	String value,
-	String description
+	String description,
+	Integer orderIndex
 ) {
 }

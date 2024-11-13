@@ -42,16 +42,20 @@ public class Environment {
 	@Column(nullable = false)
 	private String description;
 
-	private Environment(EnvironmentCategory environmentCategory) {
+	@Column
+	private Integer orderIndex;
+
+	private Environment(EnvironmentCategory environmentCategory, Integer orderIndex) {
 		this.environmentCategory = environmentCategory;
 		this.variable = "";
 		this.type = EnvironmentType.DEFAULT;
 		this.value = "";
 		this.description = "";
+		this.orderIndex = orderIndex;
 	}
 
-	public static Environment createEnvironment(EnvironmentCategory category) {
-		return new Environment(category);
+	public static Environment createEnvironment(EnvironmentCategory category, Integer orderIndex) {
+		return new Environment(category, orderIndex);
 	}
 
 	public void updateEnvironment(UpdateEnvironmentRequestDto requestDto) {
@@ -59,5 +63,6 @@ public class Environment {
 		this.type = requestDto.type();
 		this.value = requestDto.value();
 		this.description = requestDto.description();
+		this.orderIndex = requestDto.orderIndex();
 	}
 }

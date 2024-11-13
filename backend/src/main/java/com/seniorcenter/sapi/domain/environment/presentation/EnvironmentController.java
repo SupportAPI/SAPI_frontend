@@ -14,10 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.seniorcenter.sapi.domain.environment.presentation.dto.request.CreateEnvironmentCategoryRequestDto;
+import com.seniorcenter.sapi.domain.environment.presentation.dto.request.CreateEnvironmentRequestDto;
 import com.seniorcenter.sapi.domain.environment.presentation.dto.request.UpdateEnvironmentCategoryRequestDto;
 import com.seniorcenter.sapi.domain.environment.presentation.dto.request.UpdateEnvironmentRequestDto;
 import com.seniorcenter.sapi.domain.environment.presentation.dto.response.EnvironmentCategoryResponseDto;
-import com.seniorcenter.sapi.domain.environment.presentation.dto.response.EnvironmentListResponseDto;
+import com.seniorcenter.sapi.domain.environment.presentation.dto.response.EnvironmentDetailResponseDto;
 import com.seniorcenter.sapi.domain.environment.presentation.dto.response.EnvironmentResponseDto;
 import com.seniorcenter.sapi.domain.environment.service.EnvironmentService;
 
@@ -50,13 +51,18 @@ public class EnvironmentController {
 	}
 
 	@PostMapping("/{categoryId}/environments")
-	public EnvironmentResponseDto createEnvironment(@PathVariable Long categoryId) {
-		return environmentService.createEnvironment(categoryId);
+	public EnvironmentResponseDto createEnvironment(@PathVariable Long categoryId, @RequestBody CreateEnvironmentRequestDto requestDto) {
+		return environmentService.createEnvironment(categoryId, requestDto);
 	}
 
 	@GetMapping
-	public List<EnvironmentListResponseDto> getEnvironments(@RequestParam UUID workspaceId) {
-		return environmentService.getEnvironments(workspaceId);
+	public List<EnvironmentCategoryResponseDto> getEnvironmentCategories(@RequestParam UUID workspaceId) {
+		return environmentService.getEnvironmentCategories(workspaceId);
+	}
+
+	@GetMapping("/{categoryId}/environments")
+	public EnvironmentDetailResponseDto getEnvironments(@PathVariable Long categoryId) {
+		return environmentService.getEnvironmentDetails(categoryId);
 	}
 
 	@PatchMapping("/{categoryId}/environments/{environmentId}")
