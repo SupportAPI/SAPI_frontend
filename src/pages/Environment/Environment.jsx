@@ -4,7 +4,11 @@ import { createPortal } from 'react-dom';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useParams } from 'react-router-dom';
-import { useFetchEnvironment } from '../../api/queries/useEnvironmentQueries';
+import {
+  useEditEnvironment,
+  useFetchEnvironment,
+  useAddEnvironmentVariable,
+} from '../../api/queries/useEnvironmentQueries';
 
 const ItemType = 'ROW';
 
@@ -218,24 +222,10 @@ const Environment = () => {
   const [checkedNum, setCheckedNum] = useState(0);
   const [activeTypeId, setActiveTypeId] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
-  const [data, setData] = useState([
-    {
-      id: 1,
-      variable: 'Authorization',
-      type: 'SECRET',
-      value: 'werwrwer',
-      description: '토큰값',
-      isChecked: true,
-    },
-    {
-      id: 2,
-      variable: 'Authorization',
-      type: 'DEFAULT',
-      value: 'werwrwsdfsdfer',
-      description: '토큰값',
-      isChecked: false,
-    },
-  ]);
+  const [addEnvironment, setAddEnvironment] = useState(null);
+  const [data, setData] = useState([]);
+  const addEnvironmentVariable = useAddEnvironmentVariable(environmentId);
+  const editEnvironment = useEditEnvironment(environmentId);
 
   const {
     data: environmentData = null,
@@ -257,7 +247,7 @@ const Environment = () => {
   const handleDeleteCheckedRows = () => {
     setData((prevData) => {
       const updatedData = prevData.filter((item) => !item.isChecked);
-      return updatedData.length === 0
+      return updatedData?.length === 0
         ? [
             {
               id: 1, // 초기 ID 값 설정
@@ -274,14 +264,14 @@ const Environment = () => {
 
   const handleDeleteRow = (id) => {
     setData((prevData) => {
-      if (prevData.length === 1) {
+      if (prevData?.length === 1) {
         return [
           {
-            id: prevData[0].id,
             variable: '',
-            isSecreted: false,
+            type: 'DEFAULT',
             value: '',
             description: '',
+            orderIndex: 0,
             isChecked: false,
           },
         ];
@@ -336,38 +326,70 @@ const Environment = () => {
     setData((prevData) => prevData.map((item) => (item.id === activeTypeId ? { ...item, type: isSecret } : item)));
   };
 
-  const handleAddRow = (currentId) => {
+  const handleAddRow = async (currentIndex) => {
+    if (currentIndex === -1) {
+      currentIndex = lastId;
+    }
+
+    // 데이터 업데이트 부분을 setData 바깥으로 분리합니다.
+    const newRow = {
+      variable: '',
+      isSecreted: 'DEFAULT',
+      value: '',
+      description: '',
+      orderIndex: currentIndex + 1,
+      isChecked: false,
+    };
+
     setData((prevData) => {
-      if (currentId == -1) {
-        currentId = lastId;
-      }
+      const updatedData = prevData.map((item) =>
+        item.orderIndex > currentIndex ? { ...item, orderIndex: item.orderIndex + 1 } : item
+      );
 
-      const updatedData = prevData.map((item) => (item.id > currentId ? { ...item, id: item.id + 1 } : item));
-
-      return [
-        ...updatedData,
-        {
-          id: currentId + 1,
-          variable: '',
-          isSecreted: false,
-          value: '',
-          description: '',
-          isChecked: false,
-        },
-      ].sort((a, b) => a.id - b.id);
+      return [...updatedData, newRow].sort((a, b) => a.orderIndex - b.orderIndex);
     });
+
+    // 비동기 함수를 별도로 호출해 환경 변수를 추가합니다.
+    setAddEnvironment(
+      await addEnvironmentVariable.mutateAsync({
+        environmentId,
+        orderIndex: currentIndex + 1,
+      })
+    );
   };
+
+  useEffect(() => {
+    if (addEnvironment) {
+      setData((prevData) => {
+        const newData = prevData.filter((item) => item.orderIndex !== addEnvironment.orderIndex);
+        return [...newData, addEnvironment].sort((a, b) => a.orderIndex - b.orderIndex);
+      });
+    }
+  }, [addEnvironment]);
 
   const moveRow = (fromIndex, toIndex) => {
     setData((prevData) => {
       const updatedData = [...prevData];
       const [movedItem] = updatedData.splice(fromIndex, 1);
       updatedData.splice(toIndex, 0, movedItem);
-      return updatedData.map((item, index) => ({ ...item, orderIndex: index + 1 }));
+
+      const reorderedData = updatedData.map((item, index) => ({
+        ...item,
+        orderIndex: index + 1,
+      }));
+
+      reorderedData.forEach((item) => {
+        editEnvironment.mutateAsync({
+          environmentId,
+          environment: item,
+        });
+      });
+
+      return reorderedData;
     });
   };
 
-  const lastId = data.length > 0 ? data[data.length - 1].id : null;
+  const lastId = data.length > 0 ? data[data.length - 1].id : 1;
 
   return (
     <DndProvider backend={HTML5Backend}>
