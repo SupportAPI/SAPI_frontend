@@ -61,7 +61,7 @@ export const requestApiTest = async (workspaceId, apiDetail) => {
   const accessToken = getToken();
   const response = await axios.post(
     `${base_URL}/api/workspaces/${workspaceId}/request`,
-    { apiDetail },
+    { ...apiDetail },
     {
       headers: {
         'Content-Type': 'application/json',
