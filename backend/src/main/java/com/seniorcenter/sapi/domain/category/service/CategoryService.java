@@ -1,5 +1,7 @@
 package com.seniorcenter.sapi.domain.category.service;
 
+import com.seniorcenter.sapi.domain.api.domain.Api;
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.api.presentation.dto.IdValueDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
@@ -33,6 +35,7 @@ public class CategoryService {
     private final WorkspaceRepository workspaceRepository;
     private final CategoryUtils categoryUtils;
     private final ValueUtils valueUtils;
+    private final ApiRepository apiRepository;
 
     public List<CategoryResponseDto> getCategories(UUID workspaceId) {
         Workspace workspace = workspaceRepository.findById(workspaceId)
@@ -44,7 +47,7 @@ public class CategoryService {
     }
 
     @Transactional
-    public IdValueDto createCategory(ApiMessage message, UUID workspaceId) {
+    public IdValueDto createCategory(ApiMessage message, UUID workspaceId, UUID apiId) {
         CreateCategoryRequestDto createCategoryRequestDto = categoryUtils.createCategory(message);
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
@@ -55,11 +58,15 @@ public class CategoryService {
 
         Category category = Category.createCategory(createCategoryRequestDto.value(), workspace);
         categoryRepository.save(category);
-        return new IdValueDto(category.getId(),category.getName());
+
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+        api.updateCategory(category.getName());
+        return new IdValueDto(category.getId(), category.getName());
     }
 
     @Transactional
-    public IdValueDto removeCategory(UUID workspaceId, ApiMessage message) {
+    public IdValueDto removeCategory(ApiMessage message, UUID workspaceId, UUID apiId) {
         RemoveCategoryRequestDto removeCategoryRequestDto = categoryUtils.removeCategory(message);
         log.info(removeCategoryRequestDto.toString());
         Category category = categoryRepository.findById(removeCategoryRequestDto.id())
@@ -68,7 +75,12 @@ public class CategoryService {
 
         Category defaultCategory = categoryRepository.findByWorkspaceIdAndName(workspaceId, "미설정")
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
-        return new IdValueDto(defaultCategory.getId(),defaultCategory.getName());
+
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+        api.updateCategory(defaultCategory.getName());
+
+        return new IdValueDto(defaultCategory.getId(), defaultCategory.getName());
     }
 
     @Transactional

@@ -70,7 +70,7 @@ public class ApiService {
 
         Object result = null;
         if (message.apiType().equals(ApiType.CATEGORY)) {
-            result = categoryService.createCategory(message, workspaceId);
+            result = categoryService.createCategory(message, workspaceId, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
             result = apiQueryParameterService.createApiQueryParameter(message, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
@@ -95,7 +95,7 @@ public class ApiService {
 
         Object result = null;
         if (message.apiType().equals(ApiType.CATEGORY)) {
-            result = categoryService.removeCategory(workspaceId, message);
+            result = categoryService.removeCategory(message, workspaceId, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
             result = apiQueryParameterService.removeApiQueryParameter(message, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
