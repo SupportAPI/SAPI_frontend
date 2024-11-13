@@ -2,10 +2,15 @@ package com.seniorcenter.sapi.domain.apitest.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.seniorcenter.sapi.domain.api.domain.Api;
-import com.seniorcenter.sapi.domain.api.domain.ApiResponse;
+import com.seniorcenter.sapi.domain.api.domain.*;
+import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.*;
+import com.seniorcenter.sapi.domain.api.presentation.dto.ParametersDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.RequestDto;
+import com.seniorcenter.sapi.domain.apifile.domain.ApiFile;
+import com.seniorcenter.sapi.domain.apifile.domain.repository.ApiFileRepository;
+import com.seniorcenter.sapi.domain.apitest.presentation.dto.request.TestApiRequestDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.request.UpdateApiDetailRequestDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.ApiTestDetailResponseDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.ApiTestResponseDto;
@@ -20,6 +25,7 @@ import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
+import com.seniorcenter.sapi.global.utils.JsonUtil;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +42,7 @@ import reactor.core.publisher.Mono;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -53,6 +61,7 @@ public class ApiTestServiceImpl implements ApiTestService {
     private final UserUtils userUtils;
     private final WorkspaceRepository workspaceRepository;
     private final ProxyService proxyService;
+    private final ApiFileRepository apiFileRepository;
 
     @Override
     public List<ApiTestResponseDto> getConfirmedApisByWorkspaceId(UUID workspaceId) {
@@ -74,9 +83,9 @@ public class ApiTestServiceImpl implements ApiTestService {
         Specification specification = api.getSpecification();
 
         // 헤더 처리
-        List<ApiTestDetailResponseDto.Parameters.Header> headers = api.getHeaders().stream()
+        List<ParametersDto.Header> headers = api.getHeaders().stream()
             .map(header -> {
-                return new ApiTestDetailResponseDto.Parameters.Header(
+                return new ParametersDto.Header(
                     header.getId().toString(),
                     header.getHeaderKey(),
                     header.getHeaderValue(),
@@ -88,9 +97,9 @@ public class ApiTestServiceImpl implements ApiTestService {
             .toList();
 
         // Path Variable 처리
-        List<ApiTestDetailResponseDto.Parameters.PathVariables> pathVariables = api.getPathVariables().stream()
+        List<ParametersDto.PathVariable> pathVariables = api.getPathVariables().stream()
             .map(queryParameter -> {
-                return new ApiTestDetailResponseDto.Parameters.PathVariables(
+                return new ParametersDto.PathVariable(
                     queryParameter.getId().toString(),
                     queryParameter.getVariableKey(),
                     queryParameter.getVariableValue(),
@@ -100,9 +109,9 @@ public class ApiTestServiceImpl implements ApiTestService {
             .toList();
 
         // 쿼리 파라미터 처리
-        List<ApiTestDetailResponseDto.Parameters.QueryParameter> queryParameters = api.getQueryParameters().stream()
+        List<ParametersDto.QueryParameter> queryParameters = api.getQueryParameters().stream()
             .map(queryParameter -> {
-                return new ApiTestDetailResponseDto.Parameters.QueryParameter(
+                return new ParametersDto.QueryParameter(
                     queryParameter.getId().toString(),
                     queryParameter.getParamKey(),
                     queryParameter.getParamValue(),
@@ -114,9 +123,9 @@ public class ApiTestServiceImpl implements ApiTestService {
             .toList();
 
         // Parameters 쿠키 처리
-        List<ApiTestDetailResponseDto.Parameters.Cookie> cookies = api.getCookies().stream()
+        List<ParametersDto.Cookie> cookies = api.getCookies().stream()
             .map(cookie -> {
-                return new ApiTestDetailResponseDto.Parameters.Cookie(
+                return new ParametersDto.Cookie(
                     cookie.getId().toString(),
                     cookie.getCookieKey(),
                     cookie.getCookieValue(),
@@ -127,7 +136,7 @@ public class ApiTestServiceImpl implements ApiTestService {
             })
             .toList();
 
-        ApiTestDetailResponseDto.Parameters parameters = new ApiTestDetailResponseDto.Parameters(
+        ParametersDto parameters = new ParametersDto(
             api.getAuthenticationType().name(),
             headers,
             pathVariables,
@@ -136,10 +145,10 @@ public class ApiTestServiceImpl implements ApiTestService {
         );
 
         // Body JSON 및 FormData 처리
-        ApiTestDetailResponseDto.Request.JsonData jsonData = api.getBodies().stream()
+        RequestDto.JsonData jsonData = api.getBodies().stream()
             .filter(body -> body.getParameterType() == ParameterType.JSON)
             .map(body -> {
-                return new ApiTestDetailResponseDto.Request.JsonData(
+                return new RequestDto.JsonData(
                     body.getId().toString(),
                     body.getBodyValue()
                 );
@@ -147,14 +156,21 @@ public class ApiTestServiceImpl implements ApiTestService {
             .findFirst()
             .orElse(null);
 
-        List<ApiTestDetailResponseDto.Request.FormData> formDataList = api.getBodies().stream()
+        List<RequestDto.FormData> formDataList = api.getBodies().stream()
             .filter(body -> body.getParameterType() == ParameterType.TEXT || body.getParameterType() == ParameterType.FILE)
             .map(formData -> {
-                return new ApiTestDetailResponseDto.Request.FormData(
+                RequestDto.FormData.ApiFileDto apiFileDto = null;
+                if (formData.getParameterType() == ParameterType.FILE) {
+                    apiFileDto = apiFileRepository.findById(Long.parseLong(formData.getBodyValue()))
+                        .map(RequestDto.FormData.ApiFileDto::from)
+                        .orElse(null);
+                }
+                return new RequestDto.FormData(
                     formData.getId().toString(),
                     formData.getBodyKey(),
                     formData.getBodyValue(),
                     formData.getParameterType().name(),
+                    apiFileDto,
                     formData.getDescription(),
                     formData.getIsEssential(),
                     formData.getIsChecked()
@@ -162,7 +178,7 @@ public class ApiTestServiceImpl implements ApiTestService {
             })
             .toList();
 
-        ApiTestDetailResponseDto.Request request = new ApiTestDetailResponseDto.Request(
+        RequestDto request = new RequestDto(
             api.getBodyType(),
             jsonData,
             formDataList
@@ -195,50 +211,50 @@ public class ApiTestServiceImpl implements ApiTestService {
     @Transactional
     public void updateTestApi(UUID workspaceId, UUID apiId, UpdateApiDetailRequestDto requestDto) {
         requestDto.parameters().headers().forEach(headerDto -> {
-            apiHeaderRepository.findById(Long.parseLong(headerDto.headerId()))
+            apiHeaderRepository.findById(Long.parseLong(headerDto.id()))
                 .ifPresent(header -> {
-                    header.updateApiHeaderValue(headerDto.headerValue(), headerDto.isChecked());
+                    header.updateApiHeaderValue(headerDto.value(), headerDto.isChecked());
                     apiHeaderRepository.save(header);
                 });
         });
 
         requestDto.parameters().pathVariables().forEach(pathVariableDto -> {
-            apiPathVariableRepository.findById(Long.parseLong(pathVariableDto.pathVariableId()))
+            apiPathVariableRepository.findById(Long.parseLong(pathVariableDto.id()))
                 .ifPresent(pathVariable -> {
-                    pathVariable.updateApiPathVariableValue(pathVariableDto.pathVariableValue());
+                    pathVariable.updateApiPathVariableValue(pathVariableDto.value());
                     apiPathVariableRepository.save(pathVariable);
                 });
         });
 
         requestDto.parameters().queryParameters().forEach(queryParameterDto -> {
-            apiQueryParameterRepository.findById(Long.parseLong(queryParameterDto.queryParameterId()))
+            apiQueryParameterRepository.findById(Long.parseLong(queryParameterDto.id()))
                 .ifPresent(queryParameter -> {
-                    queryParameter.updateApiQueryParameterValue(queryParameterDto.queryParameterValue(),
+                    queryParameter.updateApiQueryParameterValue(queryParameterDto.value(),
                         queryParameterDto.isChecked());
                     apiQueryParameterRepository.save(queryParameter);
                 });
         });
 
         requestDto.parameters().cookies().forEach(cookieDto -> {
-            apiCookieRepository.findById(Long.parseLong(cookieDto.cookieId()))
+            apiCookieRepository.findById(Long.parseLong(cookieDto.id()))
                 .ifPresent(cookie -> {
-                    cookie.updateCookieValue(cookieDto.cookieValue(), cookieDto.isChecked());
+                    cookie.updateCookieValue(cookieDto.value(), cookieDto.isChecked());
                     apiCookieRepository.save(cookie);
                 });
         });
 
         if (requestDto.request().json() != null) {
-            apiBodyRepository.findById(Long.parseLong(requestDto.request().json().jsonDataId()))
+            apiBodyRepository.findById(Long.parseLong(requestDto.request().json().id()))
                 .ifPresent(body -> {
-                    body.updateBodyValue(requestDto.request().json().jsonDataValue(), true);
+                    body.updateBodyValue(requestDto.request().json().value(), true);
                     apiBodyRepository.save(body);
                 });
         }
 
         requestDto.request().formData().forEach(formDataDto -> {
-            apiBodyRepository.findById(Long.parseLong(formDataDto.formDataId()))
+            apiBodyRepository.findById(Long.parseLong(formDataDto.id()))
                 .ifPresent(body -> {
-                    body.updateBodyValue(formDataDto.formDataValue(), formDataDto.isChecked());
+                    body.updateBodyValue(formDataDto.value(), formDataDto.isChecked());
                     apiBodyRepository.save(body);
                 });
         });
@@ -355,6 +371,205 @@ public class ApiTestServiceImpl implements ApiTestService {
 
         return responseEntityMono.map(responseEntity -> toTestResponseDto(responseEntity, httpHeaders, body, http2xxResponse, startTime, testType)).block();
     }
+
+    @Override
+    public TestResponseDto requestTestApi(UUID workspaceId, TestApiRequestDto requestDto, Map<String, String> headers) {
+        User user = userUtils.getUserFromSecurityContext();
+
+        if (membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId).isEmpty()) {
+            throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
+        }
+
+        Specification specification = specificationRepository.findById(requestDto.docId())
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        Api api = apiRepository.findById(specification.getConfirmedApiId())
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        if (!api.getId().equals(requestDto.apiId())) {
+            throw new MainException(CustomException.SPECIFICATION_CHANGED);
+        }
+
+        String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
+
+        String domain = testType.equals("Local")
+            ? headers.get("sapi-local-domain")
+            : workspaceRepository.findById(workspaceId)
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
+
+        String path = requestDto.path();
+        Map<String, String> variableMap = requestDto.parameters().pathVariables().stream()
+            .collect(Collectors.toMap(ParametersDto.PathVariable::key, ParametersDto.PathVariable::value));
+        for (Map.Entry<String, String> entry : variableMap.entrySet()) {
+            String placeholder = String.format("{%s}", entry.getKey());
+            path = path.replace(placeholder, entry.getValue());
+        }
+
+        String queryString = requestDto.parameters().queryParameters().isEmpty()
+            ? ""
+            : "?" + requestDto.parameters().queryParameters().stream()
+            .map(param -> param.key() + "=" + param.value())
+            .collect(Collectors.joining("&"));
+
+        String url = domain + path + queryString;
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        requestDto.parameters().headers()
+            .forEach(header -> httpHeaders.add(header.key(), header.value()));
+
+        ServerRequestInfoDto serverRequestInfoDto = new ServerRequestInfoDto(url, httpHeaders);
+
+        BodyType contentType = api.getBodyType();
+        Mono<ResponseEntity<byte[]>> responseEntityMono;
+        Map<String, Object> requestBody = new HashMap<>();
+
+        if (contentType.equals(BodyType.FORM_DATA)) {
+            Map<String, Object> formParams = new HashMap<>();
+            Map<String, MultipartFile> files = new HashMap<>();
+
+            for (RequestDto.FormData formData : requestDto.request().formData()) {
+                if ("TEXT".equalsIgnoreCase(formData.type())) {
+                    formParams.put(formData.key(), formData.value());
+                } else if ("FILE".equalsIgnoreCase(formData.type()) && formData.file() != null) {
+                    ApiFile apiFile = apiFileRepository.findById(Long.parseLong(formData.value()))
+                        .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_FILE));
+
+                    MultipartFile multipartFile = new MockMultipartFile(
+                        apiFile.getFileName(),
+                        apiFile.getFileName(),
+                        "application/octet-stream",
+                        apiFile.getFileData()
+                    );
+
+                    files.put(formData.key(), multipartFile);
+                }
+            }
+            responseEntityMono = proxyService.formDataRequest(serverRequestInfoDto, formParams, files, HttpMethod.valueOf(requestDto.method()));
+            requestBody = formParams;
+        } else if (contentType.equals(BodyType.JSON)) {
+            String jsonString = requestDto.request().json().value();
+            requestBody = JsonUtil.convertStringToMap(jsonString);
+            responseEntityMono = proxyService.jsonRequest(serverRequestInfoDto, requestBody, HttpMethod.valueOf(requestDto.method()));
+        } else {
+            responseEntityMono = proxyService.jsonRequest(serverRequestInfoDto, requestBody, HttpMethod.valueOf(requestDto.method()));
+        }
+
+        // 비동기 응답을 동기적으로 가져오기
+        ResponseEntity<byte[]> responseEntity = responseEntityMono.block();
+
+        // mock 응답
+        ApiResponse http2xxResponse = api.getResponses() != null
+            ? api.getResponses().stream()
+            .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
+            .findFirst()
+            .orElse(null)
+            : null;
+
+
+        // TestResponseDto 변환 및 반환
+        long startTime = System.currentTimeMillis();
+        return toTestResponseDto(responseEntity, httpHeaders, requestBody, http2xxResponse, startTime, testType);
+    }
+
+    @Override
+    public TestResponseDto requestTestApiBySpecificationId(UUID workspaceId, UUID specificationId, Map<String, String> headers) {
+        User user = userUtils.getUserFromSecurityContext();
+
+        if (membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId).isEmpty()) {
+            throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
+        }
+
+        Specification specification = specificationRepository.findById(specificationId)
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        Api api = apiRepository.findById(specification.getConfirmedApiId())
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
+
+        String domain = testType.equals("Local")
+            ? headers.get("sapi-local-domain")
+            : workspaceRepository.findById(workspaceId)
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
+
+        String path = api.getPath();
+        Map<String, String> variableMap = apiPathVariableRepository.findAllByApi(api).stream()
+            .collect(Collectors.toMap(ApiPathVariable::getVariableKey, ApiPathVariable::getVariableValue));
+        for (Map.Entry<String, String> entry : variableMap.entrySet()) {
+            String placeholder = String.format("{%s}", entry.getKey());
+            path = path.replace(placeholder, entry.getValue());
+        }
+
+        List<ApiQueryParameter> queryParameters = apiQueryParameterRepository.findAllByApi(api);
+        String queryString = queryParameters.isEmpty()
+            ? ""
+            : "?" + queryParameters.stream()
+            .map(param -> param.getParamKey() + "=" + param.getParamValue())
+            .collect(Collectors.joining("&"));
+
+        String url = domain + path + queryString;
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        apiHeaderRepository.findAllByApi(api)
+            .forEach(header -> httpHeaders.add(header.getHeaderKey(), header.getHeaderValue()));
+
+        ServerRequestInfoDto serverRequestInfoDto = new ServerRequestInfoDto(url, httpHeaders);
+
+
+        BodyType contentType = api.getBodyType();
+        Mono<ResponseEntity<byte[]>> responseEntityMono;
+        Map<String, Object> requestBody = new HashMap<>();
+
+        if (contentType.equals(BodyType.FORM_DATA)) {
+            Map<String, Object> formParams = new HashMap<>();
+            Map<String, MultipartFile> files = new HashMap<>();
+
+            for (ApiBody body : apiBodyRepository.findAllByApi(api)) {
+                if ("TEXT".equalsIgnoreCase(body.getParameterType().getValue())) {
+                    formParams.put(body.getBodyKey(), body.getBodyValue());
+                } else if ("FILE".equalsIgnoreCase(String.valueOf(body.getParameterType())) && body.getBodyKey() != null) {
+                    ApiFile apiFile = apiFileRepository.findById(Long.parseLong(body.getBodyValue()))
+                        .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_FILE));
+
+                    MultipartFile multipartFile = new MockMultipartFile(
+                        apiFile.getFileName(),
+                        apiFile.getFileName(),
+                        "application/octet-stream",
+                        apiFile.getFileData()
+                    );
+
+                    files.put(body.getBodyKey(), multipartFile);
+                }
+            }
+            responseEntityMono = proxyService.formDataRequest(serverRequestInfoDto, formParams, files, HttpMethod.valueOf(api.getMethod().getValue()));
+            requestBody = formParams;
+        } else if (contentType.equals(BodyType.JSON)) {
+            String jsonString = apiBodyRepository.findAllByApi(api).stream()
+                .filter(body -> body.getParameterType().equals(ParameterType.JSON))
+                .findFirst().get().getBodyValue();
+            requestBody = JsonUtil.convertStringToMap(jsonString);
+            responseEntityMono = proxyService.jsonRequest(serverRequestInfoDto, requestBody, HttpMethod.valueOf(api.getMethod().getValue()));
+        } else {
+            responseEntityMono = proxyService.jsonRequest(serverRequestInfoDto, requestBody, HttpMethod.valueOf(api.getMethod().getValue()));
+        }
+
+        // 비동기 응답을 동기적으로 가져오기
+        ResponseEntity<byte[]> responseEntity = responseEntityMono.block();
+
+        // mock 응답
+        ApiResponse http2xxResponse = api.getResponses() != null
+            ? api.getResponses().stream()
+            .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
+            .findFirst()
+            .orElse(null)
+            : null;
+
+
+        // TestResponseDto 변환 및 반환
+        long startTime = System.currentTimeMillis();
+        return toTestResponseDto(responseEntity, httpHeaders, requestBody, http2xxResponse, startTime, testType);
+    }
+
 
     private Api getMatchingApi(String workspaceId, HttpMethod method, String path) {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(UUID.fromString(workspaceId));
