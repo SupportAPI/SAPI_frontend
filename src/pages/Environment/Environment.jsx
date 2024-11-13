@@ -8,6 +8,7 @@ import {
   useEditEnvironment,
   useFetchEnvironment,
   useAddEnvironmentVariable,
+  useDeleteEnvironmentVariable,
 } from '../../api/queries/useEnvironmentQueries';
 
 const ItemType = 'ROW';
@@ -21,6 +22,8 @@ const DraggableRow = ({
   handleUpdate,
   handleAddRow,
   handleDeleteRow,
+  handleEditRow,
+  updateEnvironmentOrder,
   lastId,
 }) => {
   const [{ isDragging }, dragRef] = useDrag({
@@ -34,10 +37,14 @@ const DraggableRow = ({
   const [, dropRef] = useDrop({
     accept: ItemType,
     hover: (draggedItem) => {
-      if (draggedItem.index !== index) {
+      // toIndex가 데이터 배열 길이 범위 내에 있는지 확인
+      if (index >= 0 && index < lastId - 1 && draggedItem.index !== index) {
         moveRow(draggedItem.index, index);
         draggedItem.index = index;
       }
+    },
+    drop: () => {
+      updateEnvironmentOrder(); // 드래그 종료 시점에 최종 위치를 서버에 업데이트
     },
   });
 
@@ -54,9 +61,10 @@ const DraggableRow = ({
     setIsEditing((prev) => ({ ...prev, [field]: true }));
   };
 
-  const handleBlur = (field) => {
+  const handleBlur = (env, field) => {
     setIsEditing((prev) => ({ ...prev, [field]: false }));
     setClickedTd(null);
+    handleEditRow(env);
   };
 
   const handleTdClick = (field) => {
@@ -109,7 +117,7 @@ const DraggableRow = ({
             type='text'
             value={environment.variable}
             onChange={(e) => handleUpdate(environment.id, 'variable', e.target.value)}
-            onBlur={() => handleBlur('variable')}
+            onBlur={(e) => handleBlur(environment, 'variable')}
             className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
             autoFocus
           />
@@ -141,7 +149,7 @@ const DraggableRow = ({
             type='text'
             value={environment.value}
             onChange={(e) => handleUpdate(environment.id, 'value', e.target.value)}
-            onBlur={() => handleBlur('value')}
+            onBlur={(e) => handleBlur(environment, 'value')}
             className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
             autoFocus
           />
@@ -161,7 +169,7 @@ const DraggableRow = ({
             type='text'
             value={environment.description}
             onChange={(e) => handleUpdate(environment.id, 'description', e.target.value)}
-            onBlur={() => handleBlur('description')}
+            onBlur={(e) => handleBlur(environment, 'description')}
             className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
             autoFocus
           />
@@ -226,6 +234,7 @@ const Environment = () => {
   const [data, setData] = useState([]);
   const addEnvironmentVariable = useAddEnvironmentVariable(environmentId);
   const editEnvironment = useEditEnvironment(environmentId);
+  const deleteEnvironment = useDeleteEnvironmentVariable(environmentId);
 
   const {
     data: environmentData = null,
@@ -244,9 +253,13 @@ const Environment = () => {
     }
   }, [environmentData]);
 
+  console.log('environem', environmentData);
+  console.log('Data', data);
+
   const handleDeleteCheckedRows = () => {
     setData((prevData) => {
       const updatedData = prevData.filter((item) => !item.isChecked);
+
       return updatedData?.length === 0
         ? [
             {
@@ -331,7 +344,6 @@ const Environment = () => {
       currentIndex = lastId;
     }
 
-    // 데이터 업데이트 부분을 setData 바깥으로 분리합니다.
     const newRow = {
       variable: '',
       isSecreted: 'DEFAULT',
@@ -345,17 +357,23 @@ const Environment = () => {
       const updatedData = prevData.map((item) =>
         item.orderIndex > currentIndex ? { ...item, orderIndex: item.orderIndex + 1 } : item
       );
-
       return [...updatedData, newRow].sort((a, b) => a.orderIndex - b.orderIndex);
     });
 
-    // 비동기 함수를 별도로 호출해 환경 변수를 추가합니다.
+    // 객체 형태로 인자를 전달합니다
     setAddEnvironment(
       await addEnvironmentVariable.mutateAsync({
-        environmentId,
+        categoryId: environmentId,
         orderIndex: currentIndex + 1,
       })
     );
+  };
+
+  const handleEditRow = async (environment) => {
+    await editEnvironment.mutateAsync({
+      categoryId: environmentId,
+      environment: environment,
+    });
   };
 
   useEffect(() => {
@@ -369,23 +387,46 @@ const Environment = () => {
 
   const moveRow = (fromIndex, toIndex) => {
     setData((prevData) => {
+      // fromIndex와 toIndex가 orderIndex 기준임을 고려하여 직접 조회
+      const fromOrderIndex = prevData.find((item) => item.orderIndex === fromIndex)?.orderIndex;
+      const toOrderIndex = prevData.find((item) => item.orderIndex === toIndex)?.orderIndex;
+
+      // 유효성 검사
+      if (fromOrderIndex === undefined || toOrderIndex === undefined) return prevData;
+      if (toOrderIndex >= prevData.length || toOrderIndex < 0) return prevData;
+
       const updatedData = [...prevData];
-      const [movedItem] = updatedData.splice(fromIndex, 1);
-      updatedData.splice(toIndex, 0, movedItem);
+      const movedItemIndex = updatedData.findIndex((item) => item.orderIndex === fromOrderIndex);
+      const [movedItem] = updatedData.splice(movedItemIndex, 1);
+      updatedData.splice(toOrderIndex, 0, movedItem);
 
-      const reorderedData = updatedData.map((item, index) => ({
-        ...item,
-        orderIndex: index + 1,
-      }));
-
-      reorderedData.forEach((item) => {
-        editEnvironment.mutateAsync({
-          environmentId,
-          environment: item,
-        });
+      return updatedData.map((item) => {
+        if (fromOrderIndex < toOrderIndex && item.orderIndex > fromOrderIndex && item.orderIndex <= toOrderIndex) {
+          // 뒤로 이동하는 경우: 중간 항목은 -1
+          return { ...item, orderIndex: item.orderIndex - 1 };
+        } else if (
+          fromOrderIndex > toOrderIndex &&
+          item.orderIndex >= toOrderIndex &&
+          item.orderIndex < fromOrderIndex
+        ) {
+          // 앞으로 이동하는 경우: 중간 항목은 +1
+          return { ...item, orderIndex: item.orderIndex + 1 };
+        } else if (item.id === movedItem.id) {
+          // 이동한 항목은 목표 위치의 orderIndex 설정
+          return { ...item, orderIndex: toOrderIndex };
+        } else {
+          return item;
+        }
       });
+    });
+  };
 
-      return reorderedData;
+  const updateEnvironmentOrder = async () => {
+    data.forEach((item) => {
+      editEnvironment.mutateAsync({
+        categoryId: environmentId,
+        environment: item,
+      });
     });
   };
 
@@ -450,20 +491,25 @@ const Environment = () => {
               </tr>
             </thead>
             <tbody>
-              {data.map((environment, index) => (
-                <DraggableRow
-                  key={environment.orderIndex}
-                  environment={environment}
-                  index={environment.orderIndex}
-                  moveRow={moveRow}
-                  handleIsChecked={handleIsChecked}
-                  handleType={handleType}
-                  handleUpdate={handleUpdate}
-                  handleAddRow={handleAddRow}
-                  handleDeleteRow={handleDeleteRow} // 삭제 함수 전달
-                  lastId={lastId - 1}
-                />
-              ))}
+              {data
+                .slice() // 원본 data를 변경하지 않도록 복사본 생성
+                .sort((a, b) => a.orderIndex - b.orderIndex) // orderIndex 기준으로 정렬
+                .map((environment, index) => (
+                  <DraggableRow
+                    key={environment.orderIndex}
+                    environment={environment}
+                    index={environment.orderIndex}
+                    moveRow={moveRow}
+                    handleIsChecked={handleIsChecked}
+                    handleType={handleType}
+                    handleUpdate={handleUpdate}
+                    handleAddRow={handleAddRow}
+                    handleDeleteRow={handleDeleteRow} // 삭제 함수 전달
+                    handleEditRow={handleEditRow}
+                    updateEnvironmentOrder={updateEnvironmentOrder}
+                    lastId={lastId - 1}
+                  />
+                ))}
             </tbody>
           </table>
         </div>

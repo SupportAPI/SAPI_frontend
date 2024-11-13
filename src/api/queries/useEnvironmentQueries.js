@@ -43,7 +43,7 @@ export const addEnvironmentVariable = async (categoryId, orderIndex) => {
   try {
     const accessToken = getToken();
     const response = await axios.post(
-      `${base_URL}/environment-categories/${categoryId}/environments`,
+      `${base_URL}/api/environment-categories/${categoryId}/environments`,
       {
         orderIndex,
       },
@@ -63,8 +63,8 @@ export const addEnvironmentVariable = async (categoryId, orderIndex) => {
 
 export const useAddEnvironmentVariable = (categoryId) => {
   const queryClient = useQueryClient();
-  return useMutation((categoryId, orderIndex) => addEnvironmentVariable(categoryId, orderIndex), {
-    onSuccess: () => {
+  return useMutation(({ categoryId, orderIndex }) => addEnvironmentVariable(categoryId, orderIndex), {
+    onSuccess: (_, { categoryId }) => {
       queryClient.invalidateQueries(['environment', categoryId]);
     },
   });
@@ -104,7 +104,7 @@ export const fetchEnvironment = async (categoryId) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data.data;
+    return response.data.data.environments;
   } catch (error) {
     console.error('Dont find environment', error);
     throw error;
@@ -119,6 +119,7 @@ export const useFetchEnvironment = (categoryId) => {
 
 // 환경 변수 수정
 export const editEnvironment = async (categoryId, environment) => {
+  console.log(environment);
   try {
     const accessToken = getToken();
     const response = await axios.patch(
@@ -208,6 +209,34 @@ export const useDeleteEnvironment = (workspaceId) => {
   return useMutation((categoryId) => deleteEnvironment(categoryId), {
     onSuccess: () => {
       queryClient.invalidateQueries(['environmentList', workspaceId]);
+    },
+  });
+};
+
+export const deleteEnvironmentVariable = async (categoryId, environmentId) => {
+  try {
+    const accessToken = getToken();
+    const response = await axios.delete(
+      `${base_URL}/api/environment-categories/${categoryId}/environments/${environmentId}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data.data;
+  } catch (error) {
+    console.error('dont delete environmentVariable', error);
+    throw error;
+  }
+};
+
+export const useDeleteEnvironmentVariable = (categoryId) => {
+  const queryClient = useQueryClient();
+  return useMutation((categoryId, environmentId) => deleteEnvironmentVariable(categoryId, environmentId), {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['environment', categoryId]);
     },
   });
 };
