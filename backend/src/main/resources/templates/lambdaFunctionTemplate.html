@@ -2,7 +2,7 @@ exports.handler = async (event) => {
     // Header Verification
     <th:block th:if="${headers}">
         <th:block th:each="header : ${headers}">
-            <th:block th:if="${headers.isEssential}"
+            <th:block th:if="${headers.isEssential}">
                 if (!event.headers || !event.headers['[[${header.headerKey.toLowerCase()}]]']) {
                     return {
                         statusCode: 400,
@@ -26,7 +26,7 @@ exports.handler = async (event) => {
 
     <th:block th:if="${cookies}">
         <th:block th:each="cookie : ${cookies}">
-            <th:block th:if="${cookie.isEssential}"
+            <th:block th:if="${cookie.isEssential}">
                 var cookies = event.headers['cookies'].split(",");
                 if (!cookies.includes('[[${cookie.cookieKey.toLowerCase()}]]')) {
                     return {
@@ -42,7 +42,7 @@ exports.handler = async (event) => {
     // Query Parameter Verification
     <th:block th:if="${queryParams}">
         <th:block th:each="field : ${queryParams}">
-            <th:block th:if="${field.isEssential}"
+            <th:block th:if="${field.isEssential}">
                 if (!event.queryStringParameters || !event.queryStringParameters['[[${field.paramKey}]]']) {
                     return {
                         statusCode: 400,

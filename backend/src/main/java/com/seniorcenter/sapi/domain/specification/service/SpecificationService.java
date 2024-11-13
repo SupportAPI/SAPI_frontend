@@ -15,6 +15,7 @@ import com.seniorcenter.sapi.domain.specification.presentation.dto.response.Spec
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationResponseDto;
 import com.seniorcenter.sapi.domain.statistics.service.StatisticsService;
 import com.seniorcenter.sapi.domain.user.domain.User;
+import com.seniorcenter.sapi.domain.user.domain.repository.UserRepository;
 import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
 import com.seniorcenter.sapi.global.aws.ApiLambdaService;
@@ -55,6 +56,7 @@ public class SpecificationService {
     private final StatisticsService statisticsService;
     private final SseUtils sseUtils;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public void createSpecification(SpecificationMessage message, UUID worksapceId, Principal principal) {
@@ -217,9 +219,15 @@ public class SpecificationService {
 
         statisticsService.updateStatistics(specificationId);
 
-        if (specification.getManager() != null) {
-            sseUtils.sendApiNotification(specification.getManager(), originApi.getId(),
-                    specification.getWorkspace().getId(), NotificationType.API_CONFIRM);
+        // if (specification.getManager() != null) {
+        //     sseUtils.sendApiNotification(specification.getManager(), originApi.getId(),
+        //             specification.getWorkspace().getId(), NotificationType.API_CONFIRM);
+        // }
+
+        List<User> usersInWorkspace = userRepository
+            .findAcceptedUsersByWorkspaceId(specification.getWorkspace().getId());
+        for (User user : usersInWorkspace) {
+            sseUtils.send(user, originApi.getId(), specification.getWorkspace().getId(), NotificationType.API_CONFIRM);
         }
 
         return new SpecificationResponseDto(originApi, specification);

@@ -25,4 +25,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Query("SELECT m.user FROM Membership m WHERE m.workspace.id = :workspaceId AND m.inviteStatus = 'PENDING'")
 	List<User> findPendingUsersByWorkspaceId(@Param("workspaceId") UUID workspaceId);
+
+	@Query("SELECT m.user FROM Membership m WHERE m.workspace.id = :workspaceId AND m.inviteStatus = 'ACCEPTED'")
+	List<User> findAcceptedUsersByWorkspaceId(@Param("workspaceId") UUID workspaceId);
 }
