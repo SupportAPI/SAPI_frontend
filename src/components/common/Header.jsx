@@ -70,8 +70,8 @@ const Header = () => {
   };
 
   return (
-    <header className='w-full h-16 bg-[#F0F5F8]/50 text-[#666666] flex items-center px-12 justify-between relative border-b select-none'>
-      <h1 className='text-2xl' onClick={handleMain}>
+    <header className='w-full h-16 bg-[#F0F5F8]/50 text-[#666666] flex items-center px-12 justify-between relative border-b select-none dark:bg-dark-background dark:text-dark-text'>
+      <h1 className='text-2xl font-bold' onClick={handleMain}>
         Support API
       </h1>
 
@@ -92,7 +92,7 @@ const Header = () => {
           )}
         </div>
         {isWorkspaceDropdownOpen && (
-          <div className='absolute left-0 mt-2 w-48 bg-white text-[#666666] rounded shadow-lg max-h-48 overflow-y-auto sidebar-scrollbar z-50 rounded-lg'>
+          <div className='absolute left-0 mt-2 w-48 bg-white text-[#666666] shadow-lg max-h-48 overflow-y-auto sidebar-scrollbar z-50 rounded-lg dark:bg-dark-background dark:text-dark-text'>
             <ul>
               {filteredWorkspaces.map((workspace) => (
                 <li
@@ -137,7 +137,7 @@ const Header = () => {
           <FaUser className='text-2xl cursor-pointer' onClick={() => setProfileDropdownOpen((prev) => !prev)} />
           {isProfileDropdownOpen && (
             <div className='absolute right-0 mt-2 w-[250px] h-auto bg-white text-black rounded-lg shadow-lg'>
-              <div className='flex flex-col items-center pt-4 pb-4'>
+              <div className='flex flex-col items-center pt-4 pb-4 dark:bg-dark-background dark:text-dark-text'>
                 {/* 프로필 이미지와 유저 정보 */}
                 <div className='flex items-center mb-3 px-4 w-full'>
                   <img
@@ -146,14 +146,14 @@ const Header = () => {
                     alt='Profile'
                   />
                   <div>
-                    <div className='text-lg font-semibold text-gray-800'>{userInfo.nickname}</div>
-                    <div className='text-sm text-gray-500'>{userInfo.email}</div>
+                    <div className='text-lg font-semibold text-gray-800 dark:text-dark-text'>{userInfo.nickname}</div>
+                    <div className='text-sm text-gray-500 dark:text-dark-text'>{userInfo.email}</div>
                   </div>
                 </div>
 
                 {/* 로그아웃 버튼 */}
                 <div
-                  className='w-full text-center px-4 py-2 text-red-600 hover:bg-gray-100 cursor-pointer rounded-b-lg'
+                  className='w-full border-t text-center px-4 py-2 text-red-600 hover:bg-gray-100 cursor-pointer rounded-b-lg'
                   onClick={handleLogout}
                 >
                   Logout

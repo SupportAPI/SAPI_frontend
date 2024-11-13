@@ -75,8 +75,8 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
     // 모달 화면 위치 정의
     <div className='fixed flex justify-center items-center inset-0 bg-black bg-opacity-30 z-50'>
       {/* 모달 크기 정의 */}
-      <div className='flex flex-col items-center bg-white w-[800px] h-[800px] border rounded-2xl'>
-        <header className='flex justify-between items-center w-full text-xl mb-4 h-[80px] bg-[#f0f5f8] rounded-t-2xl'>
+      <div className='flex flex-col items-center bg-white w-[800px] h-[800px] border rounded-2xl dark:bg-dark-background'>
+        <header className='flex justify-between items-center w-full text-xl mb-4 h-[80px] bg-[#f0f5f8] dark:bg-dark-background border-b rounded-t-2xl'>
           <div className='text-3xl ml-10'>Create Workspace</div>
           <button className='mr-4' onClick={onClose}>
             <IoClose className='text-3xl' />
@@ -108,7 +108,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
               </div>
               <input
                 type='text'
-                className='border w-full h-14 p-5 rounded-lg'
+                className='border w-full h-14 p-5 rounded-lg dark:bg-dark-background'
                 placeholder='Project name'
                 value={projectName}
                 onChange={(e) => setprojectName(e.target.value)}
@@ -124,7 +124,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
               </div>
               <input
                 type='text'
-                className='border w-full h-14 p-5 rounded-lg'
+                className='border w-full h-14 p-5 rounded-lg dark:bg-dark-background'
                 placeholder='k11b305.ssafy.p.io'
                 value={domain}
                 onChange={(e) => setDomainName(e.target.value)}
@@ -137,7 +137,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
               <div className='text-lg'>Description</div>
               <textarea
                 type='text'
-                className='border w-full h-28 p-3 rounded-lg sidebar-scrollbar resize-none'
+                className='border w-full h-28 p-3 rounded-lg sidebar-scrollbar resize-none dark:bg-dark-background'
                 placeholder='Introduction to the Project'
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}

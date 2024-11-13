@@ -54,7 +54,11 @@ const Environment = ({ workspaceId }) => {
   //   }, [environmentData, setEnvironment]);
 
   return (
-    <select value={selectedCategoryId || ''} onChange={handleEnvironmentChange}>
+    <select
+      className='dark:bg-dark-background dark:text-dark-text'
+      value={selectedCategoryId || ''}
+      onChange={handleEnvironmentChange}
+    >
       <option value=''>Select Environment</option>
       {environmentList &&
         environmentList.map((env) => (

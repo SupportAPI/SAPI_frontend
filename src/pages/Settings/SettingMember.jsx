@@ -154,7 +154,7 @@ const SettingMember = () => {
     return InviteAutoList.map((user) => (
       <div
         key={user.userId}
-        className='flex items-center p-2 cursor-pointer hover:bg-gray-200'
+        className='flex items-center p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 dark:border dark:rounded-lg'
         onClick={() => handleAutoCompleteClick(user.email)}
       >
         <img
@@ -185,7 +185,7 @@ const SettingMember = () => {
             <input
               type='text'
               placeholder='Invite a member to Project'
-              className='border rounded-lg h-16 p-5 mr-5 w-full'
+              className='border rounded-lg h-16 p-5 mr-5 w-full dark:bg-dark-background dark:text-dark-text'
               value={useremail}
               onChange={(e) => {
                 setUseremail(e.target.value);
@@ -199,7 +199,7 @@ const SettingMember = () => {
               }}
             />
             {showAutoList && useremail && (
-              <div className='absolute top-full left-0 right-0 rounded-lg overflow-y-auto max-h-40 bg-white shadow-lg z-10 sidebar-scrollbar'>
+              <div className='absolute top-full left-0 right-0 rounded-lg overflow-y-auto max-h-40 bg-white shadow-lg z-10 sidebar-scrollbar dark:bg-dark-background dark:text-dark-text'>
                 {renderAutoCompleteList()}
               </div>
             )}
@@ -215,10 +215,10 @@ const SettingMember = () => {
           <div className='border mt-1'></div>
           <div className='mt-5 max-h-[400px] overflow-y-auto sidebar-scrollbar'>
             <table className='min-w-full bg-white custom-table'>
-              <tbody>
+              <tbody className='dark:bg-dark-background dark:text-dark-text'>
                 {userList.length > 0 ? (
                   userList.map((user, index) => (
-                    <tr key={user.userId} className='hover:bg-blue-100 h-[80px]'>
+                    <tr key={user.userId} className='hover:bg-blue-100 dark:hover:bg-gray-600 h-[80px]'>
                       <td className='border-b'>
                         <img
                           src={user.profileImage}
@@ -247,17 +247,17 @@ const SettingMember = () => {
                               top: modalPosition.top,
                               left: modalPosition.left,
                             }}
-                            className='border-2 bg-white rounded-lg shadow-lg z-10 w-40'
+                            className='bg-white rounded-lg shadow-lg z-10 w-40'
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
-                              className='w-full text-left px-4 py-2 hover:bg-blue-100'
+                              className='w-full rounded-t-lg text-left px-4 py-2 hover:bg-blue-100 dark:bg-dark-background dark:hover:bg-gray-600 dark:text-dark-text'
                               onClick={() => ChangeDevelopAuth(user.userId)}
                             >
                               권한 수정
                             </button>
                             <button
-                              className='w-full text-left px-4 py-2 hover:bg-red-100 text-red-500'
+                              className='w-full rounded-b-lg text-left px-4 py-2 hover:bg-red-100 text-red-500 dark:bg-dark-background dark:hover:bg-gray-600'
                               onClick={() => DeleteUser(user.userId)}
                             >
                               삭제

@@ -165,12 +165,15 @@ const EnvironmentSidebar = () => {
   }, [envData]);
 
   return (
-    <div ref={scrollContainerRef} className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm'>
-      <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 z-10'>
+    <div
+      ref={scrollContainerRef}
+      className='w-[300px] bg-[#F0F5F8]/50 dark:bg-dark-background dark:text-dark-text h-full border-r flex flex-col text-sm'
+    >
+      <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 dark:bg-dark-background z-10'>
         <div className='flex items-center'>
-          <FaPlus className='text-gray-600 cursor-pointer mr-2' onClick={handleAddEnvironment} />
-          <div className='flex items-center flex-1 bg-white rounded border relative'>
-            <FaSearch className='text-gray-400 ml-2' />
+          <FaPlus className='text-gray-600 dark:text-dark-text cursor-pointer mr-2' onClick={handleAddEnvironment} />
+          <div className='flex items-center flex-1 bg-white dark:bg-dark-background rounded border relative'>
+            <FaSearch className='text-gray-400 dark:text-dark-text ml-2' />
             <input type='text' placeholder='Search' className='p-2 flex-1 bg-transparent outline-none' />
           </div>
         </div>
@@ -206,7 +209,7 @@ const EnvironmentSidebar = () => {
                             handleSaveEdit(p.id);
                           }
                         }}
-                        className='bg-white border-b outline-none'
+                        className='bg-white dark:bg-dark-background border-b outline-none'
                       />
                     ) : (
                       <span>{p.name}</span>

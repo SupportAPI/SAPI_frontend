@@ -111,7 +111,7 @@ const UserComponent = () => {
               <img
                 src={userInfo.profileImage}
                 alt='이미지'
-                className='border rounded-3xl w-64 h-64 bg-gray-50 object-cover cursor-pointer'
+                className='rounded-3xl w-64 h-64 bg-gray-50 object-cover cursor-pointer'
               />
             </label>
             <input
@@ -139,7 +139,7 @@ const UserComponent = () => {
                       ref={nicknameInputRef}
                       value={userNickname}
                       onChange={handleNicknameChange}
-                      className={`ml-2 mt-5 border-b w-full outline-none ${
+                      className={`ml-2 mt-5 border-b w-full outline-none dark:bg-dark-background ${
                         isEditingNickname ? 'border-blue-500 text-blue-500 font-bold' : 'border-gray-300'
                       }`}
                       onKeyDown={(e) => {

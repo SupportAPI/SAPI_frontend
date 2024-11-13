@@ -207,7 +207,7 @@ const WorkspaceSelection = () => {
   }
 
   return (
-    <div className='outer-wrapper bg-[#f0f5f8]/50 h-full w-full min-h-screen min-w-screen'>
+    <div className='outer-wrapper bg-[#f0f5f8]/50 dark:bg-dark-background dark:text-dark-text h-full w-full min-h-screen min-w-screen'>
       <Header onSettingsClick={handleSettingsClick} />
       <div className='inner-content overflow-y-auto overflow-x-auto h-full w-full'>
         {/* 헤더 위치 */}
@@ -217,10 +217,10 @@ const WorkspaceSelection = () => {
             <div className='flex flex-col mx-auto'>
               {/* 제목과 워크스페이스가 들어갈 공간 */}
               <section className='flex justify-between items-center mb-2'>
-                <p className='text-2xl'>Workspaces</p>
+                <p className='text-2xl font-bold'>Workspaces</p>
                 {/* 누르면 워크스페이스 추가 모달 띄우기 */}
                 <button
-                  className='border p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-500'
+                  className='p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-500 '
                   onClick={() => {
                     setIsOpenCreateWorkspace(true);
                   }}
@@ -253,11 +253,11 @@ const WorkspaceSelection = () => {
               )}
 
               {/* In Progress가 들어갈 공간 */}
-              <section className='flex flex-col border rounded-3xl bg-white p-8'>
+              <section className='flex flex-col border rounded-3xl bg-white dark:bg-dark-background p-8'>
                 <div className='flex justify-between items-center mb-2'>
-                  <p className='text-xl'>In Progress</p>
+                  <p className='text-xl font-bold'>In Progress</p>
                   <button
-                    className='flex justify-center items-center right-6 border rounded-full w-10 h-10 bg-gray-100 hover:bg-gray-200'
+                    className='flex justify-center items-center right-6 border rounded-full w-10 h-10 bg-gray-100 hover:bg-gray-200 dark:bg-dark-background dark:hover:bg-dark-hover'
                     onClick={() => setP_IsTableVisible(!isP_TableVisible)}
                   >
                     {isP_TableVisible ? <FaMinus /> : <FaPlus />}
@@ -275,7 +275,7 @@ const WorkspaceSelection = () => {
                             <div className='flex items-center'>
                               <div>🍳</div>
                               <input
-                                className='ml-2 border-b font-normal'
+                                className='ml-2 border-b font-normal dark:bg-dark-background'
                                 type='text'
                                 placeholder='Search'
                                 value={filterWorkspaces}
@@ -292,10 +292,8 @@ const WorkspaceSelection = () => {
                           </th>
                           <th className='p-2 w-[25%]'>
                             <div className='flex justify-center items-center'>
-                              <button className='flex justify-center items-center' onClick={() => sortPTable('TeamID')}>
-                                <p className={`mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200 `}>
-                                  Active User
-                                </p>
+                              <button className='flex justify-center items-center'>
+                                <p className={`mr-2 px-4 py-2 rounded-3xl `}>Active User</p>
                               </button>
                             </div>
                           </th>
@@ -313,7 +311,7 @@ const WorkspaceSelection = () => {
                           prograssTable.map((item, index) => (
                             <tr
                               key={index}
-                              className='border-b cursor-pointer hover:bg-gray-50'
+                              className='border-b cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-hover'
                               onClick={() => handleWorkspaceSelect(item.id)}
                               onMouseLeave={() => setDevelopAuthId(null)}
                             >
@@ -329,9 +327,9 @@ const WorkspaceSelection = () => {
                                   </div>
                                 </div>
                               </td>
-                              <td className='p-2 w-[30%] text-start p-1'>
+                              <td className='p-2 w-[30%] text-center'>
                                 <div
-                                  className='border rounded-lg h-[50px] p-1'
+                                  className='rounded-lg h-[50px] p-1'
                                   style={{
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
@@ -364,11 +362,11 @@ const WorkspaceSelection = () => {
                                         top: modalPosition.top,
                                         left: modalPosition.left,
                                       }}
-                                      className='border bg-white rounded-lg shadow-lg z-10 w-28 p-2'
+                                      className='border bg-white rounded-lg shadow-lg z-10 w-28 p-2 dark:bg-dark-background'
                                       onClick={(e) => e.stopPropagation()}
                                     >
                                       <button
-                                        className='w-full text-center text-gray-700 py-2 hover:bg-gray-100 rounded-t-lg'
+                                        className='w-full text-center text-gray-700 py-2 hover:bg-gray-100 rounded-t-lg dark:hover:bg-dark-hover dark:text-dark-text'
                                         onClick={() => {
                                           handleModifiedWorkspace(
                                             item.id,
@@ -428,11 +426,11 @@ const WorkspaceSelection = () => {
               </section>
 
               {/* Done이 들어갈 공간 */}
-              <section className='flex flex-col border w-full rounded-3xl bg-white p-8 mt-5'>
+              <section className='flex flex-col border w-full rounded-3xl bg-white p-8 mt-5 dark:bg-dark-background'>
                 <div className='flex justify-between items-center mb-2'>
-                  <p className='text-xl'>Done</p>
+                  <p className='text-xl font-bold'>Done</p>
                   <button
-                    className='flex justify-center items-center right-6 border rounded-full w-10 h-10 bg-gray-100 hover:bg-gray-200'
+                    className='flex justify-center items-center right-6 border rounded-full w-10 h-10 bg-gray-100 hover:bg-gray-200 dark:bg-dark-background dark:hover:bg-dark-hover'
                     onClick={() => setD_IsTableVisible(!isD_TableVisible)}
                     onMouseLeave={() => setDevelopAuthId(null)} // Hover 종료 시 Delete 옵션 버튼 닫기
                   >
@@ -451,7 +449,7 @@ const WorkspaceSelection = () => {
                             <div className='flex items-center'>
                               <div>🍳</div>
                               <input
-                                className='ml-2 border-b font-normal'
+                                className='ml-2 border-b font-normal dark:bg-dark-background'
                                 type='text'
                                 placeholder='Search'
                                 value={filterDoneWorkspaces}
@@ -469,13 +467,8 @@ const WorkspaceSelection = () => {
 
                           <th className='p-2 w-[25%]'>
                             <div className='flex justify-center items-center'>
-                              <button
-                                className='flex justify-center items-center'
-                                onClick={() => sortDTable('RenewalDate')}
-                              >
-                                <p className={`mr-2 bg-gray-100 px-4 py-2 rounded-3xl hover:bg-gray-200 `}>
-                                  RENEWAL DATE
-                                </p>
+                              <button className='flex justify-center items-center'>
+                                <p className={`mr-2  px-4 py-2 rounded-3xl`}>RENEWAL DATE</p>
                               </button>
                             </div>
                           </th>
@@ -492,7 +485,7 @@ const WorkspaceSelection = () => {
                           doneTable.map((item, index) => (
                             <tr
                               key={index}
-                              className='border-b cursor-pointer hover:bg-gray-50'
+                              className='border-b cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-hover'
                               onClick={() => handleWorkspaceSelect(item.id)}
                               onMouseLeave={() => setDevelopAuthId(null)}
                             >
@@ -508,9 +501,9 @@ const WorkspaceSelection = () => {
                                   </div>
                                 </div>
                               </td>
-                              <td className='p-2 w-[30%] text-start p-1'>
+                              <td className='p-2 w-[30%] text-center'>
                                 <div
-                                  className='border rounded-lg h-[50px] p-1'
+                                  className='rounded-lg h-[50px] p-1'
                                   style={{
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
@@ -544,11 +537,11 @@ const WorkspaceSelection = () => {
                                         top: modalPosition.top,
                                         left: modalPosition.left,
                                       }}
-                                      className='border bg-white rounded-lg shadow-lg z-10 w-28 p-2'
+                                      className='border bg-white rounded-lg shadow-lg z-10 w-28 p-2 dark:bg-dark-background'
                                       onClick={(e) => e.stopPropagation()}
                                     >
                                       <button
-                                        className='w-full text-center text-gray-700 py-2 hover:bg-gray-100 rounded-t-lg'
+                                        className='w-full text-center text-gray-700 py-2 hover:bg-gray-100 dark:text-dark-text dark:hover:bg-dark-hover rounded-t-lg'
                                         onClick={() => {
                                           handleModifiedWorkspace(
                                             item.id,
