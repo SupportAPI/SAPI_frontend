@@ -96,19 +96,5 @@ export const requestApiTest = async (workspaceId, apiDetail, path = '') => {
     headers,
     params: queryParams, // 동적으로 만든 queryParams 추가
   });
-
-  export const requestApiTest = async (workspaceId, apiDetail) => {
-    const accessToken = getToken();
-    const response = await axios.post(
-      `${base_URL}/api/workspaces/${workspaceId}/request`,
-      { ...apiDetail },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-    return response.data.data;
-  };
+  return response.data.data;
 };
