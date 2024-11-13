@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seniorcenter.sapi.domain.api.domain.*;
 import com.seniorcenter.sapi.domain.api.domain.enums.AuthenticationType;
+import com.seniorcenter.sapi.domain.api.domain.enums.BodyType;
 import com.seniorcenter.sapi.domain.api.domain.enums.ParameterType;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiBodyRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiCookieRepository;
@@ -85,6 +86,7 @@ public class ApiService {
     private final ProxyService proxyService;
     private final KeyValueUtils keyValueUtils;
     private final RedisUtil redisUtil;
+    private final ApiBodyService apiBodyService;
 
     @Transactional
     public void createApi(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
@@ -101,6 +103,8 @@ public class ApiService {
             result = apiHeaderService.createApiHeader(workspaceId);
         } else if (message.apiType().equals(ApiType.OCCUPATION)) {
             result = occupationService.createOccupaction(workspaceId, message, user);
+        } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
+            result = apiBodyService.createApiBody(apiId);
         }
 
         messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
@@ -115,7 +119,7 @@ public class ApiService {
 
         Object result = null;
         if (message.apiType().equals(ApiType.CATEGORY)) {
-            result = categoryService.removeCategory(message);
+            result = categoryService.removeCategory(workspaceId, message);
         } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
             result = apiQueryParameterService.removeApiQueryParameter(message, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
@@ -124,6 +128,8 @@ public class ApiService {
             result = apiHeaderService.removeApiHeader(message, workspaceId);
         } else if (message.apiType().equals(ApiType.OCCUPATION)) {
             result = occupationService.removeOccupaction(workspaceId, message);
+        } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
+            result = apiBodyService.createApiBody(apiId);
         }
 
         messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
@@ -153,6 +159,9 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.API_METHOD)) {
             updateMethod(message, apiId);
             result = valueUtils.updateByValue(message);
+        } else if (message.apiType().equals(ApiType.REQUEST_TYPE)) {
+            updateRequestType(message, apiId);
+            result = valueUtils.updateByValue(message);
         }
 
         messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
@@ -175,6 +184,14 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.API_NAME)) {
             updateApiName(message, workspaceId, apiId);
         }
+    }
+
+    public void updateRequestType(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
+        api.updateBodyType(BodyType.valueOf(data.value()));
     }
 
     public void updatePath(ApiMessage message, UUID workspaceId, UUID apiId) {
@@ -433,6 +450,7 @@ public class ApiService {
 
     public ApiTestDetailResponseDto getTestApiByApiId(UUID workspaceId, UUID apiId) {
         User user = userUtils.getUserFromSecurityContext();
+        System.out.println("####" + user.getId() + "&&&" + user.toString());
 
         // 유저가 해당 워크스페이스에 포함되어 있는지 검증
         membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
@@ -619,20 +637,20 @@ public class ApiService {
         String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
         String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
         String domain = testType.equals("Local")
-            ? headers.get("sapi-local-domain")
-            : workspaceRepository.findById(UUID.fromString(workspaceId))
-            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
+                ? headers.get("sapi-local-domain")
+                : workspaceRepository.findById(UUID.fromString(workspaceId))
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
 
         String url = domain + path + queryString;
         HttpMethod method = HttpMethod.valueOf(headers.get("sapi-method"));
         Api matchingApi = getMatchingApi(workspaceId, method, path);
 
         ApiResponse http2xxResponse = matchingApi.getResponses() != null
-            ? matchingApi.getResponses().stream()
-            .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
-            .findFirst()
-            .orElse(null)
-            : null;
+                ? matchingApi.getResponses().stream()
+                .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
+                .findFirst()
+                .orElse(null)
+                : null;
 
         HttpHeaders httpHeaders = new HttpHeaders();
         headers.forEach((key, value) -> {
@@ -656,20 +674,20 @@ public class ApiService {
         String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
         String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
         String domain = testType.equals("Local")
-            ? headers.get("sapi-local-domain")
-            : workspaceRepository.findById(UUID.fromString(workspaceId))
-            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
+                ? headers.get("sapi-local-domain")
+                : workspaceRepository.findById(UUID.fromString(workspaceId))
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
 
         String url = domain + path + queryString;
         HttpMethod method = HttpMethod.valueOf(headers.get("sapi-method"));
         Api matchingApi = getMatchingApi(workspaceId, method, path);
 
         ApiResponse http2xxResponse = matchingApi.getResponses() != null
-            ? matchingApi.getResponses().stream()
-            .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
-            .findFirst()
-            .orElse(null)
-            : null;
+                ? matchingApi.getResponses().stream()
+                .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
+                .findFirst()
+                .orElse(null)
+                : null;
 
         HttpHeaders httpHeaders = new HttpHeaders();
         headers.forEach((key, value) -> {
@@ -693,20 +711,20 @@ public class ApiService {
         String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
         String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
         String domain = testType.equals("Local")
-            ? headers.get("sapi-local-domain")
-            : workspaceRepository.findById(UUID.fromString(workspaceId))
-            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
+                ? headers.get("sapi-local-domain")
+                : workspaceRepository.findById(UUID.fromString(workspaceId))
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
 
         String url = domain + path + queryString;
         HttpMethod method = HttpMethod.valueOf(headers.get("sapi-method"));
         Api matchingApi = getMatchingApi(workspaceId, method, path);
 
         ApiResponse http2xxResponse = matchingApi.getResponses() != null
-            ? matchingApi.getResponses().stream()
-            .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
-            .findFirst()
-            .orElse(null)
-            : null;
+                ? matchingApi.getResponses().stream()
+                .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
+                .findFirst()
+                .orElse(null)
+                : null;
 
         HttpHeaders httpHeaders = new HttpHeaders();
         headers.forEach((key, value) -> {
@@ -728,16 +746,16 @@ public class ApiService {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(UUID.fromString(workspaceId));
 
         List<UUID> apiIds = specifications.stream()
-            .filter(specification -> !specification.getConfirmedApiId().equals(""))
-            .map(Specification::getConfirmedApiId)
-            .toList();
+                .filter(specification -> !specification.getConfirmedApiId().equals(""))
+                .map(Specification::getConfirmedApiId)
+                .toList();
 
         List<Api> apiList = apiRepository.findAllById(apiIds);
 
         return apiList.stream()
-            .filter(api -> api.getMethod().getValue().equals(method.name()) && pathMatches(api.getPath(), path))
-            .findFirst()
-            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+                .filter(api -> api.getMethod().getValue().equals(method.name()) && pathMatches(api.getPath(), path))
+                .findFirst()
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
     }
 
     private boolean pathMatches(String path, String requestedPath) {
@@ -760,8 +778,8 @@ public class ApiService {
         long requestBodySize = requestBody.toString().getBytes().length;
 
         Map<String, String> cookies = responseEntity.getHeaders().get("Set-Cookie") != null
-            ? Map.of("Set-Cookie", String.join("; ", responseEntity.getHeaders().get("Set-Cookie")))
-            : Map.of();
+                ? Map.of("Set-Cookie", String.join("; ", responseEntity.getHeaders().get("Set-Cookie")))
+                : Map.of();
 
         // 응답 바디와 목 바디를 비교하여 구조 차이 찾기
         String responseBodyStr = responseEntity.getBody() != null ? new String(responseEntity.getBody()) : null;
@@ -785,23 +803,23 @@ public class ApiService {
 
 
         return new TestResponseDto(
-            status,
-            code,
-            responseBodyStr,
-            mockResponse.getBodyData(),
-            responseEntity.getHeaders().toSingleValueMap(),
-            cookies,
-            Map.of(
-                "Headers", requestHeaderSize + " B",
-                "Body", requestBodySize + " B"
-            ),
-            Map.of(
-                "Headers", responseHeaderSize + " B",
-                "Body", responseBodySize + " B"
-            ),
-            responseTime,
-            testType,
-            message
+                status,
+                code,
+                responseBodyStr,
+                mockResponse.getBodyData(),
+                responseEntity.getHeaders().toSingleValueMap(),
+                cookies,
+                Map.of(
+                        "Headers", requestHeaderSize + " B",
+                        "Body", requestBodySize + " B"
+                ),
+                Map.of(
+                        "Headers", responseHeaderSize + " B",
+                        "Body", responseBodySize + " B"
+                ),
+                responseTime,
+                testType,
+                message
         );
     }
 
@@ -851,13 +869,13 @@ public class ApiService {
             if (currentObj.get(key) instanceof Map && actualObj.get(key) instanceof Map) {
                 // Map 타입인 경우 재귀적으로 비교
                 differences.addAll(findStructureDifferences(
-                    (Map<String, Object>) currentObj.get(key),
-                    (Map<String, Object>) actualObj.get(key),
-                    currentObjPath
+                        (Map<String, Object>) currentObj.get(key),
+                        (Map<String, Object>) actualObj.get(key),
+                        currentObjPath
                 ));
             } else if (!currentObj.get(key).getClass().equals(actualObj.get(key).getClass())) {
                 differences.add("'" + currentObjPath + "' 필드는 " + actualObj.get(key).getClass().getSimpleName() +
-                    " 타입이어야 하지만, " + currentObj.get(key).getClass().getSimpleName() + " 타입이 입력되었습니다.");
+                        " 타입이어야 하지만, " + currentObj.get(key).getClass().getSimpleName() + " 타입이 입력되었습니다.");
             }
         }
 
