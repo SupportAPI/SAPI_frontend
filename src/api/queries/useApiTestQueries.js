@@ -57,44 +57,17 @@ export const patchApiDetail = async (workspaceId, apiId, apiTestDetails) => {
 };
 
 // 4. API TEST Request
-export const requestApiTest = async (workspaceId, apiDetail, path = '') => {
+export const requestApiTest = async (workspaceId, apiDetail) => {
   const accessToken = getToken();
-
-  // <--- 파라미터 --->
-  // 1. pathvariable
-  const pathVariables =
-    apiDetail.pathVariables && apiDetail.pathVariables.length > 0
-      ? `/${apiDetail.pathVariables.map((param) => param.value).join('/')}`
-      : '';
-  // 2. queryParameter
-  const queryParams = apiDetail.queryParameters
-    ? apiDetail.queryParameters.reduce((acc, param) => {
-        if (param.isChecked && param.key && param.value) {
-          // isChecked가 true인 항목만 추가
-          acc[param.key] = param.value;
-        }
-        return acc;
-      }, {})
-    : {};
-  // 3. headers
-  const dynamicHeaders = apiDetail.headers
-    ? apiDetail.headers.reduce((acc, header) => {
-        if (header.isChecked && header.key && header.value) {
-          acc[header.key] = header.value; // isChecked가 true인 항목만 추가
-        }
-        return acc;
-      }, {})
-    : {};
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${accessToken}`,
-    'sapi-method': apiDetail.method,
-    ...additionalHeaders, // 추가적인 헤더 병합
-  };
-
-  const response = await axios.post(`${base_URL}/api/workspaces/${workspaceId}/test${path}${pathVariables}`, {
-    headers,
-    params: queryParams, // 동적으로 만든 queryParams 추가
-  });
+  const response = await axios.post(
+    `${base_URL}/api/workspaces/${workspaceId}/request`,
+    { apiDetail },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
   return response.data.data;
 };

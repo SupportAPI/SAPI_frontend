@@ -32,10 +32,7 @@ const ApiTestDetail = () => {
 
   const [renderApi, setRenderApi] = useState(false);
 
-  console.log('apiInfo', apiInfo);
   const location = useLocation();
-
-  console.log('apidetail', apiDetail);
 
   const editApiTestDetailsMutation = useMutation((api) => patchApiDetail(workspaceId, apiId, api), {
     onSuccess: (response) => {
@@ -45,7 +42,7 @@ const ApiTestDetail = () => {
     onError: (error) => console.error('저장 실패!', error),
   });
 
-  const requestApiTestMutation = useMutation(() => requestApiTest(workspaceId, apiDetail, apiDetail.path), {
+  const requestApiTestMutation = useMutation((apiTestInfo) => requestApiTest(workspaceId, apiTestInfo), {
     onSuccess: (response) => {
       setTestResult(response);
       console.log('테스트 완료', response);
@@ -200,7 +197,18 @@ const ApiTestDetail = () => {
   };
 
   const handleApiTest = () => {
-    requestApiTestMutation.mutate();
+    if (apiInfo) {
+      const transformData = {
+        docId: apiInfo.docId,
+        apiId: apiInfo.apiId,
+        method: apiInfo.method,
+        path: apiInfo.path,
+        parameters: apiInfo.parameters,
+        request: apiInfo.request,
+      };
+      console.log('save', transformData);
+      requestApiTestMutation.mutate(transformData);
+    }
   };
 
   return (
