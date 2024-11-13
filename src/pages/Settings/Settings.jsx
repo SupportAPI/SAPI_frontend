@@ -107,4 +107,6 @@ const Settings = forwardRef(({ onClose }, ref) => {
   );
 });
 
+Settings.displayName = 'Settings';
+
 export default Settings;

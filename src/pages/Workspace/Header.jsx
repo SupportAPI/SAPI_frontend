@@ -4,8 +4,11 @@ import Alarm from '../../components/common/Alarm';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../stores/useAuthStore';
 import { useAlarmStore } from '../../stores/useAlarmStore';
+import { useUserInfo } from '../../api/queries/useWorkspaceQueries';
 
 const Header = ({ onSettingsClick }) => {
+  const userId = useAuthStore((state) => state.userId);
+  const { data: userInfo } = useUserInfo(userId);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const { received, setReceived } = useAlarmStore();
 
@@ -69,13 +72,29 @@ const Header = ({ onSettingsClick }) => {
         <div className='relative' ref={profileRef}>
           <FaUser className='text-2xl cursor-pointer' onClick={() => setProfileDropdownOpen((prev) => !prev)} />
           {isProfileDropdownOpen && (
-            <div className='absolute right-0 mt-2 w-32 bg-white text-black rounded shadow-lg'>
-              <ul>
-                <li className='px-4 py-2 hover:bg-gray-200 cursor-pointer'>Profile</li>
-                <li className='px-4 py-2 hover:bg-gray-200 cursor-pointer' onClick={handleLogout}>
+            <div className='absolute right-0 mt-2 w-[250px] h-auto bg-white text-black rounded-lg shadow-lg'>
+              <div className='flex flex-col items-center pt-4 pb-4'>
+                {/* 프로필 이미지와 유저 정보 */}
+                <div className='flex items-center mb-3 px-4 w-full'>
+                  <img
+                    src={userInfo.profileImage}
+                    className='rounded-full w-12 h-12 object-cover border mr-3'
+                    alt='Profile'
+                  />
+                  <div>
+                    <div className='text-lg font-semibold text-gray-800'>{userInfo.nickname}</div>
+                    <div className='text-sm text-gray-500'>{userInfo.email}</div>
+                  </div>
+                </div>
+
+                {/* 로그아웃 버튼 */}
+                <div
+                  className='w-full text-center px-4 py-2 text-red-600 hover:bg-gray-100 cursor-pointer rounded-b-lg'
+                  onClick={handleLogout}
+                >
                   Logout
-                </li>
-              </ul>
+                </div>
+              </div>
             </div>
           )}
         </div>

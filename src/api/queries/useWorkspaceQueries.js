@@ -4,8 +4,8 @@ import { getToken } from '../../utils/cookies';
 import { toast } from 'react-toastify';
 import axiosInstance from '../axiosInstance';
 
-const base_URL = 'https://k11b305.p.ssafy.io';
-// const base_URL = 'http://192.168.31.35:8080'; // 세현 로컬
+// const base_URL = 'https://k11b305.p.ssafy.io';
+const base_URL = 'http://192.168.31.35:8080'; // 세현 로컬
 
 // 1. 워크스페이스 목록 가져오기
 export const fetchWorkspaces = async () => {
@@ -302,6 +302,59 @@ export const useFetchWorkspacesDetail = (workspaceId) => {
   return useQuery(['workspacesDetail', workspaceId], () => fetchWorkspacesDetail(workspaceId), {
     enabled: !!workspaceId, // workspaceId가 있을 때만 쿼리를 활성화
   });
+};
+
+// 11. 워크스페이스 수정
+export const patchWorkspaces = async ({ workspaceId, mainImage, projectName, domain, description, isCompleted }) => {
+  const accessToken = getToken();
+  // FormData 객체 생성
+  const formData = new FormData();
+
+  // 요청 DTO 생성 및 추가
+  const requestDto = new Blob(
+    [
+      JSON.stringify({
+        projectName: projectName,
+        description: description,
+        domain: domain,
+        isCompleted: isCompleted,
+      }),
+    ],
+    { type: 'application/json' }
+  );
+  formData.append('requestDto', requestDto);
+  formData.append('mainImage', mainImage);
+
+  // axios 요청 설정
+  const response = await axios.patch(`${base_URL}/api/workspaces/${workspaceId}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return response.data.data;
+};
+
+// React Query 훅: 워크스페이스 수정
+export const useModifiedWorkspace = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ({ workspaceId, mainImage, projectName, domain, description, isCompleted }) =>
+      patchWorkspaces({ workspaceId, mainImage, projectName, domain, description, isCompleted }),
+    {
+      onSuccess: (data) => {
+        queryClient.invalidateQueries(['workspaces']); // 수정 후 workspaces 캐시 무효화
+        console.log('Workspace successfully modified:', data); // 성공 시 로그 출력
+        toast('변경이 완료되었습니다.');
+      },
+      onError: (error) => {
+        console.error('Error modifying workspace:', error); // 에러 발생 시 로그 출력
+        toast('변경 권한이 없습니다.');
+      },
+    }
+  );
 };
 
 // 워크스페이스 점유 상태
