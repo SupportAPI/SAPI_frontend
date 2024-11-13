@@ -1,4 +1,4 @@
-package com.seniorcenter.sapi.domain.api.presentation.dto.request;
+package com.seniorcenter.sapi.domain.apitest.presentation.dto.request;
 
 import java.util.List;
 
