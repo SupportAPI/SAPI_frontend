@@ -6,7 +6,8 @@ import com.seniorcenter.sapi.domain.api.domain.enums.HttpMethod;
 import com.seniorcenter.sapi.domain.specification.domain.TestStatus;
 
 public record ApiTestResponseDto(
-	UUID id,
+    UUID docId,
+    UUID apiId,
 	String category,
 	String name,
 	HttpMethod method,
