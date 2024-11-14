@@ -48,6 +48,7 @@ public enum CustomException {
     NOT_FOUND_FILE(404, "해당하는 파일을 찾을 수 없습니다."),
     NOT_FOUND_ENVIRONMENT_CATEGORY(404, "해당하는 환경변수 카테고리를 찾을 수 없습니다."),
     INVALID_HOST(404, "유효하지 않은 도메인입니다."),
+    INVALID_ADDRESS(404, "유효하지 않은 주소입니다."),
 
     /* 409 중복된 리소스 */
     EMAIL_ALREADY_VERIFIED(409, "이 이메일은 이미 인증되었습니다"),
