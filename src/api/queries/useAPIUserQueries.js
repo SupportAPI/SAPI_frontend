@@ -7,7 +7,6 @@ const base_URL = 'https://k11b305.p.ssafy.io'; // 본 서버
 // 1. 회원 정보 조회
 export const fetchUserInfo = async (userId) => {
   const accessToken = getToken();
-
   const response = await axios.get(`${base_URL}/api/users/${userId}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -19,7 +18,9 @@ export const fetchUserInfo = async (userId) => {
 
 // React Query 훅 : 유저 정보 조회하기
 export const useUserInfo = (userId) => {
-  return useQuery(['userInfo', userId], () => fetchUserInfo(userId), {});
+  return useQuery(['userInfo', userId], () => fetchUserInfo(userId), {
+    enabled: !!userId,
+  });
 };
 
 // 2. 회원 정보 변경

@@ -20,6 +20,8 @@ const ApiTest = () => {
   const [isAllSelected, setIsAllSelected] = useState(false);
 
   useEffect(() => {
+    if (!workspaceId || !location.pathname.startsWith(`/workspace/${workspaceId}/api-test`)) return;
+
     if (location.pathname === `/workspace/${workspaceId}/api-test`) {
       const existingTab = openTabs.find((tab) => tab.path === location.pathname);
       if (!existingTab) {
@@ -33,9 +35,11 @@ const ApiTest = () => {
   }, [location, workspaceId, addTab, openTabs]);
 
   useEffect(() => {
-    const allSelected = dataTest.every((api) => selectedItems[api.id]);
-    setIsAllSelected(allSelected);
-  }, [selectedItems, dataTest]);
+    if (!isLoading) {
+      const allSelected = dataTest.every((api) => selectedItems[api.id]);
+      setIsAllSelected(allSelected);
+    }
+  }, [selectedItems, dataTest, isLoading]);
 
   const toggleSelectAll = () => {
     const newSelectedState = !isAllSelected;
@@ -65,13 +69,8 @@ const ApiTest = () => {
     navigate(path);
   };
 
-  // -------------------------------------------------------여기서 부터 작성함
-  /* 주요 변경 사항!
-    1. 각 목록을 선택하는 기준을 각 tr에서 td로 바꿨음 -> Category에서 SS까지 적용됨
-  */
-
   // 검색 필터 상태 관리
-  const [search, setSearch] = useState(''); // 아래 테이블을 검색할 값 onChange로 엮여있음
+  const [search, setSearch] = useState('');
   // Dropdown 상태 관리
   const [isShowEnvironment, setShowEnvironment] = useState(false); // 환경 선택 모달 오픈 값
   const [stateEnvironment, setStateEnvironment] = useState('Local'); // 개발환경 선택 시 해당 값 사용
@@ -80,20 +79,20 @@ const ApiTest = () => {
   const toggleEnvironmentDropdown = () => {
     setShowEnvironment(!isShowEnvironment);
   };
+
   // Test 환경을 선택할 함수
   const handleEnvironmentOptionClick = (option) => {
     setStateEnvironment(option);
     setShowEnvironment(false);
   };
 
-  // 상세 표시 상태를 각 항목별로 관리하기 위해 객체 형태로 초기화
   const [expandedDetails, setExpandedDetails] = useState({});
 
   // Detail 버튼 클릭 시 상세 표시 상태를 토글하는 함수
   const toggleDetail = (apiId) => {
     setExpandedDetails((prev) => ({
       ...prev,
-      [apiId]: !prev[apiId], // 기존 상태를 토글
+      [apiId]: !prev[apiId],
     }));
   };
 
@@ -104,17 +103,12 @@ const ApiTest = () => {
 
   // 복사 이미지 상태 관리
   const [copiedStatus, setCopiedStatus] = useState({});
-  // API 주소를 복사할 수 있는 함수
   const copyApiPath = (docId, path) => {
-    path = `임시 Path: ${docId}`;
-    // 실제 복사 동작 (예: 클립보드 복사)
     navigator.clipboard.writeText(path).then(() => {
-      // 복사 상태를 현재 docId에 대해 true로 설정
       setCopiedStatus((prev) => ({ ...prev, [docId]: true }));
       console.log(path);
       toast('클립보드에 복사되었습니다.');
 
-      // 2초 후에 현재 docId의 복사 상태를 false로 되돌림
       setTimeout(() => {
         setCopiedStatus((prev) => ({ ...prev, [docId]: false }));
       }, 1000);
@@ -125,6 +119,7 @@ const ApiTest = () => {
 
   if (isLoading) return <div className='p-4'>Loading...</div>;
   if (error) return <div className='p-4'>Failed to load data.</div>;
+  if (!dataTest || dataTest.length === 0) return <div className='p-4'>No data available.</div>;
 
   return (
     <div className='px-8 py-8 overflow-x-auto overflow-y-auto max-w-[1200px]'>
@@ -203,103 +198,106 @@ const ApiTest = () => {
             </tr>
           </thead>
           <tbody>
-            {dataTest.map((api, index) => {
-              const isSelected = !!selectedItems[api.id];
-              const isDetailVisible = expandedDetails[api.id]; // 상세 표시 여부 확인
-              return (
-                <React.Fragment key={api.id || index}>
-                  <tr
-                    className={`text-[14px] cursor-pointer ${
-                      isSelected ? 'bg-indigo-50 hover:bg-indigo-100' : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    <td className='p-4 text-center border'>
-                      <input
-                        type='checkbox'
-                        className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500'
-                        checked={isSelected}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={() => handleCheckboxChange(api.id)}
-                      />
-                    </td>
-                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
-                      {api.category || 'Uncategorized'}
-                    </td>
-                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
-                      {api.name || 'Unnamed API'}
-                    </td>
-                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
-                      {api.method || 'GET'}
-                    </td>
-                    <td className='p-4 border relative truncate' onClick={() => handleRowClick(api.id, api.name)}>
-                      <div className='w-full pr-4 truncate'>
-                        {api.path || 'N/A'}
-                        <button
-                          className='text-xl ml-2 absolute right-3'
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            copyApiPath(api.id, api.path);
-                          }}
-                        >
-                          {copiedStatus[api.id] ? <IoCopy /> : <IoCopyOutline />}
-                        </button>
-                      </div>
-                    </td>
-                    <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
-                      {api.manager_id || 'N/A'}
-                    </td>
-                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
-                      {api.localTest === 'PENDING' ? (
-                        <FaTimes className='text-red-600 mx-auto' />
-                      ) : (
-                        <FaCheck className='text-green-600 mx-auto' />
-                      )}
-                    </td>
-                    <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
-                      {api.serverTest === 'PENDING' ? (
-                        <FaTimes className='text-red-600 mx-auto' />
-                      ) : (
-                        <FaCheck className='text-green-600 mx-auto' />
-                      )}
-                    </td>
-                    <td className='p-4 border text-center'>
-                      <button
-                        className='p-1 text-xl'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleDetail(api.id); // 상세 표시 상태 토글
-                        }}
-                      >
-                        {isDetailVisible ? <RiDropdownList /> : <RiDropdownList />}
-                      </button>
-                    </td>
-                  </tr>
-                  {isDetailVisible && (
-                    <tr key={`${api.id}-details`}>
-                      <td colSpan='9' className='p-4 bg-gray-50'>
-                        <div className='flex justify-center items-center w-full gap-4'>
-                          {/* Your Response */}
-                          <div className='flex flex-col w-full max-w-[500px] space-y-2'>
-                            <div className='font-bold text-xl text-left'>My Response</div>
-                            <div className='p-5 border border-black rounded-xl h-[500px] bg-white'>
-                              Test를 진행해주세요.
-                            </div>
-                          </div>
-
-                          {/* Server Response */}
-                          <div className='flex flex-col w-full max-w-[500px] space-y-2'>
-                            <div className='font-bold text-xl text-left'>Mock Response</div>
-                            <div className='p-5 border border-black rounded-xl h-[500px] bg-white'>
-                              Test를 진행해주세요.
-                            </div>
-                          </div>
+            {dataTest &&
+              dataTest.map((api, index) => {
+                const isSelected = !!selectedItems[api.id];
+                const isDetailVisible = expandedDetails[api.id]; // 상세 표시 여부 확인
+                return (
+                  <React.Fragment key={api.id || index}>
+                    <tr
+                      className={`text-[14px] cursor-pointer ${
+                        isSelected ? 'bg-indigo-50 hover:bg-indigo-100' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <td className='p-4 text-center border'>
+                        <input
+                          type='checkbox'
+                          className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500'
+                          checked={isSelected}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={() => handleCheckboxChange(api.id)}
+                        />
+                      </td>
+                      <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
+                        {api.category || 'Uncategorized'}
+                      </td>
+                      <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
+                        {api.name || 'Unnamed API'}
+                      </td>
+                      <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
+                        {api.method || 'GET'}
+                      </td>
+                      <td className='p-4 border relative truncate' onClick={() => handleRowClick(api.id, api.name)}>
+                        <div className='w-full pr-4 truncate'>
+                          {api.path || 'N/A'}
+                          {api.path && (
+                            <button
+                              className='text-xl ml-2 absolute right-3'
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                copyApiPath(api.id, api.path);
+                              }}
+                            >
+                              {copiedStatus[api.id] ? <IoCopy /> : <IoCopyOutline />}
+                            </button>
+                          )}
                         </div>
                       </td>
+                      <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
+                        {api.manager_id || 'N/A'}
+                      </td>
+                      <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
+                        {api.localTest === 'PENDING' ? (
+                          <FaTimes className='text-red-600 mx-auto' />
+                        ) : (
+                          <FaCheck className='text-green-600 mx-auto' />
+                        )}
+                      </td>
+                      <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
+                        {api.serverTest === 'PENDING' ? (
+                          <FaTimes className='text-red-600 mx-auto' />
+                        ) : (
+                          <FaCheck className='text-green-600 mx-auto' />
+                        )}
+                      </td>
+                      <td className='p-4 border text-center'>
+                        <button
+                          className='p-1 text-xl'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDetail(api.id); // 상세 표시 상태 토글
+                          }}
+                        >
+                          {isDetailVisible ? <RiDropdownList /> : <RiDropdownList />}
+                        </button>
+                      </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
+                    {isDetailVisible && (
+                      <tr key={`${api.id}-details`}>
+                        <td colSpan='9' className='p-4 bg-gray-50'>
+                          <div className='flex justify-center items-center w-full gap-4'>
+                            {/* Your Response */}
+                            <div className='flex flex-col w-full max-w-[500px] space-y-2'>
+                              <div className='font-bold text-xl text-left'>My Response</div>
+                              <div className='p-5 border border-black rounded-xl h-[500px] bg-white'>
+                                Test를 진행해주세요.
+                              </div>
+                            </div>
+
+                            {/* Server Response */}
+                            <div className='flex flex-col w-full max-w-[500px] space-y-2'>
+                              <div className='font-bold text-xl text-left'>Mock Response</div>
+                              <div className='p-5 border border-black rounded-xl h-[500px] bg-white'>
+                                Test를 진행해주세요.
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
           </tbody>
         </table>
       </div>

@@ -53,7 +53,6 @@ const App = () => {
           );
           setReceived(true);
         }
-        console.log(data);
       } catch (error) {
         console.error('Received non-JSON data:', event.data);
       }
