@@ -41,9 +41,6 @@ const Environment = () => {
     }
   }, [environmentData]);
 
-  console.log('environem', environmentData);
-  console.log('Data', data);
-
   const handleDeleteCheckedRows = async () => {
     const checkedItems = data.filter((item) => item.isChecked);
     const uncheckedItems = data.filter((item) => !item.isChecked);
