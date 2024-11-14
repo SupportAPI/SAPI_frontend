@@ -104,7 +104,8 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
       }
 
       const searchValue = firstSpaceIndex === -1 ? afterStart : afterStart.slice(0, firstSpaceIndex);
-      const filteredEnvironments = environment?.filter((env) => env.value.startsWith(searchValue)) || [];
+      console.log('검색어', searchValue);
+      const filteredEnvironments = environment?.filter((env) => env.variable.includes(searchValue)) || [];
       setEnvDropDown(filteredEnvironments);
 
       const newShowDropdown = Array(data.length).fill(false);
@@ -151,8 +152,13 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
 
     if (nearestStartIndex !== -1) {
       const before = originalValue.slice(0, nearestStartIndex);
-      const after = originalValue.slice(nearestStartIndex + 2); // 이 부분 수정 필요
-      const newValue = `${before}{{${selectedVariable}}}${after.trimStart()}`; // 공백 제거하여 원하는 형식으로 설정
+      const after = originalValue.slice(nearestStartIndex + 2);
+      console.log('후위', after);
+
+      // 공백 전까지의 텍스트 잘라내기
+      const firstSpaceIndex = after.indexOf(' ');
+      const trimmedAfter = firstSpaceIndex !== -1 ? after.slice(firstSpaceIndex) : '';
+      const newValue = `${before}{{${selectedVariable}}} ${trimmedAfter.trimStart()}`; // 공백 제거하여 원하는 형식으로 설정
 
       updated[index].value = newValue;
       setData(updated);
