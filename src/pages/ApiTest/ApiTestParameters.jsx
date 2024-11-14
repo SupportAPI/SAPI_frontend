@@ -17,6 +17,7 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
 
   useEffect(() => {
     if (initialValues) {
+      console.log('호출레츠고', initialValues);
       setHeaders(initialValues?.headers || []);
       setPathVariables(initialValues?.pathVariables || []);
       setQueryParameters(initialValues?.queryParameters || []);

@@ -57,17 +57,25 @@ const ApiTestDetail = () => {
       setRenderApi(false);
       refetch();
     }
-  }, [apiId, location.pathname, refetch]); // apiId 또는 경로가 변경될 때마다 refetch 호출
+  }, [apiId, workspaceId, location.pathname, refetch]); // apiId 또는 경로가 변경될 때마다 refetch 호출
 
   useEffect(() => {
     if (apiInfo) {
-      setApiDetail(apiInfo);
-      setApiData({ category: 'Uncategorized', name: `${apiInfo.name}` });
-      setApiname(apiInfo.name);
-      setApiUrl(apiInfo.path || 'Url이 존재하지 않습니다.');
-      setApimethod(apiInfo.method);
+      console.log('apiInfo 내용:', apiInfo); // 전체 내용 확인
+      setApiDetail(null); // 초기화
+      setTimeout(() => {
+        setApiDetail({
+          ...apiInfo,
+          parameters: { ...apiInfo.parameters },
+          request: { ...apiInfo.request },
+        });
+        setApiData({ category: 'Uncategorized', name: `${apiInfo.name}` });
+        setApiname(apiInfo.name);
+        setApiUrl(apiInfo.path || 'Url이 존재하지 않습니다.');
+        setApimethod(apiInfo.method);
+      }, 10); // 짧은 지연 후 업데이트
     }
-  }, [apiInfo]); // apiInfo만 의존성으로 추가
+  }, [apiInfo]);
 
   useEffect(() => {
     if (!renderApi) {
@@ -103,14 +111,23 @@ const ApiTestDetail = () => {
     }));
   };
 
+  console.log('apiInfo', apiInfo);
+  console.log('apiDetail', apiDetail);
+
   // Content Tap
   const renderTabContent = () => {
     switch (activeTabContent) {
       case 'Parameters':
-        return <ApiTestParameters initialValues={apiDetail?.parameters || []} paramsChange={handleParamsChange} />;
+        console.log('ㅎㅇㅎㅇ', apiDetail?.parameters);
+        return (
+          <ApiTestParameters
+            key={JSON.stringify(apiDetail?.parameters)}
+            initialValues={apiDetail?.parameters || []}
+            paramsChange={handleParamsChange}
+          />
+        );
       case 'Body':
         return <ApiTestBody body={apiDetail?.request || []} bodyChange={handleBodyChange} />;
-
       default:
         return null;
     }
@@ -211,6 +228,8 @@ const ApiTestDetail = () => {
     }
   };
 
+  console.log(activeTabContent);
+
   return (
     <div className='flex p-4'>
       <div className='flex-1'>
@@ -279,7 +298,7 @@ const ApiTestDetail = () => {
               maxConstraints={[Infinity, 700]}
             >
               {/* 탭에 따른 내용 영역 */}
-              <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>
+              <div key={apiDetail?.parameters} className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>
                 {activeTabContent && renderTabContent()}
               </div>
             </ResizableBox>
@@ -287,7 +306,9 @@ const ApiTestDetail = () => {
             {/* 테스트 결과 영역 */}
             <div className='p-4 overflow-y-auto border-t-2 sidebar-scrollbar h-[400px]'>
               {/* 탭 네비게이션 */}
-              <div className='mb-2 border-b'>Response</div>
+              <div key={activeTabResult} className='mb-2 border-b'>
+                Response
+              </div>
               <div className='flex mb-4'>
                 <button
                   className={`w-[60px] mr-3 mb-1 text-[13px] ${
