@@ -7,6 +7,7 @@ import ApiTestParameters from './ApiTestParameters';
 import ApiTestBody from './APitestBody';
 import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useSidebarStore } from '../../stores/useSidebarStore';
+import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
 import { useTabStore } from '../../stores/useTabStore';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useFetchApiDetail, patchApiDetail, requestApiTest } from '../../api/queries/useApiTestQueries';
@@ -25,6 +26,7 @@ const ApiTestDetail = () => {
   const [activeTabContent, setActiveTabContent] = useState(null); // 기본 탭을 'Parameters'로 설정
   const [activeTabResult, setActiveTabResult] = useState('Body'); // 기본 탭을 'Parameters'로 설정
   const [copySuccess, setCopySuccess] = useState(false); // 복사 성공 여부 상태 추가
+  const { environment } = useEnvironmentStore();
 
   const { expandedCategories, expandCategory } = useSidebarStore();
   const { addTab, openTabs, removeTab } = useTabStore();
@@ -62,10 +64,6 @@ const ApiTestDetail = () => {
 
   useEffect(() => {
     if (apiInfo && (!apiDetail || JSON.stringify(apiDetail) !== JSON.stringify(apiInfo))) {
-      console.log('apiInfo 내용:', apiInfo);
-
-      console.log('infoDetail', apiInfo.parameters);
-
       setApiDetail({
         docId: apiInfo.docId || '',
         apiId: apiInfo.apiId || '',
@@ -199,6 +197,7 @@ const ApiTestDetail = () => {
       console.log(apiDetail);
       setActiveTabContent('Parameters');
       setRenderApi(true);
+      setRenderInfo(false);
     }
   }, [apiDetail]);
 
@@ -324,30 +323,32 @@ const ApiTestDetail = () => {
   };
 
   const handleApiTest = () => {
-    if (apiInfo) {
+    if (apiDetail) {
       const transformData = {
-        docId: apiInfo.docId,
-        apiId: apiInfo.apiId,
-        method: apiInfo.method,
-        path: apiInfo.path,
-        parameters: apiInfo.parameters,
-        request: apiInfo.request,
+        parameters: apiDetail.parameters,
+        request: apiDetail.request,
       };
 
       // 환경 변수로 대체하는 함수
       const parseTemplateStrings = (data) => {
+        console.log(data);
         // 주어진 데이터가 객체일 때 재귀적으로 파싱
         if (typeof data === 'object' && data !== null) {
           for (const key in data) {
+            console.log('ddd1', key);
             data[key] = parseTemplateStrings(data[key]);
+            console.log('ddd2', data[key]);
           }
           return data;
         }
 
+        console.log(environment);
         // 주어진 데이터가 문자열일 때 템플릿 형식(`{{variable}}`)을 찾아 대체
         if (typeof data === 'string') {
+          console.log('들어왔어요');
           return data.replace(/{{(.*?)}}/g, (match, variable) => {
             const envVar = environment.find((env) => env.variable === variable);
+            console.log(envVar);
             return envVar ? envVar.value : match; // 변수 값이 없으면 원본 유지
           });
         }

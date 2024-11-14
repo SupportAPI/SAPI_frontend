@@ -99,6 +99,7 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
       if (firstEndBraceIndex !== -1 && (firstSpaceIndex === -1 || firstEndBraceIndex < firstSpaceIndex)) {
         setEnvDropDown([]);
         setShowDropdown(Array(data.length).fill(false));
+        updateState(data, setData);
         return;
       }
 
@@ -144,27 +145,21 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
         return;
     }
 
-    const updateState = (data, setData) => {
-      const updated = [...data];
-      const originalValue = updated[index].value;
-      const nearestStartIndex = originalValue.lastIndexOf('{{');
+    const updated = [...data];
+    const originalValue = updated[index].value;
+    const nearestStartIndex = originalValue.lastIndexOf('{{');
 
-      if (nearestStartIndex !== -1) {
-        const afterStart = originalValue.slice(nearestStartIndex + 2);
-        const firstSpaceIndex = afterStart.search(/\s|}}/);
-        const endIndex = firstSpaceIndex === -1 ? originalValue.length : nearestStartIndex + 2 + firstSpaceIndex;
-        const newValue =
-          originalValue.slice(0, nearestStartIndex) + `{{${selectedVariable}}}` + originalValue.slice(endIndex);
+    if (nearestStartIndex !== -1) {
+      const before = originalValue.slice(0, nearestStartIndex);
+      const after = originalValue.slice(nearestStartIndex + 2); // 이 부분 수정 필요
+      const newValue = `${before}{{${selectedVariable}}}${after.trimStart()}`; // 공백 제거하여 원하는 형식으로 설정
 
-        updated[index].value = newValue;
-        setData(updated);
-      }
+      updated[index].value = newValue;
+      setData(updated);
+    }
 
-      const newShowDropdown = Array(data.length).fill(false);
-      setShowDropdown(newShowDropdown);
-    };
-
-    updateState(data, setData);
+    const newShowDropdown = Array(data.length).fill(false);
+    setShowDropdown(newShowDropdown);
   };
 
   const renderTable = (title, data, type, showDropdown) => (
