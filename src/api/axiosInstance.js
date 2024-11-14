@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { getToken } from '../utils/cookies';
-import { useNavigate } from 'react-router-dom';
 
 const base_URL = 'http://k11b305.p.ssafy.io';
 
@@ -23,14 +22,23 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
   (response) => {
-    if (response.data && response.data.errorCode === '1') {
-      const navigate = useNavigate();
-      navigate('/404page');
-    }
     return response;
   },
   (error) => {
     console.log('axiosInstance Error :', error);
+    console.log(error.response.data.code);
+
+    if (
+      error.response.data.code == 'EXPIRED_JWT_EXCEPTION' ||
+      error.response.data.code == 'EXPIRED_REFRESH_TOKEN_EXCEPTION' ||
+      error.response.data.code == 'NOT_VALID_JWT_EXCEPTION' ||
+      error.response.data.code == 'NOT_FOUND_WORKSPACE' ||
+      error.response.data.code == 'NOT_FOUND_DOCS' ||
+      error.response.data.code == 'NOT_FOUND_API' ||
+      error.response.data.code == 'INVALID_ADDRESS'
+    ) {
+      window.location.href = '/404page';
+    }
     return Promise.reject(error);
   }
 );
