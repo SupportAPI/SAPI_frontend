@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaTrashAlt, FaPlus, FaAngleDown, FaGripVertical, FaCheckSquare, FaSquare, FaSave } from 'react-icons/fa';
 import { createPortal } from 'react-dom';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useParams } from 'react-router-dom';
 import {
@@ -78,6 +78,7 @@ const Environment = () => {
 
   const handleDeleteRow = (id) => {
     console.log(id);
+
     if (data?.length === 1) {
       const lastEnv = {
         id: id,
@@ -92,6 +93,17 @@ const Environment = () => {
         environment: lastEnv,
       });
     } else {
+      const deletedItem = data.find((item) => item.id === id);
+      const updatedData = data
+        .filter((item) => item.id !== id)
+        .map((item) =>
+          item.orderIndex > deletedItem.orderIndex ? { ...item, orderIndex: item.orderIndex - 1 } : item
+        );
+      updatedData.forEach((item) => {
+        if (item.orderIndex >= deletedItem.orderIndex) {
+          handleEditRow(item);
+        }
+      });
       deleteEnvironment.mutateAsync({
         categoryId: environmentId,
         environmentId: id,
@@ -121,7 +133,7 @@ const Environment = () => {
         })
       );
     } else {
-      setCheckedNum(lastId);
+      setCheckedNum(lastIndex);
       setData((prevData) =>
         prevData.map((item) => {
           return { ...item, isChecked: true };
@@ -146,7 +158,7 @@ const Environment = () => {
 
   const handleAddRow = async (currentIndex) => {
     if (currentIndex === -1) {
-      currentIndex = lastId;
+      currentIndex = lastIndex;
     }
 
     const newRow = {
@@ -192,32 +204,36 @@ const Environment = () => {
 
   const moveRow = (fromIndex, toIndex) => {
     setData((prevData) => {
-      // fromIndex와 toIndex가 orderIndex 기준임을 고려하여 직접 조회
       const fromOrderIndex = prevData.find((item) => item.orderIndex === fromIndex)?.orderIndex;
       const toOrderIndex = prevData.find((item) => item.orderIndex === toIndex)?.orderIndex;
 
-      // 유효성 검사
       if (fromOrderIndex === undefined || toOrderIndex === undefined) return prevData;
       if (toOrderIndex >= prevData.length || toOrderIndex < 0) return prevData;
 
       const updatedData = [...prevData];
       const movedItemIndex = updatedData.findIndex((item) => item.orderIndex === fromOrderIndex);
       const [movedItem] = updatedData.splice(movedItemIndex, 1);
+
+      // 항목이 2개만 있을 경우 직접 위치 변경
+      if (updatedData.length === 1) {
+        movedItem.orderIndex = toOrderIndex;
+        updatedData.splice(toOrderIndex, 0, movedItem);
+        return updatedData;
+      }
+
+      // 일반적인 경우의 위치 변경
       updatedData.splice(toOrderIndex, 0, movedItem);
 
       return updatedData.map((item) => {
         if (fromOrderIndex < toOrderIndex && item.orderIndex > fromOrderIndex && item.orderIndex <= toOrderIndex) {
-          // 뒤로 이동하는 경우: 중간 항목은 -1
           return { ...item, orderIndex: item.orderIndex - 1 };
         } else if (
           fromOrderIndex > toOrderIndex &&
           item.orderIndex >= toOrderIndex &&
           item.orderIndex < fromOrderIndex
         ) {
-          // 앞으로 이동하는 경우: 중간 항목은 +1
           return { ...item, orderIndex: item.orderIndex + 1 };
         } else if (item.id === movedItem.id) {
-          // 이동한 항목은 목표 위치의 orderIndex 설정
           return { ...item, orderIndex: toOrderIndex };
         } else {
           return item;
@@ -235,7 +251,7 @@ const Environment = () => {
     });
   };
 
-  const lastId = data.length > 0 ? data[data.length - 1].id : 1;
+  const lastIndex = data.length > 0 ? data.length - 1 : 1;
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -276,7 +292,7 @@ const Environment = () => {
                 <th className='p-3 h-[58px] flex items-center justify-center space-x-2 border-r border-[#D9D9D9] group'>
                   <FaPlus className='text-lg invisible rounded' />
                   <FaGripVertical className='text-lg invisible' />
-                  {checkedNum === lastId ? (
+                  {checkedNum === lastIndex ? (
                     <FaCheckSquare
                       className='text-lg invisible group-hover:visible'
                       onClick={() => handleIsCheckedAll(true)}
@@ -301,7 +317,7 @@ const Environment = () => {
                 .sort((a, b) => a.orderIndex - b.orderIndex) // orderIndex 기준으로 정렬
                 .map((environment, index) => (
                   <DraggableRow
-                    key={environment.orderIndex}
+                    key={environment.id}
                     environment={environment}
                     index={environment.orderIndex}
                     moveRow={moveRow}
@@ -312,7 +328,7 @@ const Environment = () => {
                     handleDeleteRow={handleDeleteRow} // 삭제 함수 전달
                     handleEditRow={handleEditRow}
                     updateEnvironmentOrder={updateEnvironmentOrder}
-                    lastId={lastId - 1}
+                    lastId={lastIndex}
                   />
                 ))}
             </tbody>

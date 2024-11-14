@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import PropTypes from 'prop-types';
 import { FaPlus, FaGripVertical, FaCheckSquare, FaSquare, FaAngleDown, FaTrashAlt } from 'react-icons/fa';
 
 // ItemType을 선언해야 합니다. 필요에 따라 ItemType의 값을 설정하세요.
@@ -31,7 +30,7 @@ const DraggableRow = ({
     accept: ItemType,
     hover: (draggedItem) => {
       // toIndex가 데이터 배열 길이 범위 내에 있는지 확인
-      if (index >= 0 && index < lastId - 1 && draggedItem.index !== index) {
+      if (index >= 0 && index <= lastId && draggedItem.index !== index) {
         moveRow(draggedItem.index, index);
         draggedItem.index = index;
       }
