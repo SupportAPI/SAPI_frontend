@@ -43,6 +43,7 @@ const Environment = ({ workspaceId }) => {
   useEffect(() => {
     if (environmentData) {
       setEnvironment(environmentData);
+      console.log(environmentData);
     }
   }, [environmentData, setEnvironment]);
 

@@ -179,7 +179,7 @@ const EnvironmentSidebar = () => {
         </div>
       </div>
       <div className='flex-1 overflow-y-auto sidebar-scrollbar'>
-        <div className='cursor-pointer text-[#475467] '>
+        <div className='cursor-pointer text-[#475467] dark:text-dark-text'>
           <ul>
             {paths.map((p) => {
               const isActive = location.pathname === p.path;
@@ -187,7 +187,7 @@ const EnvironmentSidebar = () => {
                 <li
                   key={p.id}
                   className={`cursor-pointer w-full relative ${
-                    isActive ? 'bg-blue-100 text-blue-800 hover:bg-gray-300 font-semibold' : 'hover:bg-gray-300'
+                    isActive ? 'bg-blue-100 text-blue-800 font-semibold dark:bg-dark-hover dark:text-dark-surface' : ''
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -256,19 +256,19 @@ const EnvironmentSidebar = () => {
           )}
           {showDeleteModal && (
             <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
-              <div ref={deleteRef} className='bg-white p-6 rounded-lg shadow-lg w-80'>
+              <div ref={deleteRef} className='bg-white p-6 rounded-lg shadow-lg w-80 dark:bg-dark-background'>
                 <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
                 <p className='mb-6'>선택한 API 문서를 삭제하시겠습니까?</p>
                 <div className='flex justify-end space-x-4'>
                   <button
                     onClick={() => setShowDeleteModal(false)}
-                    className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'
+                    className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 dark:text-black'
                   >
                     취소
                   </button>
                   <button
                     onClick={(e) => handleConfirmDelete(e)}
-                    className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
+                    className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 dark:text-dark-text'
                   >
                     삭제
                   </button>

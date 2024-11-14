@@ -7,6 +7,7 @@ import ApiTestParameters from './ApiTestParameters';
 import ApiTestBody from './APitestBody';
 import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useSidebarStore } from '../../stores/useSidebarStore';
+import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
 import { useTabStore } from '../../stores/useTabStore';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useFetchApiDetail, patchApiDetail, requestApiTest } from '../../api/queries/useApiTestQueries';
@@ -25,12 +26,14 @@ const ApiTestDetail = () => {
   const [activeTabContent, setActiveTabContent] = useState(null); // 기본 탭을 'Parameters'로 설정
   const [activeTabResult, setActiveTabResult] = useState('Body'); // 기본 탭을 'Parameters'로 설정
   const [copySuccess, setCopySuccess] = useState(false); // 복사 성공 여부 상태 추가
+  const { environment } = useEnvironmentStore();
 
   const { expandedCategories, expandCategory } = useSidebarStore();
   const { addTab, openTabs, removeTab } = useTabStore();
   const { setMenu } = useNavbarStore();
 
   const [renderApi, setRenderApi] = useState(false);
+  const [renderInfo, setRenderInfo] = useState(false);
 
   const location = useLocation();
 
@@ -57,23 +60,144 @@ const ApiTestDetail = () => {
       setRenderApi(false);
       refetch();
     }
-  }, [apiId, location.pathname, refetch]); // apiId 또는 경로가 변경될 때마다 refetch 호출
+  }, [apiId, workspaceId, location.pathname, refetch]); // apiId 또는 경로가 변경될 때마다 refetch 호출
 
   useEffect(() => {
-    if (apiInfo) {
-      setApiDetail(apiInfo);
+    if (apiInfo && (!apiDetail || JSON.stringify(apiDetail) !== JSON.stringify(apiInfo))) {
+      setApiDetail({
+        docId: apiInfo.docId || '',
+        apiId: apiInfo.apiId || '',
+        name: apiInfo.name || 'New API',
+        method: apiInfo.method || 'GET',
+        path: apiInfo.path || '',
+        category: apiInfo.category || 'Uncategorized',
+        localStatus: apiInfo.localStatus || 'PENDING',
+        serverStatus: apiInfo.serverStatus || 'PENDING',
+        managerEmail: apiInfo.managerEmail || '',
+        managerName: apiInfo.managerName || '',
+        managerProfileImage: apiInfo.managerProfileImage || '',
+        parameters: {
+          authType: apiInfo.parameters?.authType || 'NOAUTH',
+          headers: apiInfo.parameters?.headers
+            ? apiInfo.parameters.headers.map((header) => ({
+                id: header.id || '',
+                key: header.key || '',
+                value: header.value || '',
+                description: header.description || '',
+                isEssential: header.isEssential || false,
+                isChecked: header.isChecked || false,
+              }))
+            : [
+                {
+                  id: '',
+                  key: '',
+                  value: '',
+                  description: '',
+                  isEssential: false,
+                  isChecked: false,
+                },
+              ],
+          pathVariables: apiInfo.parameters?.pathVariables
+            ? apiInfo.parameters.pathVariables.map((variable) => ({
+                id: variable.id || '',
+                key: variable.key || '',
+                value: variable.value || '',
+                description: variable.description || '',
+              }))
+            : [
+                {
+                  id: '',
+                  key: '',
+                  value: '',
+                  description: '',
+                },
+              ],
+          queryParameters: apiInfo.parameters?.queryParameters
+            ? apiInfo.parameters.queryParameters.map((queryParam) => ({
+                id: queryParam.id || '',
+                key: queryParam.key || '',
+                value: queryParam.value || '',
+                description: queryParam.description || '',
+                isEssential: queryParam.isEssential || false,
+                isChecked: queryParam.isChecked || false,
+              }))
+            : [
+                {
+                  id: '',
+                  key: '',
+                  value: '',
+                  description: '',
+                  isEssential: false,
+                  isChecked: false,
+                },
+              ],
+          cookies: apiInfo.parameters?.cookies
+            ? apiInfo.parameters.cookies.map((cookie) => ({
+                id: cookie.id || '',
+                key: cookie.key || '',
+                value: cookie.value || '',
+                description: cookie.description || '',
+                isEssential: cookie.isEssential || false,
+                isChecked: cookie.isChecked || false,
+              }))
+            : [
+                {
+                  id: '',
+                  key: '',
+                  value: '',
+                  description: '',
+                  isEssential: false,
+                  isChecked: false,
+                },
+              ],
+        },
+        request: {
+          bodyType: apiInfo.request?.bodyType || 'NONE',
+          json: apiInfo.request?.json
+            ? {
+                id: apiInfo.request.json.id || '',
+                value: apiInfo.request.json.value || '',
+              }
+            : { id: '', value: '' },
+          formData: apiInfo.request?.formData
+            ? apiInfo.request.formData.map((formItem) => ({
+                id: formItem.id || '',
+                key: formItem.key || '',
+                value: formItem.value || '',
+                type: formItem.type || 'TEXT',
+                description: formItem.description || '',
+                isEssential: formItem.isEssential || false,
+                isChecked: formItem.isChecked || false,
+              }))
+            : [
+                {
+                  id: '',
+                  key: '',
+                  value: '',
+                  type: 'TEXT',
+                  description: '',
+                  isEssential: false,
+                  isChecked: false,
+                },
+              ],
+        },
+      });
+
       setApiData({ category: 'Uncategorized', name: `${apiInfo.name}` });
       setApiname(apiInfo.name);
       setApiUrl(apiInfo.path || 'Url이 존재하지 않습니다.');
       setApimethod(apiInfo.method);
+      setRenderInfo(true);
     }
-  }, [apiInfo]); // apiInfo만 의존성으로 추가
+  }, [apiInfo]);
 
   useEffect(() => {
-    if (!renderApi) {
+    if (!renderApi && renderInfo) {
       console.log('들어옴?');
+      console.log(apiDetail);
       setActiveTabContent('Parameters');
       setRenderApi(true);
+      setRenderInfo(false);
     }
   }, [apiDetail]);
 
@@ -103,6 +227,9 @@ const ApiTestDetail = () => {
     }));
   };
 
+  // console.log('apiInfo', apiInfo);
+  // console.log('apiDetail', apiDetail);
+
   // Content Tap
   const renderTabContent = () => {
     switch (activeTabContent) {
@@ -110,7 +237,6 @@ const ApiTestDetail = () => {
         return <ApiTestParameters initialValues={apiDetail?.parameters || []} paramsChange={handleParamsChange} />;
       case 'Body':
         return <ApiTestBody body={apiDetail?.request || []} bodyChange={handleBodyChange} />;
-
       default:
         return null;
     }
@@ -197,17 +323,43 @@ const ApiTestDetail = () => {
   };
 
   const handleApiTest = () => {
-    if (apiInfo) {
+    if (apiDetail) {
       const transformData = {
-        docId: apiInfo.docId,
-        apiId: apiInfo.apiId,
-        method: apiInfo.method,
-        path: apiInfo.path,
-        parameters: apiInfo.parameters,
-        request: apiInfo.request,
+        parameters: apiDetail.parameters,
+        request: apiDetail.request,
       };
-      console.log('save', transformData);
-      requestApiTestMutation.mutate(transformData);
+
+      // 환경 변수로 대체하는 함수
+      const parseTemplateStrings = (data) => {
+        console.log(data);
+        // 주어진 데이터가 객체일 때 재귀적으로 파싱
+        if (typeof data === 'object' && data !== null) {
+          for (const key in data) {
+            console.log('ddd1', key);
+            data[key] = parseTemplateStrings(data[key]);
+            console.log('ddd2', data[key]);
+          }
+          return data;
+        }
+
+        console.log(environment);
+        // 주어진 데이터가 문자열일 때 템플릿 형식(`{{variable}}`)을 찾아 대체
+        if (typeof data === 'string') {
+          console.log('들어왔어요');
+          return data.replace(/{{(.*?)}}/g, (match, variable) => {
+            const envVar = environment.find((env) => env.variable === variable);
+            console.log(envVar);
+            return envVar ? envVar.value : match; // 변수 값이 없으면 원본 유지
+          });
+        }
+
+        return data; // 다른 타입은 그대로 반환
+      };
+
+      // transformData를 환경 변수로 파싱한 후 requestApiTestMutation 호출
+      const parsedData = parseTemplateStrings(transformData);
+      console.log('Parsed Data:', parsedData);
+      requestApiTestMutation.mutate(parsedData);
     }
   };
 
@@ -287,7 +439,9 @@ const ApiTestDetail = () => {
             {/* 테스트 결과 영역 */}
             <div className='p-4 overflow-y-auto border-t-2 sidebar-scrollbar h-[400px]'>
               {/* 탭 네비게이션 */}
-              <div className='mb-2 border-b'>Response</div>
+              <div key={activeTabResult} className='mb-2 border-b'>
+                Response
+              </div>
               <div className='flex mb-4'>
                 <button
                   className={`w-[60px] mr-3 mb-1 text-[13px] ${

@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { FiCode, FiFileText, FiMessageSquare, FiX } from 'react-icons/fi';
+import { FiCode, FiFileText, FiMessageSquare, FiInfo, FiX } from 'react-icons/fi';
 import Summary from './Summary';
 import CodeSnippet from './CodeSnippet';
 import Comments from './Comments';
+import Info from './Info';
 
 const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
   const [activeRightTab, setActiveRightTab] = useState(null);
@@ -22,6 +23,8 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
   const toggleRightTab = (tab) => {
     setActiveRightTab(activeRightTab === tab ? null : tab);
   };
+
+  console.log(apiDocDetail);
 
   return (
     <>
@@ -59,6 +62,9 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
             request={apiDocDetail.request}
           />
         )}
+        {activeRightTab === 'info' && (
+          <Info createdData={apiDocDetail?.createdData} lastModifiedDate={apiDocDetail?.lastModifiedDate} />
+        )}
       </div>
 
       <div className='absolute right-0 top-[104px] h-[calc(100vh-104px)] w-[50px] flex flex-col items-center pt-4 bg-white shadow-lg'>
@@ -76,6 +82,11 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
           className={`cursor-pointer mb-4 ${activeRightTab === 'summary' ? 'text-blue-500' : 'text-gray-500'}`}
           size={24}
           onClick={() => toggleRightTab('summary')}
+        />
+        <FiInfo
+          className={`cursor-pointer mb-4 ${activeRightTab === 'info' ? 'text-blue-500' : 'text-gray-500'}`}
+          size={24}
+          onClick={() => toggleRightTab('info')}
         />
       </div>
     </>

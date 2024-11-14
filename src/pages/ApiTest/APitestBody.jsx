@@ -45,22 +45,6 @@ const ApiTestParameters = ({ body, bodyChange }) => {
     }
   }, []);
 
-  const handleJsonEditorChange = (value) => {
-    setJson({ ...json, value });
-
-    const nearestStartIndex = value.lastIndexOf('{{');
-    if (nearestStartIndex !== -1) {
-      const afterStart = value.slice(nearestStartIndex + 2);
-      const firstSpaceIndex = afterStart.search(/\s|}}/);
-      const searchValue = firstSpaceIndex === -1 ? afterStart : afterStart.slice(0, firstSpaceIndex);
-
-      setEnvDropdown(environment?.filter((env) => env.value.startsWith(searchValue)));
-      setShowDropdown(true);
-    } else {
-      setShowDropdown(false);
-    }
-  };
-
   const handleInputChange = (e, index) => {
     const { value } = e.target;
     const cursorPosition = e.target.selectionStart;
@@ -102,21 +86,43 @@ const ApiTestParameters = ({ body, bodyChange }) => {
     setShowDropdown(false);
   };
 
-  const handleEnvironmentSelectInJson = (selectedVariable) => {
-    const originalValue = json.value;
-    const nearestStartIndex = originalValue.lastIndexOf('{{');
+  const handleJsonEditorChange = (value) => {
+    setJson({ ...json, value });
 
-    if (nearestStartIndex !== -1) {
-      const afterStart = originalValue.slice(nearestStartIndex + 2);
-      const firstSpaceIndex = afterStart.search(/\s|}}/);
-      const endIndex = firstSpaceIndex === -1 ? originalValue.length : nearestStartIndex + 2 + firstSpaceIndex;
-
-      const newValue =
-        originalValue.slice(0, nearestStartIndex) + `{{${selectedVariable}}}` + originalValue.slice(endIndex);
-
-      setJson({ ...json, value: newValue });
+    // `{{`가 입력되었을 때 자동완성 목록을 강제로 보여줌
+    const lastTwoChars = value.slice(-2);
+    if (lastTwoChars === '{{') {
+      setShowDropdown(true);
+    } else {
       setShowDropdown(false);
     }
+  };
+
+  const handleEditorDidMount = (editor, monaco) => {
+    monaco.languages.registerCompletionItemProvider('json', {
+      triggerCharacters: ['{'],
+      provideCompletionItems: (model, position) => {
+        const textBeforeCursor = model.getValueInRange({
+          startLineNumber: position.lineNumber,
+          startColumn: position.column - 2,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column,
+        });
+
+        // 커서 앞에 '{{'가 있는지 확인하여 자동완성 제안을 제공합니다
+        if (textBeforeCursor === '{{') {
+          const suggestions = environment.map((env) => ({
+            label: env.variable,
+            kind: monaco.languages.CompletionItemKind.Snippet,
+            insertText: `${env.variable}`,
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            detail: `Insert ${env.variable}`,
+          }));
+          return { suggestions };
+        }
+        return { suggestions: [] };
+      },
+    });
   };
 
   const renderFormDataTable = () => (
@@ -182,6 +188,7 @@ const ApiTestParameters = ({ body, bodyChange }) => {
             height='200px'
             language='json'
             value={json.value || '{}'}
+            onMount={handleEditorDidMount} // 에디터가 로드될 때 호출
             onChange={handleJsonEditorChange}
             options={{
               automaticLayout: true,
@@ -197,19 +204,6 @@ const ApiTestParameters = ({ body, bodyChange }) => {
               },
             }}
           />
-          {showDropdown && (
-            <div className='absolute left-0 right-0 bg-white border border-gray-300 mt-1 z-10'>
-              {envDropdown.map((env, i) => (
-                <div
-                  key={i}
-                  onClick={() => handleEnvironmentSelectInJson(env.variable)}
-                  className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
-                >
-                  {env.variable}
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
 
