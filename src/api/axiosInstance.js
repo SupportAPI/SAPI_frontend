@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getToken } from '../utils/cookies';
+import { useNavigate } from 'react-router-dom';
 
 const base_URL = 'http://k11b305.p.ssafy.io';
 
@@ -18,6 +19,20 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+axiosInstance.interceptors.response.use(
+  (response) => {
+    if (response.data && response.data.errorCode === '1') {
+      const navigate = useNavigate();
+      navigate('/404page');
+    }
+    return response;
+  },
+  (error) => {
+    console.log('axiosInstance Error :', error);
+    return Promise.reject(error);
+  }
 );
 
 export default axiosInstance;

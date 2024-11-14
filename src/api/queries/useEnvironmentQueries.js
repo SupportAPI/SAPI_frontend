@@ -1,16 +1,15 @@
 import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { getToken } from '../../utils/cookies';
-import Environment from '../../pages/Environment/Environment';
+import axiosInstance from '../axiosInstance';
 
 const base_URL = 'https://k11b305.p.ssafy.io'; // 본 /서버
 
 // 환경 변수 카테고리 추가
 export const addEnvironment = async (workspaceId, name) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.post(
-      `${base_URL}/api/environment-categories`,
+    const response = await axiosInstance.post(
+      `/api/environment-categories`,
       {
         workspaceId,
         name,
@@ -18,7 +17,6 @@ export const addEnvironment = async (workspaceId, name) => {
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
@@ -73,12 +71,7 @@ export const useAddEnvironmentVariable = (categoryId) => {
 // 환경 변수 카테고리 목록 불러오기
 export const fetchEnvironmentList = async (workspaceId) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.get(`${base_URL}/api/environment-categories`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
+    const response = await axiosInstance.get(`/api/environment-categories`, {
       params: {
         workspaceId,
       },
@@ -97,14 +90,8 @@ export const useFetchEnvironmentList = (workspaceId) => {
 // 환경 변수 불러오기
 export const fetchEnvironment = async (categoryId) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.get(`${base_URL}/api/environment-categories/${categoryId}/environments`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    return response.data.data.environments;
+    const response = await axiosInstance.get(`/api/environment-categories/${categoryId}`);
+    return response.data.data;
   } catch (error) {
     console.error('Dont find environment', error);
     throw error;
@@ -157,16 +144,14 @@ export const useEditEnvironment = (categoryId, environment) => {
 // 환경 변수 카테고리 이름 수정
 export const editEnvironmentName = async (categoryId, name) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.patch(
-      `${base_URL}/api/environment-categories/${categoryId}`,
+    const response = await axiosInstance.patch(
+      `/api/environment-categories/${categoryId}`,
       {
         name,
       },
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
@@ -190,13 +175,7 @@ export const useEditEnvironmentName = (workspaceId) => {
 // 환경 변수 카테고리 삭제
 export const deleteEnvironment = async (categoryId) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.delete(`${base_URL}/api/environment-categories/${categoryId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await axiosInstance.delete(`/api/environment-categories/${categoryId}`);
     return response.data.data;
   } catch (error) {
     console.error('dont delete category', error);
