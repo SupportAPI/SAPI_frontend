@@ -134,7 +134,7 @@ const ApiDocsDetail = () => {
       />
 
       {/* 오른쪽 섹션 */}
-      <RightSection />
+      <RightSection apiDocDetail={apiDocDetail} apiId={apiId} workspaceId={workspaceId} />
     </div>
   );
 };

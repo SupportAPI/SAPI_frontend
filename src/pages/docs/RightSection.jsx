@@ -7,6 +7,8 @@ import Comments from './Comments';
 const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
   const [activeRightTab, setActiveRightTab] = useState(null);
 
+  console.log('rightTab', apiDocDetail);
+
   const methodStyles = {
     GET: 'text-blue-500',
     POST: 'text-green-500',
