@@ -1,24 +1,12 @@
-import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { getToken } from '../../utils/cookies';
 import { toast } from 'react-toastify';
 import axiosInstance from '../axiosInstance';
 
-const base_URL = 'https://k11b305.p.ssafy.io';
-// const base_URL = 'http://192.168.31.35:8080'; // 세현 로컬
-
 // 1. 워크스페이스 목록 가져오기
 export const fetchWorkspaces = async () => {
-  const accessToken = getToken();
-  const response = await axios.get(`${base_URL}/api/workspaces`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  const response = await axiosInstance.get(`/api/workspaces`);
   return response.data.data;
 };
-
 // React Query 훅: 워크스페이스 목록을 가져오는 쿼리 훅
 export const useFetchWorkspaces = () => {
   return useQuery('workspaces', fetchWorkspaces);
@@ -26,12 +14,7 @@ export const useFetchWorkspaces = () => {
 
 // 2. 워크스페이스 생성
 export const createWorkspace = async ({ mainImage, projectName, domain, description }) => {
-  const accessToken = getToken();
-
-  // FormData 객체 생성
   const formData = new FormData();
-
-  // 요청 DTO 생성 및 추가
   const requestDto = new Blob(
     [
       JSON.stringify({
@@ -44,22 +27,17 @@ export const createWorkspace = async ({ mainImage, projectName, domain, descript
   );
   formData.append('requestDto', requestDto);
   formData.append('mainImage', mainImage);
-
-  // axios 요청 설정
-  const response = await axios.post(`${base_URL}/api/workspaces`, formData, {
+  const response = await axiosInstance.post(`/api/workspaces`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
-      Authorization: `Bearer ${accessToken}`,
     },
   });
 
   return response.data.data;
 };
-
 // React Query 훅: 워크스페이스 생성
 export const useCreateWorkspace = (options = {}) => {
   const queryClient = useQueryClient();
-
   return useMutation(
     ({ mainImage, projectName, domain, description }) =>
       createWorkspace({ mainImage, projectName, domain, description }),
@@ -80,17 +58,9 @@ export const useCreateWorkspace = (options = {}) => {
 
 // 3. 워크스페이스 삭제
 export const deleteWorkspace = async ({ workspaceId }) => {
-  const accessToken = getToken();
-  const response = await axios.delete(`${base_URL}/api/workspaces/${workspaceId}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
+  const response = await axiosInstance.delete(`/api/workspaces/${workspaceId}`);
   return response.data;
 };
-
 // React Query 훅: 워크스페이스 삭제
 export const useDeleteWorkspace = () => {
   const queryClient = useQueryClient();
@@ -114,19 +84,11 @@ export const useDeleteWorkspace = () => {
 
 // 4-0. 초대할 유저 목록 자동 완성
 export const fetchAutoUserSearch = async (workspaceId, email) => {
-  const accessToken = getToken();
-  const response = await axios.get(
-    `${base_URL}/api/users/workspace-search?workspaceId=${workspaceId}&emailValue=${email}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
+  const response = await axiosInstance.get(
+    `/api/users/workspace-search?workspaceId=${workspaceId}&emailValue=${email}`
   );
-
   return response.data.data;
 };
-
 // React Query 훅: 초대할 유저 목록 자동완성하기
 export const useFetchAutoUserSearch = (workspaceId, email) => {
   return useQuery(['InviteAutoList', workspaceId, email], () => fetchAutoUserSearch(workspaceId, email));
@@ -134,17 +96,9 @@ export const useFetchAutoUserSearch = (workspaceId, email) => {
 
 // 4-1. 초대할 유저 정보 가져오기
 export const fetchinviteUser = async (useremail) => {
-  const accessToken = getToken();
-  const response = await axios.get(`${base_URL}/api/users?email=${useremail}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
+  const response = await axiosInstance.get(`/api/users?email=${useremail}`);
   return response.data.data;
 };
-
 // React Query 훅: 워크스페이스 목록을 가져오는 쿼리 훅
 export const useFetchInviteUser = (useremail) => {
   return useQuery(['inviteUser', useremail], () => fetchinviteUser(useremail), {
@@ -160,18 +114,13 @@ export const useFetchInviteUser = (useremail) => {
 
 // 5. 유저 워크스페이스로 초대하기
 export const InviteMember = async (requestData) => {
-  const accessToken = getToken();
-  console.log(requestData);
-
-  const response = await axios.post(`${base_URL}/api/memberships`, requestData, {
+  const response = await axiosInstance.post(`/api/memberships`, requestData, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
     },
   });
   return response.data.data;
 };
-
 // React Query 훅 : 유저 초대 보내기
 export const useInviteMember = () => {
   return useMutation((requestData) => InviteMember(requestData), {
@@ -188,18 +137,9 @@ export const useInviteMember = () => {
 
 // 6. 회원 정보 조회
 export const fetchUserInfo = async (userId) => {
-  const accessToken = getToken();
-
-  const response = await axios.get(`${base_URL}/api/users/${userId}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
+  const response = await axiosInstance.get(`/api/users/${userId}`);
   return response.data.data;
 };
-
 // React Query 훅 : 유저 정보 조회하기
 export const useUserInfo = (userId) => {
   return useQuery(['userInfo', userId], () => fetchUserInfo(userId), {
@@ -210,18 +150,9 @@ export const useUserInfo = (userId) => {
 
 // 7. 워크스페이스 내 유저 목록 조회
 export const fetchUserInWorkspace = async (workspaceId) => {
-  const accessToken = getToken();
-
-  const response = await axios.get(`${base_URL}/api/memberships?workspaceId=${workspaceId}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
+  const response = await axiosInstance.get(`/api/memberships?workspaceId=${workspaceId}`);
   return response.data.data;
 };
-
 // React Query 훅 : 워크스페이스 내 유저 정보 조회
 export const useUserInWorkspace = (workspaceId) => {
   return useQuery(['workspaceId', workspaceId], () => fetchUserInWorkspace(workspaceId), {
@@ -232,18 +163,9 @@ export const useUserInWorkspace = (workspaceId) => {
 
 // 8. 자기자신 워크스페이스 초대 현황 확인
 export const fetchUserInvitedList = async () => {
-  const accessToken = getToken();
-
-  const response = await axios.get(`${base_URL}/api/memberships/invited`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
+  const response = await axiosInstance.get(`/api/memberships/invited`);
   return response.data.data;
 };
-
 // React Query 훅 : 워크스페이스 유저 초대 조회
 export const useUserInvitedList = () => {
   return useQuery('InviteList', fetchUserInvitedList);
@@ -251,19 +173,12 @@ export const useUserInvitedList = () => {
 
 // 9. 워크스페이스 초대 수락
 export const userInvitedAccept = async (membershipId) => {
-  const accessToken = getToken();
-  await axios.patch(
-    `${base_URL}/api/memberships/${membershipId}/accept`,
-    {},
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
+  await axiosInstance.patch(`/api/memberships/${membershipId}/accept`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 };
-
 // React Query 훅: 워크스페이스 초대 수락
 export const useInvitedAccept = () => {
   return useMutation((membershipId) => userInvitedAccept(membershipId));
@@ -271,15 +186,8 @@ export const useInvitedAccept = () => {
 
 // 9. 워크스페이스 초대 거절
 export const userInvitedRefuse = async (membershipId) => {
-  const accessToken = getToken();
-  await axios.delete(`${base_URL}/api/memberships/${membershipId}/refuse`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  await axiosInstance.delete(`/api/memberships/${membershipId}/refuse`);
 };
-
 // React Query 훅: 워크스페이스 초대 거절
 export const useInvitedRefuse = () => {
   return useMutation((membershipId) => userInvitedRefuse(membershipId));
@@ -287,16 +195,9 @@ export const useInvitedRefuse = () => {
 
 // 10. 워크스페이스 디테일 조회
 export const fetchWorkspacesDetail = async (workspaceId) => {
-  const accessToken = getToken();
-  const response = await axios.get(`${base_URL}/api/workspaces/${workspaceId}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  const response = await axiosInstance.get(`/api/workspaces/${workspaceId}`);
   return response.data.data;
 };
-
 // React Query 훅: 워크스페이스 디테일을 가져오는 쿼리 훅
 export const useFetchWorkspacesDetail = (workspaceId) => {
   return useQuery(['workspacesDetail', workspaceId], () => fetchWorkspacesDetail(workspaceId), {
@@ -306,11 +207,7 @@ export const useFetchWorkspacesDetail = (workspaceId) => {
 
 // 11. 워크스페이스 수정
 export const patchWorkspaces = async ({ workspaceId, mainImage, projectName, domain, description, isCompleted }) => {
-  const accessToken = getToken();
-  // FormData 객체 생성
   const formData = new FormData();
-
-  // 요청 DTO 생성 및 추가
   const requestDto = new Blob(
     [
       JSON.stringify({
@@ -324,18 +221,14 @@ export const patchWorkspaces = async ({ workspaceId, mainImage, projectName, dom
   );
   formData.append('requestDto', requestDto);
   formData.append('mainImage', mainImage);
-
-  // axios 요청 설정
-  const response = await axios.patch(`${base_URL}/api/workspaces/${workspaceId}`, formData, {
+  const response = await axiosInstance.patch(`/api/workspaces/${workspaceId}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
-      Authorization: `Bearer ${accessToken}`,
     },
   });
 
   return response.data.data;
 };
-
 // React Query 훅: 워크스페이스 수정
 export const useModifiedWorkspace = () => {
   const queryClient = useQueryClient();
@@ -344,9 +237,8 @@ export const useModifiedWorkspace = () => {
     ({ workspaceId, mainImage, projectName, domain, description, isCompleted }) =>
       patchWorkspaces({ workspaceId, mainImage, projectName, domain, description, isCompleted }),
     {
-      onSuccess: (data) => {
+      onSuccess: () => {
         queryClient.invalidateQueries(['workspaces']); // 수정 후 workspaces 캐시 무효화
-        console.log('Workspace successfully modified:', data); // 성공 시 로그 출력
         toast('변경이 완료되었습니다.');
       },
       onError: (error) => {
@@ -359,7 +251,7 @@ export const useModifiedWorkspace = () => {
 
 // 워크스페이스 점유 상태
 export const fetchOccupationState = async (workspaceId) => {
-  const response = await axiosInstance.get(`${base_URL}/api/workspaces/${workspaceId}/occupations`);
+  const response = await axiosInstance.get(`/api/workspaces/${workspaceId}/occupations`);
   return response.data.data;
 };
 

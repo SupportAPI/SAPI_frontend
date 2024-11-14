@@ -36,7 +36,7 @@ const ApiTest = () => {
 
   useEffect(() => {
     if (!isLoading) {
-      const allSelected = dataTest.every((api) => selectedItems[api.id]);
+      const allSelected = dataTest.every((api) => selectedItems[api.apiId]);
       setIsAllSelected(allSelected);
     }
   }, [selectedItems, dataTest, isLoading]);
@@ -45,7 +45,7 @@ const ApiTest = () => {
     const newSelectedState = !isAllSelected;
     const newSelectedItems = {};
     dataTest.forEach((api) => {
-      newSelectedItems[api.id] = newSelectedState;
+      newSelectedItems[api.apiId] = newSelectedState;
     });
     setSelectedItems(newSelectedItems);
     setIsAllSelected(newSelectedState);
@@ -200,10 +200,10 @@ const ApiTest = () => {
           <tbody>
             {dataTest &&
               dataTest.map((api, index) => {
-                const isSelected = !!selectedItems[api.id];
-                const isDetailVisible = expandedDetails[api.id]; // 상세 표시 여부 확인
+                const isSelected = !!selectedItems[api.apiId];
+                const isDetailVisible = expandedDetails[api.apiId]; // 상세 표시 여부 확인
                 return (
-                  <React.Fragment key={api.id || index}>
+                  <React.Fragment key={api.apiId || index}>
                     <tr
                       className={`text-[14px] cursor-pointer ${
                         isSelected ? 'bg-indigo-50 hover:bg-indigo-100' : 'hover:bg-gray-50'
@@ -215,19 +215,25 @@ const ApiTest = () => {
                           className='form-checkbox w-4 h-4 align-middle text-indigo-600 focus:ring-indigo-500'
                           checked={isSelected}
                           onClick={(e) => e.stopPropagation()}
-                          onChange={() => handleCheckboxChange(api.id)}
+                          onChange={() => handleCheckboxChange(api.apiId)}
                         />
                       </td>
-                      <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
+                      <td
+                        className='p-4 border text-center truncate'
+                        onClick={() => handleRowClick(api.apiId, api.name)}
+                      >
                         {api.category || 'Uncategorized'}
                       </td>
-                      <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
+                      <td
+                        className='p-4 border text-center truncate'
+                        onClick={() => handleRowClick(api.apiId, api.name)}
+                      >
                         {api.name || 'Unnamed API'}
                       </td>
-                      <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
+                      <td className='p-4 border text-center' onClick={() => handleRowClick(api.apiId, api.name)}>
                         {api.method || 'GET'}
                       </td>
-                      <td className='p-4 border relative truncate' onClick={() => handleRowClick(api.id, api.name)}>
+                      <td className='p-4 border relative truncate' onClick={() => handleRowClick(api.apiId, api.name)}>
                         <div className='w-full pr-4 truncate'>
                           {api.path || 'N/A'}
                           {api.path && (
@@ -235,25 +241,28 @@ const ApiTest = () => {
                               className='text-xl ml-2 absolute right-3'
                               onClick={(e) => {
                                 e.stopPropagation();
-                                copyApiPath(api.id, api.path);
+                                copyApiPath(api.apiId, api.path);
                               }}
                             >
-                              {copiedStatus[api.id] ? <IoCopy /> : <IoCopyOutline />}
+                              {copiedStatus[api.apiId] ? <IoCopy /> : <IoCopyOutline />}
                             </button>
                           )}
                         </div>
                       </td>
-                      <td className='p-4 border text-center truncate' onClick={() => handleRowClick(api.id, api.name)}>
+                      <td
+                        className='p-4 border text-center truncate'
+                        onClick={() => handleRowClick(api.apiId, api.name)}
+                      >
                         {api.manager_id || 'N/A'}
                       </td>
-                      <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
+                      <td className='p-4 border text-center' onClick={() => handleRowClick(api.apiId, api.name)}>
                         {api.localTest === 'PENDING' ? (
                           <FaTimes className='text-red-600 mx-auto' />
                         ) : (
                           <FaCheck className='text-green-600 mx-auto' />
                         )}
                       </td>
-                      <td className='p-4 border text-center' onClick={() => handleRowClick(api.id, api.name)}>
+                      <td className='p-4 border text-center' onClick={() => handleRowClick(api.apiId, api.name)}>
                         {api.serverTest === 'PENDING' ? (
                           <FaTimes className='text-red-600 mx-auto' />
                         ) : (
@@ -265,7 +274,7 @@ const ApiTest = () => {
                           className='p-1 text-xl'
                           onClick={(e) => {
                             e.stopPropagation();
-                            toggleDetail(api.id); // 상세 표시 상태 토글
+                            toggleDetail(api.apiId); // 상세 표시 상태 토글
                           }}
                         >
                           {isDetailVisible ? <RiDropdownList /> : <RiDropdownList />}
@@ -273,7 +282,7 @@ const ApiTest = () => {
                       </td>
                     </tr>
                     {isDetailVisible && (
-                      <tr key={`${api.id}-details`}>
+                      <tr key={`${api.apiId}-details`}>
                         <td colSpan='9' className='p-4 bg-gray-50'>
                           <div className='flex justify-center items-center w-full gap-4'>
                             {/* Your Response */}

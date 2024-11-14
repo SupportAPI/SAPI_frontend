@@ -1,30 +1,18 @@
-import axios from 'axios';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useQuery } from 'react-query';
 import axiosInstance from '../axiosInstance';
 import { useParams } from 'react-router-dom';
-import { getToken } from '../../utils/cookies';
 
-const base_URL = 'https://k11b305.p.ssafy.io'; // 본 /서버
-// const base_URL = 'http://192.168.31.35:8080'; // 세현 서버
-
+// 대시보드 목록 가져오기
 export const fetchDashboardList = async (workspaceId) => {
-  const accessToken = getToken();
-  console.log(workspaceId);
-
-  const response = await axios.get(`${base_URL}/api/workspaces/${workspaceId}/dashboards`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  console.log('결과', response);
-
-  return response.data.data;
+  const response = await axiosInstance.get(`/api/workspaces/${workspaceId}/dashboards`);
+  return response.data.data; // 필요한 데이터 반환
 };
 
+// React Query를 사용하는 커스텀 훅
 export const useFetchDashboardList = () => {
-  const { workspaceId } = useParams();
+  const { workspaceId } = useParams(); // URL에서 workspaceId 가져오기
+
   return useQuery(['workspaceId', workspaceId], () => fetchDashboardList(workspaceId), {
-    enabled: !!workspaceId,
+    enabled: !!workspaceId, // workspaceId가 있을 때만 쿼리 실행
   });
 };
