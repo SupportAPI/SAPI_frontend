@@ -25,7 +25,7 @@ export const addEnvironment = async (workspaceId, name) => {
 
 export const useAddEnvironment = (workspaceId) => {
   const queryClient = useQueryClient();
-  return useMutation((name) => addEnvironment(workspaceId, name), {
+  return useMutation(({ name }) => addEnvironment(workspaceId, name), {
     onSuccess: () => {
       queryClient.invalidateQueries(['environmentList', workspaceId]);
     },

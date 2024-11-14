@@ -31,7 +31,7 @@ const EnvironmentSidebar = () => {
     data: envData = null,
     error: envError,
     isLoading: envLoading,
-    refetch: envAddRefetch,
+    mutate: addEnvironmentMutation,
   } = useAddEnvironment(workspaceId, newEnvironment.name);
 
   const { mutate: editEnvironmentName } = useEditEnvironmentName(workspaceId);
@@ -43,8 +43,6 @@ const EnvironmentSidebar = () => {
     error: isListError,
     refetch: listRefetch,
   } = useFetchEnvironmentList(workspaceId);
-
-  console.log(environmentList);
 
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
@@ -94,20 +92,16 @@ const EnvironmentSidebar = () => {
   };
 
   const addEnvironment = () => {
-    envAddRefetch(workspaceId, newEnvironment.name);
+    addEnvironmentMutation({ name: newEnvironment.name }); // mutate 사용
   };
 
   const handleCategoryOption = (e, categoryId) => {
     e.stopPropagation();
-    console.log('ㅋㅋ');
     setSelectedCategoryId((prev) => (prev === categoryId ? null : categoryId)); // 현재 id 토글
   };
 
-  console.log(selectedCategoryId);
-
   const handleClickOutside = (event) => {
     if (setRef.current && !setRef.current.contains(event.target)) {
-      console.log('ㅋㅋ');
       setSelectedCategoryId(null);
     }
     if (deleteRef.current && !deleteRef.current.contains(event.target)) {
@@ -125,12 +119,9 @@ const EnvironmentSidebar = () => {
   const handleSaveEdit = (categoryId) => {
     const updatedPaths = paths.map((path) => (path.id === categoryId ? { ...path, name: editName } : path));
     setPaths(updatedPaths);
-
-    // 여기서 수동으로 editEnvironmentName 실행
     editEnvironmentName({ categoryId, name: editName });
-
     setIsEditing(null); // 편집 모드 종료
-    setEditName(''); // 임시 이름 초기화
+    setEditName('');
   };
 
   const handleBlurSave = (categoryId) => {
@@ -148,6 +139,13 @@ const EnvironmentSidebar = () => {
     e.stopPropagation();
     deleteEnvironment(selectedCategoryId);
     setShowDeleteModal(false);
+  };
+
+  const handleKeyDown = (e, categoryId) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSaveEdit(categoryId);
+    }
   };
 
   useEffect(() => {
@@ -204,10 +202,7 @@ const EnvironmentSidebar = () => {
                         onChange={(e) => setEditName(e.target.value)}
                         onBlur={() => handleBlurSave(p.id)} // 포커스 해제 시 저장
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault(); // Enter 키가 새 줄을 추가하지 않도록 방지
-                            handleSaveEdit(p.id);
-                          }
+                          handleKeyDown(e, p.id);
                         }}
                         className='bg-white dark:bg-dark-background border-b outline-none'
                       />
