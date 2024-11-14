@@ -10,220 +10,8 @@ import {
   useAddEnvironmentVariable,
   useDeleteEnvironmentVariable,
 } from '../../api/queries/useEnvironmentQueries';
-
-const ItemType = 'ROW';
-
-const DraggableRow = ({
-  environment,
-  index,
-  moveRow,
-  handleIsChecked,
-  handleType,
-  handleUpdate,
-  handleAddRow,
-  handleDeleteRow,
-  handleEditRow,
-  updateEnvironmentOrder,
-  lastId,
-}) => {
-  const [{ isDragging }, dragRef] = useDrag({
-    type: ItemType,
-    item: { index },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
-
-  const [, dropRef] = useDrop({
-    accept: ItemType,
-    hover: (draggedItem) => {
-      // toIndex가 데이터 배열 길이 범위 내에 있는지 확인
-      if (index >= 0 && index < lastId - 1 && draggedItem.index !== index) {
-        moveRow(draggedItem.index, index);
-        draggedItem.index = index;
-      }
-    },
-    drop: () => {
-      updateEnvironmentOrder(); // 드래그 종료 시점에 최종 위치를 서버에 업데이트
-    },
-  });
-
-  const opacity = isDragging ? 0 : 1;
-  const [isEditing, setIsEditing] = useState({
-    variable: false,
-    value: false,
-    description: false,
-  });
-
-  const [clickedTd, setClickedTd] = useState(null);
-
-  const handleEdit = (field) => {
-    setIsEditing((prev) => ({ ...prev, [field]: true }));
-  };
-
-  const handleBlur = (env, field) => {
-    setIsEditing((prev) => ({ ...prev, [field]: false }));
-    setClickedTd(null);
-    handleEditRow(env);
-  };
-
-  const handleTdClick = (field) => {
-    setClickedTd(field);
-    handleEdit(field);
-  };
-
-  return (
-    <tr
-      ref={(node) => dragRef(dropRef(node))}
-      style={{ opacity }}
-      className={`text-[14px] relative group ${index !== lastId ? 'border-b border-gray-300' : ''}`}
-    >
-      <td className='p-3 h-[58px] flex items-center justify-center space-x-2 border-r border-[#D9D9D9] cursor-pointer hover:bg-gray-50'>
-        <FaPlus
-          className='text-lg invisible group-hover:visible hover:text-gray-800 hover:bg-gray-200 rounded'
-          onClick={() => handleAddRow(environment.id)}
-        />
-        <FaGripVertical className='text-lg invisible group-hover:visible cursor-move hover:bg-gray-300 rounded' />
-        {environment.isChecked ? (
-          <FaCheckSquare className='text-lg' onClick={() => handleIsChecked(environment.id)} />
-        ) : (
-          <FaSquare className='text-lg invisible group-hover:visible' onClick={() => handleIsChecked(environment.id)} />
-        )}
-      </td>
-
-      <td
-        className={`p-3 h-[58px] bg-white transition-all duration-200 transform ${
-          clickedTd === 'variable' ? 'scale-105' : ''
-        }`}
-        style={
-          clickedTd === 'variable'
-            ? {
-                boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.3)',
-                borderRadius: '8px',
-                border: '1px solid black',
-                backgroundColor: 'white',
-                width: 'calc(100% - 32px)',
-                overflow: 'visible',
-              }
-            : { borderRight: '1px solid #D9D9D9' }
-        }
-        onClick={() => {
-          handleTdClick('variable');
-          handleEdit('variable');
-        }}
-      >
-        {isEditing.variable ? (
-          <input
-            type='text'
-            value={environment.variable}
-            onChange={(e) => handleUpdate(environment.id, 'variable', e.target.value)}
-            onBlur={(e) => handleBlur(environment, 'variable')}
-            className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
-            autoFocus
-          />
-        ) : (
-          <span>{environment.variable}</span>
-        )}
-      </td>
-
-      {/* Secret/Default Cell */}
-      <td
-        className='p-3 h-[58px] border-r border-[#D9D9D9] flex items-center justify-center cursor-pointer'
-        onClick={(event) => handleType(event, environment.id)}
-        style={{ minWidth: '110px' }}
-      >
-        <span className='whitespace-nowrap overflow-hidden'>
-          {environment.type === 'SECRET' ? 'Secret' : 'Default'}
-        </span>
-        <FaAngleDown className='text-2xl ml-2' />
-      </td>
-
-      <td
-        className={`p-3 h-[58px] border-r border-[#D9D9D9] bg-white transition-all duration-200 transform ${
-          clickedTd === 'value' ? 'scale-105' : ''
-        }`}
-        onClick={() => handleTdClick('value')}
-      >
-        {isEditing.value ? (
-          <input
-            type='text'
-            value={environment.value}
-            onChange={(e) => handleUpdate(environment.id, 'value', e.target.value)}
-            onBlur={(e) => handleBlur(environment, 'value')}
-            className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
-            autoFocus
-          />
-        ) : (
-          <span>{environment.value}</span>
-        )}
-      </td>
-
-      <td
-        className={`p-3 h-[58px] border-r border-[#D9D9D9] bg-white transition-all duration-200 transform ${
-          clickedTd === 'description' ? 'scale-105' : ''
-        }`}
-        onClick={() => handleTdClick('description')}
-      >
-        {isEditing.description ? (
-          <input
-            type='text'
-            value={environment.description}
-            onChange={(e) => handleUpdate(environment.id, 'description', e.target.value)}
-            onBlur={(e) => handleBlur(environment, 'description')}
-            className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
-            autoFocus
-          />
-        ) : (
-          <span>{environment.description}</span>
-        )}
-      </td>
-
-      <td className='p-3 h-[58px] flex items-center justify-center space-x-2 border-r border-[#D9D9D9]'>
-        <FaTrashAlt
-          className='text-lg invisible group-hover:visible hover:text-gray-800 hover:bg-gray-200'
-          onClick={() => handleDeleteRow(environment.id)}
-        />
-      </td>
-    </tr>
-  );
-};
-
-const DropdownMenu = ({ onClose, position, setIsSecreted }) => {
-  const menuRef = useRef(null);
-
-  const sendIsSecreted = (isSecreted) => {
-    setIsSecreted(isSecreted);
-    onClose();
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [onClose]);
-
-  return (
-    <ul
-      ref={menuRef}
-      className='absolute bg-white shadow-lg w-32 text-left z-50 border border-gray-200'
-      style={{ top: position.top, left: position.left }}
-    >
-      <li className='p-2 hover:bg-gray-100 cursor-pointer text-center' onClick={() => sendIsSecreted('SECRET')}>
-        Secret
-      </li>
-      <li className='p-2 hover:bg-gray-100 cursor-pointer text-center' onClick={() => sendIsSecreted('DEFAULT')}>
-        Default
-      </li>
-    </ul>
-  );
-};
+import DraggableRow from './DraggableRow';
+import DropdownMenu from './DropdownMeny';
 
 const Environment = () => {
   const { environmentId } = useParams();
@@ -256,42 +44,59 @@ const Environment = () => {
   console.log('environem', environmentData);
   console.log('Data', data);
 
-  const handleDeleteCheckedRows = () => {
-    setData((prevData) => {
-      const updatedData = prevData.filter((item) => !item.isChecked);
+  const handleDeleteCheckedRows = async () => {
+    const checkedItems = data.filter((item) => item.isChecked);
+    const uncheckedItems = data.filter((item) => !item.isChecked);
 
-      return updatedData?.length === 0
-        ? [
-            {
-              id: 1, // 초기 ID 값 설정
-              variable: '',
-              type: 'DEFAULT',
-              value: '',
-              description: '',
-              isChecked: false,
-            },
-          ]
-        : updatedData;
-    });
+    if (checkedItems.length === 0) return; // 체크된 항목이 없으면 함수 종료
+
+    await Promise.all(
+      checkedItems.slice(1).map((item) =>
+        deleteEnvironment.mutateAsync({
+          categoryId: environmentId,
+          environmentId: item.id,
+        })
+      )
+    );
+
+    // 삭제 후 남은 항목이 없다면 기본값 항목을 추가
+    if (uncheckedItems.length === 0) {
+      const lastEnv = {
+        id: checkedItems[0].id, // 첫 번째 체크된 항목의 ID 사용
+        variable: '',
+        type: 'DEFAULT',
+        value: '',
+        description: '',
+        orderIndex: 0,
+      };
+      await editEnvironment.mutateAsync({
+        categoryId: environmentId,
+        environment: lastEnv,
+      });
+    }
   };
 
   const handleDeleteRow = (id) => {
-    setData((prevData) => {
-      if (prevData?.length === 1) {
-        return [
-          {
-            variable: '',
-            type: 'DEFAULT',
-            value: '',
-            description: '',
-            orderIndex: 0,
-            isChecked: false,
-          },
-        ];
-      } else {
-        return prevData.filter((item) => item.id !== id);
-      }
-    });
+    console.log(id);
+    if (data?.length === 1) {
+      const lastEnv = {
+        id: id,
+        variable: '',
+        type: 'DEFAULT',
+        value: '',
+        description: '',
+        orderIndex: 0,
+      };
+      editEnvironment.mutateAsync({
+        categoryId: environmentId,
+        environment: lastEnv,
+      });
+    } else {
+      deleteEnvironment.mutateAsync({
+        categoryId: environmentId,
+        environmentId: id,
+      });
+    }
   };
 
   const handleIsChecked = (id) => {

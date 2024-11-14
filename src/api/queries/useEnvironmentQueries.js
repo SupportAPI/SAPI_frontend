@@ -234,7 +234,7 @@ export const deleteEnvironmentVariable = async (categoryId, environmentId) => {
 
 export const useDeleteEnvironmentVariable = (categoryId) => {
   const queryClient = useQueryClient();
-  return useMutation((categoryId, environmentId) => deleteEnvironmentVariable(categoryId, environmentId), {
+  return useMutation(({ categoryId, environmentId }) => deleteEnvironmentVariable(categoryId, environmentId), {
     onSuccess: () => {
       queryClient.invalidateQueries(['environment', categoryId]);
     },
