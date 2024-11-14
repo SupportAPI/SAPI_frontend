@@ -41,7 +41,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
     return InviteAutoList.map((user) => (
       <div
         key={user.userId}
-        className='flex items-center p-2 cursor-pointer hover:bg-gray-200'
+        className='flex items-center p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-dark-hover'
         onClick={() => handleAutoCompleteClick(user.email)}
       >
         <img
@@ -132,8 +132,8 @@ const InviteUser = ({ workspaceId, onClose }) => {
     // 모달 화면 위치 정의
     <div className='fixed flex justify-center items-center inset-0 bg-black bg-opacity-30 z-50'>
       {/* 모달 크기 정의 */}
-      <div className='flex flex-col items-center bg-white w-[800px] h-[800px] border rounded-2xl'>
-        <header className='flex justify-between items-center w-full text-xl mb-4 h-[80px] bg-[#f0f5f8] rounded-t-2xl'>
+      <div className='flex flex-col items-center bg-white w-[800px] h-[800px] border rounded-2xl dark:bg-dark-background'>
+        <header className='flex justify-between items-center w-full text-xl mb-4 h-[80px] bg-[#f0f5f8] dark:bg-dark-background border-b rounded-t-2xl'>
           <div className='text-3xl  ml-10'>Invite User</div>
           <button className='mr-4' onClick={onClose}>
             <IoClose className='text-3xl' />
@@ -148,7 +148,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
               <div className='relative'>
                 <input
                   type='text'
-                  className='border w-[308px] h-14 p-5 rounded-lg'
+                  className='border w-[308px] h-14 p-5 rounded-lg dark:bg-dark-background'
                   placeholder='ssafy@ssafy.com'
                   value={inviteUsername}
                   onChange={(e) => {
@@ -163,7 +163,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
                   }}
                 />
                 {showAutoList && inviteUsername && (
-                  <div className='absolute top-full left-0 right-0 rounded-lg overflow-y-auto max-h-40 bg-white shadow-lg z-10 sidebar-scrollbar'>
+                  <div className='absolute top-full left-0 right-0 rounded-lg overflow-y-auto max-h-40 bg-white shadow-lg z-10 sidebar-scrollbar dark:bg-dark-background '>
                     {renderAutoCompleteList()}
                   </div>
                 )}
@@ -179,7 +179,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
             </div>
           </div>
 
-          <div className='block h-[350px] border rounded-lg overflow-y-auto h-80 sidebar-scrollbar mb-10'>
+          <div className='block h-[350px] border rounded-lg overflow-y-auto sidebar-scrollbar mb-10'>
             {/* 유저 정보 테이블 칸  */}
             {userList.map((item, index) => (
               <div key={index} className='flex justify-between hover:bg-blue-300 border border-none rounded-lg'>

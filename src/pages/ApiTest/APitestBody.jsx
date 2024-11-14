@@ -1,47 +1,124 @@
 import { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { toast } from 'react-toastify';
+import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
 
-const ApiTestParameters = ({ body }) => {
-  // bodyType, JSON, FORM_DATA 데이터를 prop에서 받아 초기화
-  const [bodyType, setBodyType] = useState(body.bodyType); // NONE, JSON, FORM_DATA
-  const [jsonData, setJsonData] = useState(body.json.value || {});
-  const [formData, setFormData] = useState(body.formData || []); // formData가 없을 경우 빈 배열로 초기화
+const ApiTestParameters = ({ body, bodyChange }) => {
+  const [bodyType, setBodyType] = useState(body.bodyType);
+  const [json, setJson] = useState(body.json || { id: '', value: '{}' });
+  const [formData, setFormData] = useState(body.formData || []);
+  const { environment } = useEnvironmentStore();
+  const [envDropdown, setEnvDropdown] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
-    // body prop이 업데이트될 때마다 상태를 업데이트
-    // setBodyType(body.bodyType);
-    setBodyType('FORM_DATA');
-    setJsonData(body.json.value);
-    setFormData(body.formData);
-  }, [body]);
+    bodyChange({
+      bodyType,
+      json,
+      formData,
+    });
+  }, [bodyType, json, formData]);
 
-  // JSON 데이터 변경 핸들러
   const handleFormDataChange = () => {
     try {
-      const parsed = JSON.parse(jsonData);
-      setJsonData(JSON.stringify(parsed, null, 2));
+      const parsed = JSON.parse(json.value || '{}');
+      setJson({
+        id: json.id,
+        value: JSON.stringify(parsed, null, 2),
+      });
       toast('JSON 정렬이 완료되었습니다.');
     } catch (e) {
       toast('유효한 JSON 형식이 아닙니다.');
     }
   };
 
-  // 맨 처음 들어오면 바로 정렬 시켜버리기
-  // useEffect에 빈칸으로 보내면 정렬만 됨
   useEffect(() => {
-    const parsed = JSON.parse(jsonData);
-    setJsonData(JSON.stringify(parsed, null, 2));
+    setBodyType('JSON');
+    try {
+      const parsed = JSON.parse(json.value || '{}');
+      setJson({
+        id: json.id,
+        value: JSON.stringify(parsed, null, 2),
+      });
+    } catch (e) {
+      toast('유효한 JSON 형식이 아닙니다.');
+    }
   }, []);
+
+  const handleJsonEditorChange = (value) => {
+    setJson({ ...json, value });
+
+    const nearestStartIndex = value.lastIndexOf('{{');
+    if (nearestStartIndex !== -1) {
+      const afterStart = value.slice(nearestStartIndex + 2);
+      const firstSpaceIndex = afterStart.search(/\s|}}/);
+      const searchValue = firstSpaceIndex === -1 ? afterStart : afterStart.slice(0, firstSpaceIndex);
+
+      setEnvDropdown(environment?.filter((env) => env.value.startsWith(searchValue)));
+      setShowDropdown(true);
+    } else {
+      setShowDropdown(false);
+    }
+  };
 
   const handleInputChange = (e, index) => {
     const { value } = e.target;
+    const cursorPosition = e.target.selectionStart;
     const updatedFormData = [...formData];
     updatedFormData[index].value = value;
     setFormData(updatedFormData);
+
+    // Detect nearest `{{` and update envDropdown
+    const nearestStartIndex = value.lastIndexOf('{{', cursorPosition - 1);
+    if (nearestStartIndex !== -1) {
+      const afterStart = value.slice(nearestStartIndex + 2);
+      const firstSpaceIndex = afterStart.search(/\s|}}/);
+      const searchValue = firstSpaceIndex === -1 ? afterStart : afterStart.slice(0, firstSpaceIndex);
+
+      setEnvDropdown(environment?.filter((env) => env.value.startsWith(searchValue)));
+      setShowDropdown(true);
+    } else {
+      setShowDropdown(false);
+    }
   };
 
-  // Form Data 테이블 렌더링 함수
+  const handleEnvironmentSelect = (selectedVariable, index) => {
+    const updatedFormData = [...formData];
+    const originalValue = updatedFormData[index].value;
+
+    const nearestStartIndex = originalValue.lastIndexOf('{{');
+    if (nearestStartIndex !== -1) {
+      const afterStart = originalValue.slice(nearestStartIndex + 2);
+      const firstSpaceIndex = afterStart.search(/\s|}}/);
+      const endIndex = firstSpaceIndex === -1 ? originalValue.length : nearestStartIndex + 2 + firstSpaceIndex;
+
+      const newValue =
+        originalValue.slice(0, nearestStartIndex) + `{{${selectedVariable}}}` + originalValue.slice(endIndex);
+
+      updatedFormData[index].value = newValue;
+      setFormData(updatedFormData);
+    }
+
+    setShowDropdown(false);
+  };
+
+  const handleEnvironmentSelectInJson = (selectedVariable) => {
+    const originalValue = json.value;
+    const nearestStartIndex = originalValue.lastIndexOf('{{');
+
+    if (nearestStartIndex !== -1) {
+      const afterStart = originalValue.slice(nearestStartIndex + 2);
+      const firstSpaceIndex = afterStart.search(/\s|}}/);
+      const endIndex = firstSpaceIndex === -1 ? originalValue.length : nearestStartIndex + 2 + firstSpaceIndex;
+
+      const newValue =
+        originalValue.slice(0, nearestStartIndex) + `{{${selectedVariable}}}` + originalValue.slice(endIndex);
+
+      setJson({ ...json, value: newValue });
+      setShowDropdown(false);
+    }
+  };
+
   const renderFormDataTable = () => (
     <div className='mb-4'>
       <h3 className='font-bold text-sm mb-2'>Form Data</h3>
@@ -56,13 +133,26 @@ const ApiTestParameters = ({ body }) => {
           {formData.map((item, index) => (
             <tr key={index} className='hover:bg-gray-50'>
               <td className='py-2 px-4 text-sm border text-center'>{item.key}</td>
-              <td className='py-2 px-4 border text-center'>
+              <td className='py-2 px-4 border text-center relative'>
                 <input
                   type='text'
                   value={item.value}
                   onChange={(e) => handleInputChange(e, index)}
                   className='w-full text-sm border p-1 text-center'
                 />
+                {showDropdown && (
+                  <div className='absolute left-0 right-0 bg-white border border-gray-300 mt-1 z-10'>
+                    {envDropdown.map((env, i) => (
+                      <div
+                        key={i}
+                        onClick={() => handleEnvironmentSelect(env.variable, index)}
+                        className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
+                      >
+                        {env.variable}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </td>
             </tr>
           ))}
@@ -71,26 +161,12 @@ const ApiTestParameters = ({ body }) => {
     </div>
   );
 
-  if (!jsonData) {
-    return <div>Loading...</div>; // 로딩 중일 때 표시할 내용
+  if (!json) {
+    return <div>Loading...</div>;
   }
 
   return (
     <div>
-      {/* <div className='flex items-center mb-4'> */}
-      {/* Body Type을 수동으로 변경하는 버튼들 (테스트용) */}
-      {/* <button className='mr-4 border p-2 bg-blue-300' onClick={() => setBodyType('NONE')}>
-          NONE
-        </button>
-        <button className='mr-4 border p-2 bg-blue-300' onClick={() => setBodyType('JSON')}>
-          JSON
-        </button>
-        <button className='mr-4 border p-2 bg-blue-300' onClick={() => setBodyType('FORM_DATA')}>
-          FORM-DATA
-        </button>
-      </div> */}
-
-      {/* bodyType에 따른 조건부 렌더링 */}
       {bodyType === 'NONE' && <p className='mt-5 text-center text-gray-500'>No Body</p>}
 
       {bodyType === 'JSON' && (
@@ -105,8 +181,8 @@ const ApiTestParameters = ({ body }) => {
           <Editor
             height='200px'
             language='json'
-            value={jsonData || '{}'} // JSON 데이터 기본 값 설정
-            onChange={(value) => setJsonData(value || '{}')} // 변경된 부분
+            value={json.value || '{}'}
+            onChange={handleJsonEditorChange}
             options={{
               automaticLayout: true,
               autoClosingBrackets: 'always',
@@ -121,6 +197,19 @@ const ApiTestParameters = ({ body }) => {
               },
             }}
           />
+          {showDropdown && (
+            <div className='absolute left-0 right-0 bg-white border border-gray-300 mt-1 z-10'>
+              {envDropdown.map((env, i) => (
+                <div
+                  key={i}
+                  onClick={() => handleEnvironmentSelectInJson(env.variable)}
+                  className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
+                >
+                  {env.variable}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

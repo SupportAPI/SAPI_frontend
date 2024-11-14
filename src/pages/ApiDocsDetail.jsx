@@ -34,9 +34,9 @@ const ApiDocsDetail = () => {
   const [categoryList, setCategoryList] = useState([]);
   const [occupationState, setOccupationState] = useState([]);
 
-  useEffect(() => {
-    if (location.pathname.includes('/apidocs')) setMenu('API Docs');
-  }, [setMenu]);
+  // useEffect(() => {
+  //   if (location.pathname.includes('/apidocs')) setMenu('API Docs');
+  // }, [setMenu]);
 
   useEffect(() => {
     if (

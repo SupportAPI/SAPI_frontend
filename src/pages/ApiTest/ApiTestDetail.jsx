@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { IoCopyOutline, IoCopy } from 'react-icons/io5';
 import { ResizableBox } from 'react-resizable';
-import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 import { FaSave } from 'react-icons/fa';
 import 'react-resizable/css/styles.css';
 import ApiTestParameters from './ApiTestParameters';
@@ -10,18 +9,20 @@ import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useSidebarStore } from '../../stores/useSidebarStore';
 import { useTabStore } from '../../stores/useTabStore';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { useFetchApiDetail } from '../../api/queries/useApiTestQueries';
+import { useFetchApiDetail, patchApiDetail, requestApiTest } from '../../api/queries/useApiTestQueries';
 import { toast } from 'react-toastify';
+import { useMutation } from 'react-query';
 
 const ApiTestDetail = () => {
   const { workspaceId, apiId } = useParams();
-  const { data: apiInfo, isLoading } = useFetchApiDetail(workspaceId, apiId); // isLoading 상태를 추가
-
+  const { data: apiInfo, isLoading, refetch } = useFetchApiDetail(workspaceId, apiId);
+  const [apiDetail, setApiDetail] = useState(null);
   const [apiData, setApiData] = useState([{ category: 'Uncategorized', name: 'New API' }]);
   const [apimethod, setApimethod] = useState('null');
   const [apiname, setApiname] = useState('null');
   const [apiUrl, setApiUrl] = useState('null');
-  const [activeTabContent, setActiveTabContent] = useState('Parameters'); // 기본 탭을 'Parameters'로 설정
+  const [testResult, setTestResult] = useState(null);
+  const [activeTabContent, setActiveTabContent] = useState(null); // 기본 탭을 'Parameters'로 설정
   const [activeTabResult, setActiveTabResult] = useState('Body'); // 기본 탭을 'Parameters'로 설정
   const [copySuccess, setCopySuccess] = useState(false); // 복사 성공 여부 상태 추가
 
@@ -29,17 +30,54 @@ const ApiTestDetail = () => {
   const { addTab, openTabs, removeTab } = useTabStore();
   const { setMenu } = useNavbarStore();
 
+  const [renderApi, setRenderApi] = useState(false);
+
   const location = useLocation();
 
-  useEffect(() => {
-    if (!apiInfo) return;
-    setApiData({ category: `Uncategorized`, name: `${apiInfo.name}` }); // api 정보 탭에 추가
-    setApiname(apiInfo.name);
-    setApiUrl(apiInfo.path || 'Url이 존재하지 않습니다.'); // api 주소 추가
-    setApimethod(apiInfo.method);
-  }, [apiInfo]);
+  const editApiTestDetailsMutation = useMutation((api) => patchApiDetail(workspaceId, apiId, api), {
+    onSuccess: (response) => {
+      console.log('저장 성공!');
+      refetch();
+    },
+    onError: (error) => console.error('저장 실패!', error),
+  });
 
-  // Url 복사 기능df
+  const requestApiTestMutation = useMutation((apiTestInfo) => requestApiTest(workspaceId, apiTestInfo), {
+    onSuccess: (response) => {
+      setTestResult(response);
+      console.log('테스트 완료', response);
+    },
+    onError: (error) => console.error('실패!', error),
+  });
+
+  useEffect(() => {
+    // 페이지 이동이나 location 변경 시 refetch로 데이터 다시 로딩
+    if (apiId) {
+      setActiveTabContent(null);
+      setRenderApi(false);
+      refetch();
+    }
+  }, [apiId, location.pathname, refetch]); // apiId 또는 경로가 변경될 때마다 refetch 호출
+
+  useEffect(() => {
+    if (apiInfo) {
+      setApiDetail(apiInfo);
+      setApiData({ category: 'Uncategorized', name: `${apiInfo.name}` });
+      setApiname(apiInfo.name);
+      setApiUrl(apiInfo.path || 'Url이 존재하지 않습니다.');
+      setApimethod(apiInfo.method);
+    }
+  }, [apiInfo]); // apiInfo만 의존성으로 추가
+
+  useEffect(() => {
+    if (!renderApi) {
+      console.log('들어옴?');
+      setActiveTabContent('Parameters');
+      setRenderApi(true);
+    }
+  }, [apiDetail]);
+
+  // Url 복사 기능
   const handleCopyAddress = () => {
     navigator.clipboard
       .writeText(apiUrl)
@@ -51,20 +89,27 @@ const ApiTestDetail = () => {
       .catch((error) => console.error('URL 복사에 실패했습니다:', error));
   };
 
+  const handleParamsChange = (newParams) => {
+    setApiDetail((prevDetail) => ({
+      ...prevDetail,
+      parameters: newParams,
+    }));
+  };
+
+  const handleBodyChange = (newBodies) => {
+    setApiDetail((prevDetail) => ({
+      ...prevDetail,
+      request: newBodies,
+    }));
+  };
+
   // Content Tap
   const renderTabContent = () => {
     switch (activeTabContent) {
       case 'Parameters':
-        return (
-          <ApiTestParameters
-            headers={apiInfo.parameters.headers}
-            pathVariables={apiInfo.parameters.pathVariables}
-            queryParameters={apiInfo.parameters.queryParameters}
-            cookies={apiInfo.parameters.cookies}
-          />
-        );
+        return <ApiTestParameters initialValues={apiDetail?.parameters || []} paramsChange={handleParamsChange} />;
       case 'Body':
-        return <ApiTestBody body={apiInfo.request} />;
+        return <ApiTestBody body={apiDetail?.request || []} bodyChange={handleBodyChange} />;
 
       default:
         return null;
@@ -107,8 +152,67 @@ const ApiTestDetail = () => {
     return <div>Error: API data not found.</div>; // apiInfo가 없을 때 표시할 오류 메시지
   }
 
+  const transformApiDetail = (apiDetail) => {
+    return {
+      parameters: {
+        headers: (apiDetail.parameters.headers || []).map((header) => ({
+          headerId: header.id || null,
+          headerValue: header.value || null,
+          isChecked: header.isChecked || true,
+        })),
+        pathVariables: (apiDetail.parameters.pathVariables || []).map((pathVariable) => ({
+          pathVariableId: pathVariable.id || null,
+          pathVariableValue: pathVariable.value || null,
+        })),
+        queryParameters: (apiDetail.parameters.queryParameters || []).map((queryParameter) => ({
+          queryParameterId: queryParameter.id || null,
+          queryParameterValue: queryParameter.value || null,
+          isChecked: queryParameter.isChecked || true,
+        })),
+        cookies: (apiDetail.parameters.cookies || []).map((cookie) => ({
+          cookieId: cookie.id || null,
+          cookieValue: cookie.value || null,
+          isChecked: cookie.isChecked || true,
+        })),
+      },
+      request: {
+        json: apiDetail.request.json
+          ? {
+              jsonDataId: apiDetail.request.json.id || null,
+              jsonDataValue: apiDetail.request.json.value || null,
+            }
+          : null,
+        formData: (apiDetail.request.formData || []).map((formData) => ({
+          formDataId: formData.id || null,
+          formDataValue: formData.value || null,
+          isChecked: formData.isChecked || false,
+        })),
+      },
+    };
+  };
+
+  const handleEditApi = () => {
+    const transformedData = transformApiDetail(apiDetail);
+    editApiTestDetailsMutation.mutate(transformedData);
+  };
+
+  const handleApiTest = () => {
+    if (apiInfo) {
+      const transformData = {
+        docId: apiInfo.docId,
+        apiId: apiInfo.apiId,
+        method: apiInfo.method,
+        path: apiInfo.path,
+        parameters: apiInfo.parameters,
+        request: apiInfo.request,
+      };
+      console.log('save', transformData);
+      requestApiTestMutation.mutate(transformData);
+    }
+  };
+
   return (
-    <div className='flex'>
+    <div className='flex p-4'>
       <div className='flex-1'>
         <div className='flex flex-col border-white p-2 h-full w-full'>
           {/* 상단 제목 단 */}
@@ -127,16 +231,22 @@ const ApiTestDetail = () => {
                 </div>
               </div>
               <div className='flex'>
-                <button className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
+                {/* <button className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
                   <div className='flex items-center'>
                     <RiArrowDropDownLine className='text-xl' />
                     Local
                   </div>
-                </button>
-                <button className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
+                </button> */}
+                <button
+                  className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'
+                  onClick={handleApiTest}
+                >
                   TEST
                 </button>
-                <button className='flex justify-center items-center w-[50px] border p-3 rounded-lg bg-[#2D3648] text-white'>
+                <button
+                  className='flex justify-center items-center w-[50px] border p-3 rounded-lg bg-[#2D3648] text-white'
+                  onClick={handleEditApi}
+                >
                   <FaSave />
                 </button>
               </div>
@@ -169,7 +279,9 @@ const ApiTestDetail = () => {
               maxConstraints={[Infinity, 700]}
             >
               {/* 탭에 따른 내용 영역 */}
-              <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>{renderTabContent()}</div>
+              <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>
+                {activeTabContent && renderTabContent()}
+              </div>
             </ResizableBox>
 
             {/* 테스트 결과 영역 */}

@@ -12,7 +12,7 @@ const CheckModal = ({
 }) => {
   return (
     <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
-      <div className='bg-white p-6 rounded-lg shadow-lg w-[400px] h-[250px]'>
+      <div className='bg-white p-6 rounded-lg shadow-lg w-[400px] h-[250px] dark:bg-dark-background'>
         <h3 className='text-xl font-bold mb-4'>{modalTitle}</h3>
         <p className='mb-6 h-24' style={{ whiteSpace: 'pre-line' }}>
           {modalContent}
@@ -21,7 +21,7 @@ const CheckModal = ({
         <div className='flex justify-end space-x-4'>
           <button
             onClick={cancleFunction} // 취소 버튼 클릭 시
-            className={`px-4 py-2 rounded-md ${cancleColor} hover:!${cancleHoverColor}`}
+            className={`px-4 py-2 rounded-md ${cancleColor} hover:bg-gray-300 dark:text-dark-background`}
           >
             {cancleName}
           </button>

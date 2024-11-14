@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export const useEnvironmentStore = create((set) => ({
   environments: [],
