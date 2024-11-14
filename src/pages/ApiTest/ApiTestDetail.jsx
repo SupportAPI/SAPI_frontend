@@ -31,6 +31,7 @@ const ApiTestDetail = () => {
   const { setMenu } = useNavbarStore();
 
   const [renderApi, setRenderApi] = useState(false);
+  const [renderInfo, setRenderInfo] = useState(false);
 
   const location = useLocation();
 
@@ -188,11 +189,12 @@ const ApiTestDetail = () => {
       setApiname(apiInfo.name);
       setApiUrl(apiInfo.path || 'Url이 존재하지 않습니다.');
       setApimethod(apiInfo.method);
+      setRenderInfo(true);
     }
   }, [apiInfo]);
 
   useEffect(() => {
-    if (!renderApi) {
+    if (!renderApi && renderInfo) {
       console.log('들어옴?');
       console.log(apiDetail);
       setActiveTabContent('Parameters');

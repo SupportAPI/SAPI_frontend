@@ -15,20 +15,32 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
   const [showQueryParametersDropdown, setShowQueryParametersDropdown] = useState([]);
   const [showCookiesDropdown, setShowCookiesDropdown] = useState([]);
 
-  console.log('paramter Headers', headers);
-
-  useEffect(() => {
-    if (initialValues) {
-      setHeaders(initialValues?.headers || []);
-      setPathVariables(initialValues?.pathVariables || []);
-      setQueryParameters(initialValues?.queryParameters || []);
-      setCookies(initialValues?.cookies || []);
-      setAuthType(initialValues?.authType || 'None');
-    }
-  }, [initialValues]);
+  // useEffect(() => {
+  //   if (initialValues) {
+  //     setHeaders(initialValues?.headers || []);
+  //     setPathVariables(initialValues?.pathVariables || []);
+  //     setQueryParameters(initialValues?.queryParameters || []);
+  //     setCookies(initialValues?.cookies || []);
+  //     setAuthType(initialValues?.authType || 'None');
+  //   }
+  // }, [initialValues]);
 
   // `paramsChange`를 메모이제이션하여 변경사항이 있을 때만 호출
-  const updateParams = useCallback(() => {
+  // const updateParams = useCallback(() => {
+  //   paramsChange({
+  //     headers,
+  //     pathVariables,
+  //     queryParameters,
+  //     cookies,
+  //     authType,
+  //   });
+  // }, [headers, pathVariables, queryParameters, cookies, authType, paramsChange]);
+
+  // useEffect(() => {
+  //   updateParams();
+  // }, [updateParams]);
+
+  useEffect(() => {
     paramsChange({
       headers,
       pathVariables,
@@ -36,11 +48,7 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
       cookies,
       authType,
     });
-  }, [headers, pathVariables, queryParameters, cookies, authType, paramsChange]);
-
-  useEffect(() => {
-    updateParams();
-  }, [updateParams]);
+  }, [headers, pathVariables, queryParameters, cookies, authType]);
 
   const handleInputChange = (e, index, type) => {
     const { value } = e.target;
