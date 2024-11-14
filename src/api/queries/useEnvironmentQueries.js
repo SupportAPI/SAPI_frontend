@@ -84,8 +84,8 @@ export const useFetchEnvironmentList = (workspaceId) => {
 // 환경 변수 불러오기
 export const fetchEnvironment = async (categoryId) => {
   try {
-    const response = await axiosInstance.get(`/api/environment-categories/${categoryId}`);
-    return response.data.data;
+    const response = await axiosInstance.get(`/api/environment-categories/${categoryId}/environments`);
+    return response.data.data.environments;
   } catch (error) {
     console.error('Dont find environment', error);
     throw error;
