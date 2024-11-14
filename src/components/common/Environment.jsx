@@ -49,11 +49,11 @@ const Environment = ({ workspaceId }) => {
 
   return (
     <select
-      className='dark:bg-dark-background dark:text-dark-text'
+      className='dark:bg-dark-background dark:text-dark-text light:bg-light-background light:text-light-text mr-3 font-semibold'
       value={selectedCategoryId || ''}
       onChange={handleEnvironmentChange}
     >
-      <option value=''>Select Environment</option>
+      <option value=''>Environment Variable</option>
       {environmentList &&
         environmentList.map((env) => (
           <option key={env.id} value={env.id}>
