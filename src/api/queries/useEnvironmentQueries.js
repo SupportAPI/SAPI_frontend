@@ -1,9 +1,5 @@
-import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { getToken } from '../../utils/cookies';
 import axiosInstance from '../axiosInstance';
-
-const base_URL = 'https://k11b305.p.ssafy.io'; // 본 /서버
 
 // 환경 변수 카테고리 추가
 export const addEnvironment = async (workspaceId, name) => {
@@ -39,16 +35,14 @@ export const useAddEnvironment = (workspaceId) => {
 // 환경 변수 추가
 export const addEnvironmentVariable = async (categoryId, orderIndex) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.post(
-      `${base_URL}/api/environment-categories/${categoryId}/environments`,
+    const response = await axiosInstance.post(
+      `/api/environment-categories/${categoryId}/environments`,
       {
         orderIndex,
       },
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
@@ -108,9 +102,8 @@ export const useFetchEnvironment = (categoryId) => {
 export const editEnvironment = async (categoryId, environment) => {
   console.log(environment);
   try {
-    const accessToken = getToken();
-    const response = await axios.patch(
-      `${base_URL}/api/environment-categories/${categoryId}/environments/${environment.id}`,
+    const response = await axiosInstance.patch(
+      `/api/environment-categories/${categoryId}/environments/${environment.id}`,
       {
         variable: environment.variable,
         type: environment.type,
@@ -121,7 +114,6 @@ export const editEnvironment = async (categoryId, environment) => {
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
@@ -194,15 +186,8 @@ export const useDeleteEnvironment = (workspaceId) => {
 
 export const deleteEnvironmentVariable = async (categoryId, environmentId) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.delete(
-      `${base_URL}/api/environment-categories/${categoryId}/environments/${environmentId}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+    const response = await axiosInstance.delete(
+      `/api/environment-categories/${categoryId}/environments/${environmentId}`
     );
     return response.data.data;
   } catch (error) {
