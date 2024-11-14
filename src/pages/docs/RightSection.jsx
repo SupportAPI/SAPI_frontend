@@ -8,8 +8,6 @@ import Info from './Info';
 const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
   const [activeRightTab, setActiveRightTab] = useState(null);
 
-  console.log('rightTab', apiDocDetail);
-
   const methodStyles = {
     GET: 'text-blue-500',
     POST: 'text-green-500',
@@ -23,8 +21,6 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
   const toggleRightTab = (tab) => {
     setActiveRightTab(activeRightTab === tab ? null : tab);
   };
-
-  console.log(apiDocDetail);
 
   return (
     <>
@@ -63,7 +59,7 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
           />
         )}
         {activeRightTab === 'info' && (
-          <Info createdData={apiDocDetail?.createdData} lastModifiedDate={apiDocDetail?.lastModifiedDate} />
+          <Info createdData={apiDocDetail?.createdDate} lastModifiedDate={apiDocDetail?.lastModifyDate} />
         )}
       </div>
 
