@@ -29,7 +29,8 @@ public class ApiRepositoryCustomImpl implements ApiRepositoryCustom{
 
 		return queryFactory.select(Projections.constructor(
 				ApiTestResponseDto.class,
-				api.id,
+                specification.id.as("docId"),
+                api.id.as("apiId"),
 				api.category,
 				api.name,
 				api.method,
