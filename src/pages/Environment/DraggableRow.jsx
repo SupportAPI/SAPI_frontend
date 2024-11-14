@@ -25,18 +25,17 @@ const DraggableRow = ({
       isDragging: monitor.isDragging(),
     }),
   });
-
   const [, dropRef] = useDrop({
     accept: ItemType,
     hover: (draggedItem) => {
       // toIndex가 데이터 배열 길이 범위 내에 있는지 확인
+    },
+    drop: (draggedItem) => {
       if (index >= 0 && index <= lastId && draggedItem.index !== index) {
+        console.log(draggedItem.index, ' gg ', index);
         moveRow(draggedItem.index, index);
         draggedItem.index = index;
       }
-    },
-    drop: () => {
-      updateEnvironmentOrder(); // 드래그 종료 시점에 최종 위치를 서버에 업데이트
     },
   });
 

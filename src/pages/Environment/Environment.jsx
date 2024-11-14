@@ -203,51 +203,25 @@ const Environment = () => {
   }, [addEnvironment]);
 
   const moveRow = (fromIndex, toIndex) => {
-    setData((prevData) => {
-      const fromOrderIndex = prevData.find((item) => item.orderIndex === fromIndex)?.orderIndex;
-      const toOrderIndex = prevData.find((item) => item.orderIndex === toIndex)?.orderIndex;
-
-      if (fromOrderIndex === undefined || toOrderIndex === undefined) return prevData;
-      if (toOrderIndex >= prevData.length || toOrderIndex < 0) return prevData;
-
-      const updatedData = [...prevData];
-      const movedItemIndex = updatedData.findIndex((item) => item.orderIndex === fromOrderIndex);
-      const [movedItem] = updatedData.splice(movedItemIndex, 1);
-
-      // 항목이 2개만 있을 경우 직접 위치 변경
-      if (updatedData.length === 1) {
-        movedItem.orderIndex = toOrderIndex;
-        updatedData.splice(toOrderIndex, 0, movedItem);
-        return updatedData;
+    const updatedData = data.map((item) => {
+      if (item.orderIndex === fromIndex) {
+        // 드래그한 항목을 toIndex로 이동
+        return { ...item, orderIndex: toIndex };
       }
-
-      // 일반적인 경우의 위치 변경
-      updatedData.splice(toOrderIndex, 0, movedItem);
-
-      return updatedData.map((item) => {
-        if (fromOrderIndex < toOrderIndex && item.orderIndex > fromOrderIndex && item.orderIndex <= toOrderIndex) {
-          return { ...item, orderIndex: item.orderIndex - 1 };
-        } else if (
-          fromOrderIndex > toOrderIndex &&
-          item.orderIndex >= toOrderIndex &&
-          item.orderIndex < fromOrderIndex
-        ) {
-          return { ...item, orderIndex: item.orderIndex + 1 };
-        } else if (item.id === movedItem.id) {
-          return { ...item, orderIndex: toOrderIndex };
-        } else {
-          return item;
-        }
-      });
+      if (fromIndex < toIndex && item.orderIndex > fromIndex && item.orderIndex <= toIndex) {
+        // 아래로 이동할 때, 사이에 있는 항목들을 한 칸 위로 이동
+        return { ...item, orderIndex: item.orderIndex - 1 };
+      }
+      if (fromIndex > toIndex && item.orderIndex < fromIndex && item.orderIndex >= toIndex) {
+        // 위로 이동할 때, 사이에 있는 항목들을 한 칸 아래로 이동
+        return { ...item, orderIndex: item.orderIndex + 1 };
+      }
+      return item; // 나머지 항목은 변경하지 않음
     });
-  };
 
-  const updateEnvironmentOrder = async () => {
-    data.forEach((item) => {
-      editEnvironment.mutateAsync({
-        categoryId: environmentId,
-        environment: item,
-      });
+    // 업데이트된 데이터 각 항목을 서버에 전송
+    updatedData.forEach((item) => {
+      handleEditRow(item);
     });
   };
 
@@ -327,7 +301,6 @@ const Environment = () => {
                     handleAddRow={handleAddRow}
                     handleDeleteRow={handleDeleteRow} // 삭제 함수 전달
                     handleEditRow={handleEditRow}
-                    updateEnvironmentOrder={updateEnvironmentOrder}
                     lastId={lastIndex}
                   />
                 ))}
