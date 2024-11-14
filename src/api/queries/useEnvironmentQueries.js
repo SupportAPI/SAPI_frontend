@@ -1,14 +1,12 @@
 import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { getToken } from '../../utils/cookies';
-
-const base_URL = 'https://k11b305.p.ssafy.io'; // 본 /서버
+import axiosInstance from '../axiosInstance';
 
 export const addEnvironment = async (workspaceId, name) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.post(
-      `${base_URL}/api/environment-categories`,
+    const response = await axiosInstance.post(
+      `/api/environment-categories`,
       {
         workspaceId,
         name,
@@ -16,7 +14,6 @@ export const addEnvironment = async (workspaceId, name) => {
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
@@ -39,12 +36,7 @@ export const useAddEnvironment = (workspaceId) => {
 // 환경 변수 목록 불러오기
 export const fetchEnvironmentList = async (workspaceId) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.get(`${base_URL}/api/environment-categories`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
+    const response = await axiosInstance.get(`/api/environment-categories`, {
       params: {
         workspaceId,
       },
@@ -62,13 +54,7 @@ export const useFetchEnvironmentList = (workspaceId) => {
 
 export const fetchEnvironment = async (categoryId) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.get(`${base_URL}/api/environment-categories/${categoryId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await axiosInstance.get(`/api/environment-categories/${categoryId}`);
     return response.data.data;
   } catch (error) {
     console.error('Dont find environment', error);
@@ -84,16 +70,14 @@ export const useFetchEnvironment = (categoryId) => {
 
 export const editEnvironmentName = async (categoryId, name) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.patch(
-      `${base_URL}/api/environment-categories/${categoryId}`,
+    const response = await axiosInstance.patch(
+      `/api/environment-categories/${categoryId}`,
       {
         name,
       },
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
@@ -117,13 +101,7 @@ export const useEditEnvironmentName = (workspaceId) => {
 
 export const deleteEnvironment = async (categoryId) => {
   try {
-    const accessToken = getToken();
-    const response = await axios.delete(`${base_URL}/api/environment-categories/${categoryId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await axiosInstance.delete(`/api/environment-categories/${categoryId}`);
     return response.data.data;
   } catch (error) {
     console.error('dont delete category', error);
