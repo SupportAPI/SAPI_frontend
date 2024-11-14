@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
 
 const ApiTestBody = ({ initialValues, paramsChange }) => {
@@ -15,9 +15,10 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
   const [showQueryParametersDropdown, setShowQueryParametersDropdown] = useState([]);
   const [showCookiesDropdown, setShowCookiesDropdown] = useState([]);
 
+  console.log('paramter Headers', headers);
+
   useEffect(() => {
     if (initialValues) {
-      console.log('호출레츠고', initialValues);
       setHeaders(initialValues?.headers || []);
       setPathVariables(initialValues?.pathVariables || []);
       setQueryParameters(initialValues?.queryParameters || []);
@@ -26,7 +27,8 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
     }
   }, [initialValues]);
 
-  useEffect(() => {
+  // `paramsChange`를 메모이제이션하여 변경사항이 있을 때만 호출
+  const updateParams = useCallback(() => {
     paramsChange({
       headers,
       pathVariables,
@@ -34,7 +36,11 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
       cookies,
       authType,
     });
-  }, [headers, pathVariables, queryParameters, cookies, authType]);
+  }, [headers, pathVariables, queryParameters, cookies, authType, paramsChange]);
+
+  useEffect(() => {
+    updateParams();
+  }, [updateParams]);
 
   const handleInputChange = (e, index, type) => {
     const { value } = e.target;

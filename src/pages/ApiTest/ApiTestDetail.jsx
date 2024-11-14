@@ -60,26 +60,141 @@ const ApiTestDetail = () => {
   }, [apiId, workspaceId, location.pathname, refetch]); // apiId 또는 경로가 변경될 때마다 refetch 호출
 
   useEffect(() => {
-    if (apiInfo) {
-      console.log('apiInfo 내용:', apiInfo); // 전체 내용 확인
-      setApiDetail(null); // 초기화
-      setTimeout(() => {
-        setApiDetail({
-          ...apiInfo,
-          parameters: { ...apiInfo.parameters },
-          request: { ...apiInfo.request },
-        });
-        setApiData({ category: 'Uncategorized', name: `${apiInfo.name}` });
-        setApiname(apiInfo.name);
-        setApiUrl(apiInfo.path || 'Url이 존재하지 않습니다.');
-        setApimethod(apiInfo.method);
-      }, 10); // 짧은 지연 후 업데이트
+    if (apiInfo && (!apiDetail || JSON.stringify(apiDetail) !== JSON.stringify(apiInfo))) {
+      console.log('apiInfo 내용:', apiInfo);
+
+      console.log('infoDetail', apiInfo.parameters);
+
+      setApiDetail({
+        docId: apiInfo.docId || '',
+        apiId: apiInfo.apiId || '',
+        name: apiInfo.name || 'New API',
+        method: apiInfo.method || 'GET',
+        path: apiInfo.path || '',
+        category: apiInfo.category || 'Uncategorized',
+        localStatus: apiInfo.localStatus || 'PENDING',
+        serverStatus: apiInfo.serverStatus || 'PENDING',
+        managerEmail: apiInfo.managerEmail || '',
+        managerName: apiInfo.managerName || '',
+        managerProfileImage: apiInfo.managerProfileImage || '',
+        parameters: {
+          authType: apiInfo.parameters?.authType || 'NOAUTH',
+          headers: apiInfo.parameters?.headers
+            ? apiInfo.parameters.headers.map((header) => ({
+                id: header.id || '',
+                key: header.key || '',
+                value: header.value || '',
+                description: header.description || '',
+                isEssential: header.isEssential || false,
+                isChecked: header.isChecked || false,
+              }))
+            : [
+                {
+                  id: '',
+                  key: '',
+                  value: '',
+                  description: '',
+                  isEssential: false,
+                  isChecked: false,
+                },
+              ],
+          pathVariables: apiInfo.parameters?.pathVariables
+            ? apiInfo.parameters.pathVariables.map((variable) => ({
+                id: variable.id || '',
+                key: variable.key || '',
+                value: variable.value || '',
+                description: variable.description || '',
+              }))
+            : [
+                {
+                  id: '',
+                  key: '',
+                  value: '',
+                  description: '',
+                },
+              ],
+          queryParameters: apiInfo.parameters?.queryParameters
+            ? apiInfo.parameters.queryParameters.map((queryParam) => ({
+                id: queryParam.id || '',
+                key: queryParam.key || '',
+                value: queryParam.value || '',
+                description: queryParam.description || '',
+                isEssential: queryParam.isEssential || false,
+                isChecked: queryParam.isChecked || false,
+              }))
+            : [
+                {
+                  id: '',
+                  key: '',
+                  value: '',
+                  description: '',
+                  isEssential: false,
+                  isChecked: false,
+                },
+              ],
+          cookies: apiInfo.parameters?.cookies
+            ? apiInfo.parameters.cookies.map((cookie) => ({
+                id: cookie.id || '',
+                key: cookie.key || '',
+                value: cookie.value || '',
+                description: cookie.description || '',
+                isEssential: cookie.isEssential || false,
+                isChecked: cookie.isChecked || false,
+              }))
+            : [
+                {
+                  id: '',
+                  key: '',
+                  value: '',
+                  description: '',
+                  isEssential: false,
+                  isChecked: false,
+                },
+              ],
+        },
+        request: {
+          bodyType: apiInfo.request?.bodyType || 'NONE',
+          json: apiInfo.request?.json
+            ? {
+                id: apiInfo.request.json.id || '',
+                value: apiInfo.request.json.value || '',
+              }
+            : { id: '', value: '' },
+          formData: apiInfo.request?.formData
+            ? apiInfo.request.formData.map((formItem) => ({
+                id: formItem.id || '',
+                key: formItem.key || '',
+                value: formItem.value || '',
+                type: formItem.type || 'TEXT',
+                description: formItem.description || '',
+                isEssential: formItem.isEssential || false,
+                isChecked: formItem.isChecked || false,
+              }))
+            : [
+                {
+                  id: '',
+                  key: '',
+                  value: '',
+                  type: 'TEXT',
+                  description: '',
+                  isEssential: false,
+                  isChecked: false,
+                },
+              ],
+        },
+      });
+
+      setApiData({ category: 'Uncategorized', name: `${apiInfo.name}` });
+      setApiname(apiInfo.name);
+      setApiUrl(apiInfo.path || 'Url이 존재하지 않습니다.');
+      setApimethod(apiInfo.method);
     }
   }, [apiInfo]);
 
   useEffect(() => {
     if (!renderApi) {
       console.log('들어옴?');
+      console.log(apiDetail);
       setActiveTabContent('Parameters');
       setRenderApi(true);
     }
@@ -111,21 +226,14 @@ const ApiTestDetail = () => {
     }));
   };
 
-  console.log('apiInfo', apiInfo);
-  console.log('apiDetail', apiDetail);
+  // console.log('apiInfo', apiInfo);
+  // console.log('apiDetail', apiDetail);
 
   // Content Tap
   const renderTabContent = () => {
     switch (activeTabContent) {
       case 'Parameters':
-        console.log('ㅎㅇㅎㅇ', apiDetail?.parameters);
-        return (
-          <ApiTestParameters
-            key={JSON.stringify(apiDetail?.parameters)}
-            initialValues={apiDetail?.parameters || []}
-            paramsChange={handleParamsChange}
-          />
-        );
+        return <ApiTestParameters initialValues={apiDetail?.parameters || []} paramsChange={handleParamsChange} />;
       case 'Body':
         return <ApiTestBody body={apiDetail?.request || []} bodyChange={handleBodyChange} />;
       default:
@@ -223,12 +331,34 @@ const ApiTestDetail = () => {
         parameters: apiInfo.parameters,
         request: apiInfo.request,
       };
-      console.log('save', transformData);
-      requestApiTestMutation.mutate(transformData);
+
+      // 환경 변수로 대체하는 함수
+      const parseTemplateStrings = (data) => {
+        // 주어진 데이터가 객체일 때 재귀적으로 파싱
+        if (typeof data === 'object' && data !== null) {
+          for (const key in data) {
+            data[key] = parseTemplateStrings(data[key]);
+          }
+          return data;
+        }
+
+        // 주어진 데이터가 문자열일 때 템플릿 형식(`{{variable}}`)을 찾아 대체
+        if (typeof data === 'string') {
+          return data.replace(/{{(.*?)}}/g, (match, variable) => {
+            const envVar = environment.find((env) => env.variable === variable);
+            return envVar ? envVar.value : match; // 변수 값이 없으면 원본 유지
+          });
+        }
+
+        return data; // 다른 타입은 그대로 반환
+      };
+
+      // transformData를 환경 변수로 파싱한 후 requestApiTestMutation 호출
+      const parsedData = parseTemplateStrings(transformData);
+      console.log('Parsed Data:', parsedData);
+      requestApiTestMutation.mutate(parsedData);
     }
   };
-
-  console.log(activeTabContent);
 
   return (
     <div className='flex p-4'>
@@ -298,7 +428,7 @@ const ApiTestDetail = () => {
               maxConstraints={[Infinity, 700]}
             >
               {/* 탭에 따른 내용 영역 */}
-              <div key={apiDetail?.parameters} className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>
+              <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>
                 {activeTabContent && renderTabContent()}
               </div>
             </ResizableBox>
