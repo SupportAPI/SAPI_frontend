@@ -85,7 +85,7 @@ export const useFetchEnvironmentList = (workspaceId) => {
 export const fetchEnvironment = async (categoryId) => {
   try {
     const response = await axiosInstance.get(`/api/environment-categories/${categoryId}/environments`);
-    return response.data.data.environments;
+    return response.data.data;
   } catch (error) {
     console.error('Dont find environment', error);
     throw error;

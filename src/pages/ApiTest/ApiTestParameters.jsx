@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
+import Environment from '../Environment/Environment';
 
 const ApiTestBody = ({ initialValues, paramsChange }) => {
   const [headers, setHeaders] = useState(initialValues?.headers || []);
@@ -103,6 +104,7 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
         return;
       }
 
+      console.log(Environment);
       const searchValue = firstSpaceIndex === -1 ? afterStart : afterStart.slice(0, firstSpaceIndex);
       const filteredEnvironments = environment?.filter((env) => env.value.startsWith(searchValue)) || [];
       setEnvDropDown(filteredEnvironments);

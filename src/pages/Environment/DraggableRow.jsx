@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { FaPlus, FaGripVertical, FaCheckSquare, FaSquare, FaAngleDown, FaTrashAlt } from 'react-icons/fa';
 
-// ItemType을 선언해야 합니다. 필요에 따라 ItemType의 값을 설정하세요.
 const ItemType = 'ROW';
 
 const DraggableRow = ({
@@ -58,6 +57,12 @@ const DraggableRow = ({
     handleEditRow(env);
   };
 
+  const handleKeyDown = (e, env, field) => {
+    if (e.key === 'Enter') {
+      handleBlur(env, field);
+    }
+  };
+
   const handleTdClick = (field) => {
     setClickedTd(field);
     handleEdit(field);
@@ -109,6 +114,7 @@ const DraggableRow = ({
             value={environment.variable}
             onChange={(e) => handleUpdate(environment.id, 'variable', e.target.value)}
             onBlur={(e) => handleBlur(environment, 'variable')}
+            onKeyDown={(e) => handleKeyDown(e, environment, 'variable')}
             className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
             autoFocus
           />
@@ -117,7 +123,6 @@ const DraggableRow = ({
         )}
       </td>
 
-      {/* Secret/Default Cell */}
       <td
         className='p-3 h-[58px] border-r border-[#D9D9D9] flex items-center justify-center cursor-pointer'
         onClick={(event) => handleType(event, environment.id)}
@@ -141,6 +146,7 @@ const DraggableRow = ({
             value={environment.value}
             onChange={(e) => handleUpdate(environment.id, 'value', e.target.value)}
             onBlur={(e) => handleBlur(environment, 'value')}
+            onKeyDown={(e) => handleKeyDown(e, environment, 'value')}
             className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
             autoFocus
           />
@@ -161,6 +167,7 @@ const DraggableRow = ({
             value={environment.description}
             onChange={(e) => handleUpdate(environment.id, 'description', e.target.value)}
             onBlur={(e) => handleBlur(environment, 'description')}
+            onKeyDown={(e) => handleKeyDown(e, environment, 'description')}
             className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
             autoFocus
           />

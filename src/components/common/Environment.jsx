@@ -42,8 +42,8 @@ const Environment = ({ workspaceId }) => {
   // environmentData가 업데이트될 때 useEnvironmentStore에 저장
   useEffect(() => {
     if (environmentData) {
-      setEnvironment(environmentData);
-      console.log(environmentData);
+      setEnvironment(environmentData.environments);
+      console.log(environmentData.environments);
     }
   }, [environmentData, setEnvironment]);
 
