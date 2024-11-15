@@ -160,7 +160,8 @@ public class MembershipServiceImpl implements MembershipService {
 				membership.getUser().getId(),
 				membership.getUser().getEmail(),
 				membership.getUser().getNickname(),
-				membership.getUser().getProfileImage()
+				membership.getUser().getProfileImage(),
+				membership.getRole()
 			))
 			.collect(Collectors.toList());
 	}
@@ -181,11 +182,17 @@ public class MembershipServiceImpl implements MembershipService {
 			.collect(Collectors.toList());
 	}
 
-	public List<UserResponseDto> getPendingUsersInWorkspace(UUID workspaceId) {
-		List<User> pendingUsers = userRepository.findPendingUsersByWorkspaceId(workspaceId);
+	public List<MemberInfoResponseDto> getPendingUsersInWorkspace(UUID workspaceId) {
+		List<Membership> memberships = membershipRepository.findPendingMembershipsWithUsersByWorkspaceId(workspaceId);
 
-		return pendingUsers.stream()
-			.map(user -> new UserResponseDto(user.getId(), user.getEmail(), user.getNickname(), user.getProfileImage()))
+		return memberships.stream()
+			.map(membership -> new MemberInfoResponseDto(
+				membership.getUser().getId(),
+				membership.getUser().getEmail(),
+				membership.getUser().getNickname(),
+				membership.getUser().getProfileImage(),
+				membership.getRole()
+			))
 			.collect(Collectors.toList());
 	}
 
