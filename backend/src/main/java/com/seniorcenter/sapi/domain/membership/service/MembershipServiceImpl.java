@@ -171,8 +171,8 @@ public class MembershipServiceImpl implements MembershipService {
 				membership.getRole(),
 				new Permission(
 					membership.getReadAuthority(),
-					membership.getReadAuthority(),
 					membership.getUpdateAuthority(),
+					membership.getSaveAuthority(),
 					membership.getDeleteAuthority()
 				)
 			))
@@ -207,8 +207,8 @@ public class MembershipServiceImpl implements MembershipService {
 				membership.getRole(),
 				new Permission(
 					membership.getReadAuthority(),
-					membership.getReadAuthority(),
 					membership.getUpdateAuthority(),
+					membership.getSaveAuthority(),
 					membership.getDeleteAuthority()
 				)
 			))
