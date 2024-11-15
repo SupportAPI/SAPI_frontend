@@ -205,7 +205,12 @@ public class MembershipServiceImpl implements MembershipService {
 				membership.getUser().getNickname(),
 				membership.getUser().getProfileImage(),
 				membership.getRole(),
-				new Permission(null, null, null, null)
+				new Permission(
+					membership.getReadAuthority(),
+					membership.getReadAuthority(),
+					membership.getUpdateAuthority(),
+					membership.getDeleteAuthority()
+				)
 			))
 			.collect(Collectors.toList());
 	}
