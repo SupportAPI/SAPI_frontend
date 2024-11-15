@@ -67,7 +67,6 @@ const Comments = ({ docsId, workspaceId }) => {
   // 최근 인덱스 호출 완료 -> 코멘트들 불러오기
   useEffect(() => {
     if (initIndex !== -1) {
-      console.log(initIndex);
       findInitMutation.mutate();
     }
   }, [initIndex]);
@@ -88,15 +87,10 @@ const Comments = ({ docsId, workspaceId }) => {
   // 소켓 연결 함수
   useEffect(() => {
     if (isConnected) {
-      console.log('isConnected', isConnected);
       const subScriptionPath = `/ws/sub/docs/${docsId}/comments`;
-      console.log(subScriptionPath);
 
       const subscription = subscribe(subScriptionPath, (parsedData) => {
         const { type, message: receivedMessage } = parsedData;
-
-        console.log('드러오긴함?');
-        console.log('parsedData', parsedData);
 
         switch (type) {
           case 'ADD':
@@ -137,7 +131,6 @@ const Comments = ({ docsId, workspaceId }) => {
     onSuccess: (response) => {
       if (response !== undefined) {
         setInitIndex(response);
-        console.log(response);
       }
     },
 
@@ -165,7 +158,6 @@ const Comments = ({ docsId, workspaceId }) => {
   // 유저 태그 시 유저 정보 불러오기
   const findUserMutation = useMutation(({ searchQuery, startIndex, endIndex }) => findUsers(workspaceId, searchQuery), {
     onSuccess: (response, variables) => {
-      console.log('Received searchQuery:', variables.searchQuery); // variables.searchQuery로 접근
       setUserSuggestions({
         startIndex: variables.startIndex,
         endIndex: variables.endIndex,
@@ -257,8 +249,6 @@ const Comments = ({ docsId, workspaceId }) => {
         endIndex = spaceIndex;
       }
 
-      console.log('추출된 태그 검색어:', searchQuery);
-
       if (searchQuery) {
         findUserMutation.mutate({
           searchQuery: searchQuery,
@@ -339,8 +329,6 @@ const Comments = ({ docsId, workspaceId }) => {
         endIndex = spaceIndex;
       }
 
-      console.log('추출된 태그 검색어:', searchQuery);
-
       if (searchQuery) {
         findUserMutation.mutate({
           searchQuery: searchQuery,
@@ -384,9 +372,7 @@ const Comments = ({ docsId, workspaceId }) => {
   // 3. 수정 전송 함수
   const handleSaveEdit = () => {
     if (isConnected && editContent) {
-      console.log('수정2', editContent);
       const parsedMessage = parseEditMessage(editContent);
-      console.log(parsedMessage);
       publish(`/ws/pub/docs/${docsId}/comments`, {
         type: 'UPDATE',
         message: {
@@ -458,7 +444,6 @@ const Comments = ({ docsId, workspaceId }) => {
   // 1. 수정 버튼 -> 수정 시작 시 호출되는 함수
   const handleEditClick = () => {
     const messageToEdit = messages.find((msg) => msg.commentId === selectedMessageId);
-    console.log(messageToEdit);
     if (messageToEdit) {
       setEditingMessageId(selectedMessageId);
 
@@ -540,8 +525,6 @@ const Comments = ({ docsId, workspaceId }) => {
       console.error('이벤트 또는 이벤트 타겟이 정의되지 않았습니다.');
       return;
     }
-
-    console.log('정보 뜰 준비 완!');
 
     const targetElement = e.target;
 
