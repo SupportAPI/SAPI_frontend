@@ -5,6 +5,10 @@ import com.seniorcenter.sapi.domain.api.domain.enums.AttributeType;
 public record ApiIdKeyValueResponseDto(
         Long id,
         AttributeType type,
-        String value
+        String value,
+        Long userId
 ) {
+    public ApiIdKeyValueResponseDto(Long id, AttributeType type, String value){
+        this(id, type, value, null);
+    }
 }

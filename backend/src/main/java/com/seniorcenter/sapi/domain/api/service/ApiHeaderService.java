@@ -11,6 +11,7 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdResponseD
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdKeyValueResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
+import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.utils.RedisUtil;
@@ -52,14 +53,14 @@ public class ApiHeaderService {
         return new ApiIdResponseDto(apiHeader.getId());
     }
 
-    public ApiIdKeyValueResponseDto updateApiHeader(ApiMessage message, UUID apiId) {
+    public ApiIdKeyValueResponseDto updateApiHeader(ApiMessage message, UUID apiId, User user) {
         Api api = apiRepository.findById(apiId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
 
         UpdateIdKeyValueRequestDto updateIdKeyValueRequestDto = keyValueUtils.update(message);
         ApiHeader apiHeader = apiHeaderRepository.findById(updateIdKeyValueRequestDto.id())
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_HEADER));
-        return new ApiIdKeyValueResponseDto(apiHeader.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value());
+        return new ApiIdKeyValueResponseDto(apiHeader.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value(), user.getId());
     }
 
     public void updateDBApiHeader(ApiMessage message, UUID workspaceId) {
