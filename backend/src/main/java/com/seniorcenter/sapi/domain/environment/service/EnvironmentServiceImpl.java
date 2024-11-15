@@ -137,7 +137,8 @@ public class EnvironmentServiceImpl implements EnvironmentService {
 		Environment environment = environmentRepository.findById(environmentId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_ENVIRONMENT));
 
-		if (environmentRepository.existsByEnvironmentCategoryAndVariable(environment.getEnvironmentCategory(), requestDto.variable())) {
+		if (environmentRepository.existsByEnvironmentCategoryAndVariableAndIdNot(environment.getEnvironmentCategory(),
+			requestDto.variable(), environmentId)) {
 			throw new MainException(CustomException.DUPLICATE_VARIABLE_IN_CATEGORY);
 		}
 

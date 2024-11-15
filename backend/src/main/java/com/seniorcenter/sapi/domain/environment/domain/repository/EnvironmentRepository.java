@@ -6,5 +6,5 @@ import com.seniorcenter.sapi.domain.environment.domain.Environment;
 import com.seniorcenter.sapi.domain.environment.domain.EnvironmentCategory;
 
 public interface EnvironmentRepository extends JpaRepository<Environment, Long> {
-	boolean existsByEnvironmentCategoryAndVariable(EnvironmentCategory environmentCategory, String variable);
+	boolean existsByEnvironmentCategoryAndVariableAndIdNot(EnvironmentCategory environmentCategory, String variable, Long id);
 }
