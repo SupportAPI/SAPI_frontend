@@ -11,7 +11,7 @@ import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
 import { useTabStore } from '../../stores/useTabStore';
 import { useTestStore } from '../../stores/useTestStore';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { useFetchApiDetail, patchApiDetail, requestApiTest } from '../../api/queries/useApiTestQueries';
+import { useFetchApiDetail, patchApiDetail, useRequestApiTestDetail } from '../../api/queries/useApiTestQueries';
 import { toast } from 'react-toastify';
 import { useMutation } from 'react-query';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
@@ -28,7 +28,6 @@ const ApiTestDetail = () => {
   const [activeTabContent, setActiveTabContent] = useState(null); // 기본 탭을 'Parameters'로 설정
   const [activeTabResult, setActiveTabResult] = useState('Body'); // 기본 탭을 'Parameters'로 설정
   const [copySuccess, setCopySuccess] = useState(false); // 복사 성공 여부 상태 추가
-  const [localHost, setLocalHost] = useState(null);
   const [urlType, setUrlType] = useState('Server');
   const [showUrlDropdown, setShowUrlDropdown] = useState(false);
   const { environment } = useEnvironmentStore();
@@ -43,20 +42,14 @@ const ApiTestDetail = () => {
 
   const location = useLocation();
 
+  const { mutate: requestApiTest } = useRequestApiTestDetail(setTestResult);
+
   const editApiTestDetailsMutation = useMutation((api) => patchApiDetail(workspaceId, apiId, api), {
     onSuccess: (response) => {
       console.log('저장 성공!');
       refetch();
     },
     onError: (error) => console.error('저장 실패!', error),
-  });
-
-  const requestApiTestMutation = useMutation((apiTestInfo) => requestApiTest(workspaceId, apiTestInfo), {
-    onSuccess: (response) => {
-      setTestResult(response);
-      console.log('테스트 완료', response);
-    },
-    onError: (error) => console.error('실패!', error),
   });
 
   useEffect(() => {
@@ -346,24 +339,18 @@ const ApiTestDetail = () => {
 
       // 환경 변수로 대체하는 함수
       const parseTemplateStrings = (data) => {
-        console.log(data);
         // 주어진 데이터가 객체일 때 재귀적으로 파싱
         if (typeof data === 'object' && data !== null) {
           for (const key in data) {
-            console.log('ddd1', key);
             data[key] = parseTemplateStrings(data[key]);
-            console.log('ddd2', data[key]);
           }
           return data;
         }
 
-        console.log(environment);
         // 주어진 데이터가 문자열일 때 템플릿 형식(`{{variable}}`)을 찾아 대체
         if (typeof data === 'string') {
-          console.log('들어왔어요');
           return data.replace(/{{(.*?)}}/g, (match, variable) => {
             const envVar = environment.find((env) => env.variable === variable);
-            console.log(envVar);
             return envVar ? envVar.value : match; // 변수 값이 없으면 원본 유지
           });
         }
@@ -373,8 +360,9 @@ const ApiTestDetail = () => {
 
       // transformData를 환경 변수로 파싱한 후 requestApiTestMutation 호출
       const parsedData = parseTemplateStrings(transformData);
-      console.log('Parsed Data:', parsedData);
-      requestApiTestMutation.mutate(parsedData);
+      const urlToUse = urlType === 'Server' ? null : testUrl;
+
+      requestApiTest({ workspaceId, apiDetail: parsedData, apiUrl: urlToUse });
     }
   };
 
