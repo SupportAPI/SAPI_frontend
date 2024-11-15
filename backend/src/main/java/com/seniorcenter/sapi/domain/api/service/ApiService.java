@@ -101,7 +101,7 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
             result = apiCookieService.removeApiCookie(message, workspaceId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
-            result = apiHeaderService.removeApiHeader(message, workspaceId);
+            result = apiHeaderService.removeApiHeader(message, apiId);
         } else if (message.apiType().equals(ApiType.OCCUPATION)) {
             result = occupationService.removeOccupaction(workspaceId, message);
         } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
