@@ -104,7 +104,7 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
         return;
       }
 
-      console.log(Environment);
+      console.log(environment);
       const searchValue = firstSpaceIndex === -1 ? afterStart : afterStart.slice(0, firstSpaceIndex);
       console.log('검색어', searchValue);
       const filteredEnvironments = environment?.filter((env) => env.variable.includes(searchValue)) || [];
