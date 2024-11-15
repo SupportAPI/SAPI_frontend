@@ -73,8 +73,8 @@ public class MembershipController {
 	}
 
 	@PatchMapping("/{membershipId}/color")
-	public void updateMembershipAuthority(@PathVariable Long membershipId,
-										  @RequestBody UpdateMembershipColorRequestDto updateMembershipAuthorityRequestDto) {
+	public void updateMembershipColor(@PathVariable Long membershipId,
+									  @RequestBody UpdateMembershipColorRequestDto updateMembershipAuthorityRequestDto) {
 		membershipService.updateMembershipColor(updateMembershipAuthorityRequestDto, membershipId);
 	}
 

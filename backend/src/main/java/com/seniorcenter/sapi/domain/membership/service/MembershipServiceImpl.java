@@ -6,10 +6,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.seniorcenter.sapi.domain.membership.domain.Color;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.Permission;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMembershipColorRequestDto;
-
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,23 +59,23 @@ public class MembershipServiceImpl implements MembershipService {
 		// 	throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
 		// }
 
-		List<Membership> memberships = new ArrayList<>();
-		for (Long userId : requestDto.userIds()) {
-			if (user.getId().equals(userId)) {
-				throw new MainException(CustomException.NOT_ALLOWED_INVITE_SELF);
-			}
-			Optional<Membership> existingMembership = membershipRepository.findByUserIdAndWorkspaceId(userId,
-				requestDto.workspaceId());
-			if (existingMembership.isEmpty()) {
-				User invitedUser = userUtils.getUserById(userId);
-				Membership membership = Membership.createMembership(invitedUser, workspace, Role.MEMBER,
-					InviteStatus.PENDING, "#808080");
-				memberships.add(membership);
-				sseUtils.send(invitedUser, workspaceId, workspaceId, NotificationType.WORKSPACE_INVITE);
-			}
-		}
-		membershipRepository.saveAll(memberships);
-	}
+        List<Membership> memberships = new ArrayList<>();
+        for (Long userId : requestDto.userIds()) {
+            if (user.getId().equals(userId)) {
+                throw new MainException(CustomException.NOT_ALLOWED_INVITE_SELF);
+            }
+            Optional<Membership> existingMembership = membershipRepository.findByUserIdAndWorkspaceId(userId,
+                    requestDto.workspaceId());
+            if (existingMembership.isEmpty()) {
+                User invitedUser = userUtils.getUserById(userId);
+                Membership membership = Membership.createMembership(invitedUser, workspace, Role.MEMBER,
+                        InviteStatus.PENDING, getColor(workspaceId));
+                memberships.add(membership);
+                sseUtils.send(invitedUser, workspaceId, workspaceId, NotificationType.WORKSPACE_INVITE);
+            }
+        }
+        membershipRepository.saveAll(memberships);
+    }
 
 	@Override
 	@Transactional
@@ -155,8 +154,8 @@ public class MembershipServiceImpl implements MembershipService {
 			throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
 		}
 
-		updatedMembership.updateColor(requestDto.color());
-	}
+        updatedMembership.updateColor(Color.valueOf(requestDto.color()));
+    }
 
 	@Override
 	public List<MemberInfoResponseDto> getMembershipsAtWorkspace(UUID workspaceId) {
@@ -247,5 +246,14 @@ public class MembershipServiceImpl implements MembershipService {
 
 		membershipRepository.delete(membership);
 	}
+
+    public Color getColor(UUID workspaceId) {
+        for (Color color : Color.values()) {
+            if (!membershipRepository.existsByWorkspaceIdAndColor(workspaceId, color)) {
+                return color;
+            }
+        }
+        throw new MainException(CustomException.NOT_FOUND_COLOR);
+    }
 
 }
