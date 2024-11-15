@@ -192,7 +192,7 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
                   className='w-full text-sm border p-1 text-center'
                 />
                 {showDropdown[index] && (
-                  <div className='w-[58%] absolute left-[40%] right-0 bg-white border border-gray-300 mt-1 z-10'>
+                  <div className='w-[20%] absolute left-[40%] right-0 bg-white border border-gray-300 mt-1 z-10'>
                     {envDropdown.map((env, i) => (
                       <div
                         key={i}
@@ -200,6 +200,19 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
                         className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
                       >
                         {env.variable}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {showDropdown[index] && (
+                  <div className='w-[38%] absolute left-[60%] right-0 bg-white border border-gray-300 mt-1 z-10'>
+                    {envDropdown.map((env, i) => (
+                      <div
+                        key={i}
+                        onClick={() => handleEnvironmentSelect(env.variable, index, type)}
+                        className='p-2 text-sm hover:bg-gray-100 cursor-pointer flex flex-col'
+                      >
+                        <div>{env.value}</div>
                       </div>
                     ))}
                   </div>
