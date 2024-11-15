@@ -17,6 +17,14 @@ const SettingWorkspace = () => {
 
   const { mutate } = useModifiedWorkspace();
 
+  // 각 오류 메시지 상태 관리
+  const [isShowNameError, setShowNameError] = useState(false);
+  const [isShowDomainError, setShowDomainError] = useState(false);
+  const [isShowDescriptionError, setShowDescriptionError] = useState(false);
+  const [nameErrorMessage, setNameErrorMessage] = useState('프로젝트 이름을 입력해주세요.');
+  const [domainErrorMessage, setDomainErrorMessage] = useState('도메인 주소를 입력해주세요.');
+  const descriptionErrorMessage = '최대 255글자까지 입력 가능합니다.';
+
   useEffect(() => {
     if (workspacedetail) {
       setProjectName(workspacedetail.projectName);
@@ -29,21 +37,39 @@ const SettingWorkspace = () => {
   }, [workspacedetail]);
 
   const handleSave = () => {
-    mutate(
-      {
-        workspaceId: currentWorkspaceId,
-        mainImage: mainImage || '', // 파일이 없으면 null 전송
-        projectName,
-        domain,
-        description,
-        isCompleted,
-      },
-      {
-        onSuccess: () => {
-          refetch();
+    if (projectName && domain && projectName.length <= 30 && domain.length <= 255 && description.length <= 255) {
+      mutate(
+        {
+          workspaceId: currentWorkspaceId,
+          mainImage: mainImage || '', // 파일이 없으면 null 전송
+          projectName,
+          domain,
+          description,
+          isCompleted,
         },
+        {
+          onSuccess: () => {
+            refetch();
+          },
+        }
+      );
+    } else {
+      if (!projectName) {
+        setShowNameError(true);
+      } else if (projectName.length > 30) {
+        setNameErrorMessage('최대 30글자까지 입력 가능합니다.');
+        setShowNameError(true);
       }
-    );
+
+      if (!domain) {
+        setShowDomainError(true);
+      } else if (domain.length > 255) {
+        setDomainErrorMessage('최대 255글자까지 입력 가능합니다.');
+        setShowDomainError(true);
+      }
+
+      setShowDescriptionError(description.length > 255);
+    }
   };
 
   const handleImageChange = (e) => {
@@ -53,6 +79,18 @@ const SettingWorkspace = () => {
       setPreviewImage(URL.createObjectURL(file)); // 미리보기용 URL 생성
     }
   };
+
+  useEffect(() => {
+    if (projectName) {
+      setShowNameError(false);
+    }
+    if (domain) {
+      setShowDomainError(false);
+    }
+    if (description.length < 255) {
+      setShowDescriptionError(false);
+    }
+  }, [projectName, domain, description]);
 
   return (
     <div className='m-10 dark:text-dark-text'>
@@ -77,7 +115,7 @@ const SettingWorkspace = () => {
         </div>
 
         <div className='flex flex-col w-[80%] mt-10'>
-          <div className='flex items-center mb-5'>
+          <div className='flex items-center mb-1'>
             <label className='text-xl w-[150px]'>Project :</label>
             <input
               type='text'
@@ -85,9 +123,13 @@ const SettingWorkspace = () => {
               onChange={(e) => setProjectName(e.target.value)}
               className='border-b w-full dark:bg-dark-background'
             />
+            {/* 수정 필요 */}
+          </div>
+          <div className={`${isShowNameError ? 'visible' : 'invisible'} text-red-500 ml-[120px]`}>
+            {nameErrorMessage}
           </div>
 
-          <div className='flex items-center mb-5'>
+          <div className='flex items-center mb-1'>
             <label className='text-xl w-[150px]'>Domain :</label>
             <input
               type='text'
@@ -95,15 +137,23 @@ const SettingWorkspace = () => {
               onChange={(e) => setDomain(e.target.value)}
               className='border-b w-full dark:bg-dark-background '
             />
+            {/* 수정 필요 */}
+          </div>
+          <div className={`${isShowDomainError ? 'visible' : 'invisible'} text-red-500 ml-[120px]`}>
+            {domainErrorMessage}
           </div>
 
-          <div className='flex flex-col mb-5'>
+          <div className='flex flex-col mb-1'>
             <label className='text-xl'>Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className='border p-2 w-full dark:bg-dark-background sidebar-scrollbar rounded-lg'
             ></textarea>
+            {/* 수정필요 */}
+          </div>
+          <div className={`${isShowDescriptionError ? 'visible' : 'invisible'} text-red-500 ml-[120px]`}>
+            {descriptionErrorMessage}
           </div>
           <button onClick={handleSave} className='bg-blue-500 text-white py-2 px-5 rounded-md'>
             저장
