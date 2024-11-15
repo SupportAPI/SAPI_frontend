@@ -30,7 +30,7 @@ public class Environment {
 	@JoinColumn(name = "category_id")
 	private EnvironmentCategory environmentCategory;
 
-	@Column(nullable = false)
+	@Column(nullable = false, unique = true)
 	private String variable;
 
 	@Column(nullable = false)

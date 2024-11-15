@@ -20,6 +20,9 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
 	@Query("SELECT m FROM Membership m JOIN FETCH m.user WHERE m.workspace.id = :workspaceId AND m.inviteStatus = 'ACCEPTED'")
 	List<Membership> findMembershipsWithUsersByWorkspaceId(@Param("workspaceId") UUID workspaceId);
 
+	@Query("SELECT m FROM Membership m JOIN FETCH m.user WHERE m.workspace.id = :workspaceId AND m.inviteStatus = 'PENDING'")
+	List<Membership> findPendingMembershipsWithUsersByWorkspaceId(@Param("workspaceId") UUID workspaceId);
+
 	@Query("SELECT m FROM Membership m JOIN FETCH m.workspace WHERE m.user.id = :userId AND m.inviteStatus = 'PENDING'")
 	List<Membership> findPendingMembershipsWithWorkspacesByUserId(@Param("userId") Long userId);
 }

@@ -21,6 +21,7 @@ public enum CustomException {
     NOT_ALLOWED_INVITE_SELF(400, "자신을 워크스페이스에 초대할 수 없습니다."),
     FAIL_TO_SEND_NOTIFICATION(400, "알림 전송이 실패했습니다."),
     FAIL_SECESSION_BY_MAINTAINER(400, "관리자는 워크스페이스 탈퇴가 불가합니다. 다른 멤버에게 관리자 역할을 부여해주세요."),
+    IMPOSSIBLE_REMOVE_LOCAL_ENVIRONMENT_CATEGORY(400, "Local 환경변수 카테고리는 삭제할 수 없습니다."),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     NOT_FOUND_SESSION_EXCEPTION(401, "세션이 존재하지 않습니다."),
@@ -53,6 +54,7 @@ public enum CustomException {
     /* 409 중복된 리소스 */
     EMAIL_ALREADY_VERIFIED(409, "이 이메일은 이미 인증되었습니다"),
     DUPLICATE_CATEGORY(409, "이미 존재하는 카테고리입니다."),
+    DUPLICATE_VARIABLE_IN_CATEGORY(409, "해당 환경변수 카테고리 내에 동일한 환경변수명이 있습니다."),
     /* 409 상태 충돌 */
     SPECIFICATION_CHANGED(409, "명세의 정보가 변경되었습니다."),
 
