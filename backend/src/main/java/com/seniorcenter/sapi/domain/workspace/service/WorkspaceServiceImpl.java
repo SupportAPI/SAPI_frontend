@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import com.seniorcenter.sapi.domain.category.domain.Category;
 import com.seniorcenter.sapi.domain.category.domain.repository.CategoryRepository;
+import com.seniorcenter.sapi.domain.membership.service.MembershipServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,6 +46,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 	private final S3UploadUtil s3UploadUtil;
 	private final CategoryRepository categoryRepository;
 	private final EnvironmentCategoryRepository environmentCategoryRepository;
+	private final MembershipServiceImpl membershipServiceImpl;
 
 	@Override
 	@Transactional
@@ -58,7 +60,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		Workspace workspace = Workspace.createWorkspace(requestDto, mainImageUrl);
 		workSpaceRepository.save(workspace);
 
-		Membership membership = Membership.createMembership(user, workspace, Role.MAINTAINER, InviteStatus.ACCEPTED, "#808080");
+		Membership membership = Membership.createMembership(user, workspace, Role.MAINTAINER, InviteStatus.ACCEPTED, membershipServiceImpl.getColor(workspace.getId()));
 		membership.updateAuthorityForMaintainer();
 		membershipRepository.save(membership);
 

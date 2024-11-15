@@ -42,7 +42,7 @@ public class OccupationService {
         List<OccupationResponseDto> occupationList = new ArrayList<>();
         for (Map.Entry<String, Object> entry : datas.entrySet()) {
             occupationList.add(new OccupationResponseDto(entry.getKey(), Long.parseLong(entry.getValue().toString()),
-                    user.getNickname(), user.getProfileImage(), membership.getColor()));
+                    user.getNickname(), user.getProfileImage(), membership.getColor().getColor()));
         }
         return occupationList;
     }
@@ -55,7 +55,7 @@ public class OccupationService {
 
         AddRequestDto addRequestDto = keyValueUtils.createById(message);
         redisUtil.saveData(hashKey, addRequestDto.id(), user.getId().toString());
-        return new OccupationResponseDto(addRequestDto.id(), user.getId(), user.getNickname(), user.getProfileImage(), membership.getColor());
+        return new OccupationResponseDto(addRequestDto.id(), user.getId(), user.getNickname(), user.getProfileImage(), membership.getColor().getColor());
     }
 
     public ApiStringResponseDto removeOccupaction(UUID workspaceId, ApiMessage message) {

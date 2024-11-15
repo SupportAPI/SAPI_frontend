@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.seniorcenter.sapi.domain.membership.domain.Color;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,4 +26,7 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
 	@Query("SELECT m FROM Membership m JOIN FETCH m.workspace WHERE m.user.id = :userId AND m.inviteStatus = 'PENDING'")
 	List<Membership> findPendingMembershipsWithWorkspacesByUserId(@Param("userId") Long userId);
+
+	boolean existsByWorkspaceIdAndColor(UUID workspaceId, Color color);
+
 }
