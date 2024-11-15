@@ -9,7 +9,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class DashboardDto {
+public class DashboardResponseDto {
 
 	private Long totalSpecifications;
 	private Long localSuccessCount;
