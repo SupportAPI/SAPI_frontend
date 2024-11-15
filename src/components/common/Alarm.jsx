@@ -113,13 +113,13 @@ const Alarm = () => {
     <div
       className='absolute right-0 mt-4 w-80 h-[500px] bg-white 
         border-gray-200 rounded-2xl shadow-2xl 
-        overflow-y-scroll sidebar-scrollbar transition-all duration-300 z-50 scrollbar-gutter-stable'
+        overflow-y-scroll sidebar-scrollbar transition-all duration-300 z-50 scrollbar-gutter-stable dark:bg-dark-background'
     >
       <div className='flex items-center border-b p-4 bg-[#DEEBF0] text-black font-bold text-2xl h-[70px] dark:bg-dark-background dark:text-dark-text'>
         Notifications
       </div>
 
-      <div className='min-h-70 overflow-y-auto '>
+      <div className='min-h-70 overflow-y-auto dark:bg-dark-background dark:text-dark-text'>
         {notifications.length > 0 ? (
           notifications
             .sort((a, b) => new Date(b.createdDatetime) - new Date(a.createdDatetime))

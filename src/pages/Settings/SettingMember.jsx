@@ -216,8 +216,6 @@ const SettingMember = () => {
   };
 
   // 역할 및 권한 부여 아래 쪽에 작성
-  // 역할 및 권한 부여 아래 쪽에 작성
-  // 역할 및 권한 부여 아래 쪽에 작성
   const membershipChangeMutation = useUserMembershipChange();
   const permissionChangeMutation = useUserPermissionChange();
   const [userRole, setUserRole] = useState('MEMBER');
