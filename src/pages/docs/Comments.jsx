@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { BsSend } from 'react-icons/bs';
 import { FaEllipsisH } from 'react-icons/fa';
-import { Stomp } from '@stomp/stompjs';
 import { useMutation } from 'react-query';
-import SockJS from 'sockjs-client';
+import { useWebSocket, WebSocketProvider } from '../../contexts/WebSocketContext';
 import { findComments, findIndex, findUsers } from '../../api/queries/useCommentsQueries';
 import { getToken } from '../../utils/cookies';
 import { fetchUserInfo } from '../../api/queries/useAPIUserQueries';
@@ -36,7 +35,6 @@ const Comments = ({ docsId, workspaceId }) => {
   const setRef = useRef(null);
   const deleteRef = useRef(null);
   const infoRef = useRef(null);
-  const stompClientRef = useRef(null); // stompClient를 useRef로 선언
 
   const [initIndex, setInitIndex] = useState(-1);
   const [index, setIndex] = useState(-1);
@@ -53,21 +51,25 @@ const Comments = ({ docsId, workspaceId }) => {
   const accessToken = getToken();
   const { userId } = useAuthStore();
 
+  // 소켓 관련 변수들
+  const { subscribe, publish, isConnected } = useWebSocket();
+
   // 초반 화면 렌더링 시 소켓 연결 + 최근 인덱스 불러오기
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
-    connect();
     indexMutation.mutate();
     findMyInfoMutation.mutate();
     return () => {
-      stompClientRef.current.disconnect();
       document.removeEventListener('click', handleClickOutside);
     };
   }, []);
 
   // 최근 인덱스 호출 완료 -> 코멘트들 불러오기
   useEffect(() => {
-    if (initIndex !== -1) findInitMutation.mutate();
+    if (initIndex !== -1) {
+      console.log(initIndex);
+      findInitMutation.mutate();
+    }
   }, [initIndex]);
 
   // 드롭다운 바깥 선택 시 꺼지는 함수
@@ -84,64 +86,59 @@ const Comments = ({ docsId, workspaceId }) => {
   };
 
   // 소켓 연결 함수
-  const connect = () => {
-    // accessToken을 URL에 포함
-    const socket = new SockJS(`https://k11b305.p.ssafy.io/ws/ws-stomp?accessToken=${accessToken}`);
-    stompClientRef.current = Stomp.over(socket); // stompClientRef에 STOMP client를 저장
+  useEffect(() => {
+    if (isConnected) {
+      console.log('isConnected', isConnected);
+      const subScriptionPath = `/ws/sub/docs/${docsId}/comments`;
+      console.log(subScriptionPath);
 
-    stompClientRef.current.connect(
-      {},
-      (frame) => {
-        console.log('Connected:', JSON.stringify(frame.headers));
+      const subscription = subscribe(subScriptionPath, (parsedData) => {
+        const { type, message: receivedMessage } = parsedData;
 
-        // 구독 시작
-        stompClientRef.current.subscribe(`/ws/sub/docs/${docsId}/comments`, (message) => {
-          const parsedData = JSON.parse(message.body); // message.body 파싱 한 번만 실행
-          const { type, message: receivedMessage } = parsedData;
+        console.log('드러오긴함?');
+        console.log('parsedData', parsedData);
 
-          console.log('Received data:', parsedData);
-          console.log('Message type:', type);
-
-          if (type === 'ADD') {
-            console.log('ADD 성공');
+        switch (type) {
+          case 'ADD':
             if (receivedMessage) {
               setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
             }
-          } else if (type === 'UPDATE') {
+            break;
+          case 'UPDATE':
             if (receivedMessage) {
               setMessages((prevMessages) =>
                 prevMessages.map((msg) => (msg.commentId === receivedMessage.commentId ? receivedMessage : msg))
               );
             }
-          } else if (type === 'DELETE') {
-            if (receivedMessage && receivedMessage) {
-              setMessages((prevMessages) => prevMessages.filter((msg) => msg.commentId !== receivedMessage));
+            break;
+          case 'DELETE':
+            if (receivedMessage) {
+              setMessages((prevMessages) => prevMessages.filter((msg) => msg.commentId !== receivedMessage.commentId));
             }
-          }
-        });
-      },
-      (error) => {
-        console.error('Connection error:', error);
-      }
-    );
+            break;
+          default:
+            console.warn(`Unhandled message type: ${type}`);
+        }
+      });
 
-    // 디버그 메시지 출력 설정
-    stompClientRef.current.debug = (str) => {
-      console.log(str);
-    };
-
-    // STOMP 오류 핸들링
-    stompClientRef.current.onStompError = (frame) => {
-      console.error('STOMP error:', frame);
-    };
-  };
+      // 컴포넌트 언마운트 시에만 해제되도록 설정
+      return () => {
+        if (subscription) {
+          subscription.unsubscribe();
+        }
+      };
+    }
+  }, [isConnected, docsId]); // workspaceId와 subscribe는 필요하지 않으므로 의존성 배열에서 제거
 
   // 리액트 쿼리 호출 함수들
 
   // 채팅 최근 인덱스
   const indexMutation = useMutation(() => findIndex(docsId), {
     onSuccess: (response) => {
-      if (response !== undefined) setInitIndex(response);
+      if (response !== undefined) {
+        setInitIndex(response);
+        console.log(response);
+      }
     },
 
     onError: (error) => console.error('Index fetch error:', error),
@@ -164,8 +161,6 @@ const Comments = ({ docsId, workspaceId }) => {
     },
     onError: (error) => console.error('Find comments error:', error),
   });
-
-  console.log(messages);
 
   // 유저 태그 시 유저 정보 불러오기
   const findUserMutation = useMutation(({ searchQuery, startIndex, endIndex }) => findUsers(workspaceId, searchQuery), {
@@ -306,14 +301,11 @@ const Comments = ({ docsId, workspaceId }) => {
 
   // 3. 메시지 전송 함수
   const handleSave = () => {
-    if (stompClientRef.current && stompClientRef.current.connected && sendContent) {
+    if (isConnected && sendContent) {
       const parsedMessage = parseMessage(sendContent);
-      stompClientRef.current.publish({
-        destination: `/ws/pub/docs/${docsId}/comments`,
-        body: JSON.stringify({
-          type: 'ADD',
-          message: parsedMessage,
-        }),
+      publish(`/ws/pub/docs/${docsId}/comments`, {
+        type: 'ADD',
+        message: parsedMessage,
       });
       setSendContent('');
       setInternalMessage('');
@@ -391,19 +383,16 @@ const Comments = ({ docsId, workspaceId }) => {
 
   // 3. 수정 전송 함수
   const handleSaveEdit = () => {
-    if (stompClientRef.current && stompClientRef.current.connected && editContent) {
+    if (isConnected && editContent) {
       console.log('수정2', editContent);
       const parsedMessage = parseEditMessage(editContent);
       console.log(parsedMessage);
-      stompClientRef.current.publish({
-        destination: `/ws/pub/docs/${docsId}/comments`,
-        body: JSON.stringify({
-          type: 'UPDATE',
-          message: {
-            commentId: editingMessageId,
-            message: parsedMessage,
-          },
-        }),
+      publish(`/ws/pub/docs/${docsId}/comments`, {
+        type: 'UPDATE',
+        message: {
+          commentId: editingMessageId,
+          message: parsedMessage,
+        },
       });
       setEditContent('');
       setTaggedUsers([]);
@@ -513,12 +502,9 @@ const Comments = ({ docsId, workspaceId }) => {
   const deleteComment = (e) => {
     e.stopPropagation();
     const deleteTargetId = messages.find((msg) => msg.commentId === selectedMessageId);
-    stompClientRef.current.publish({
-      destination: `/ws/pub/docs/${docsId}/comments`,
-      body: JSON.stringify({
-        type: 'DELETE',
-        message: deleteTargetId.commentId,
-      }),
+    publish(`/ws/pub/docs/${docsId}/comments`, {
+      type: 'DELETE',
+      message: deleteTargetId.commentId,
     });
     setShowDeleteModal(false);
   };
@@ -747,7 +733,7 @@ const Comments = ({ docsId, workspaceId }) => {
             >
               <img
                 className='w-[50px] h-[50px] rounded-full mr-5 ml-3 object-contain'
-                src={user.profileImage || User2}
+                src={user.profileImage || ''}
                 alt='Profile'
               />
               {user.nickname}
@@ -768,7 +754,7 @@ const Comments = ({ docsId, workspaceId }) => {
           <li key={user.userId} className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center'>
             <img
               className='w-[50px] h-[50px] rounded-full mr-5 ml-3 object-contain'
-              src={user.profileImage || User2}
+              src={user.profileImage || ''}
               alt='Profile'
             />
             {user.nickname}
