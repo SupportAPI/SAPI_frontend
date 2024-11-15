@@ -6,7 +6,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.seniorcenter.sapi.domain.membership.presentation.dto.Permission;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMembershipColorRequestDto;
+
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -165,7 +168,13 @@ public class MembershipServiceImpl implements MembershipService {
 				membership.getUser().getEmail(),
 				membership.getUser().getNickname(),
 				membership.getUser().getProfileImage(),
-				membership.getRole()
+				membership.getRole(),
+				new Permission(
+					membership.getReadAuthority(),
+					membership.getReadAuthority(),
+					membership.getUpdateAuthority(),
+					membership.getDeleteAuthority()
+				)
 			))
 			.collect(Collectors.toList());
 	}
@@ -195,7 +204,13 @@ public class MembershipServiceImpl implements MembershipService {
 				membership.getUser().getEmail(),
 				membership.getUser().getNickname(),
 				membership.getUser().getProfileImage(),
-				membership.getRole()
+				membership.getRole(),
+				new Permission(
+					membership.getReadAuthority(),
+					membership.getReadAuthority(),
+					membership.getUpdateAuthority(),
+					membership.getDeleteAuthority()
+				)
 			))
 			.collect(Collectors.toList());
 	}
