@@ -74,7 +74,7 @@ public class CategoryService {
         Category category = categoryRepository.findById(removeCategoryRequestDto.id())
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
 
-        if(!category.getWorkspace().equals(workspaceId)){
+        if (category.getWorkspace().getId().equals(workspaceId)) {
             throw new MainException(CustomException.NOT_FOUND_CATEGORY);
         }
         categoryRepository.delete(category);
@@ -83,12 +83,12 @@ public class CategoryService {
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
 
         List<Api> apis = apiRepository.findByCategory(defaultCategoryName);
-        for(Api api : apis) {
-            if(api.getSpecification().getWorkspace().equals(workspaceId)) {
+        for (Api api : apis) {
+            if (api.getSpecification().getWorkspace().getId().equals(workspaceId)) {
                 api.updateCategory(defaultCategory.getName());
             }
         }
-        
+
         return new IdValueDto(defaultCategory.getId(), defaultCategory.getName());
     }
 
