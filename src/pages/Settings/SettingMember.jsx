@@ -19,6 +19,7 @@ import {
   useWaitUserList,
   useUserMembershipChange,
   useUserPermissionChange,
+  useUserMembershipDelete,
 } from '../../api/queries/useWorkspaceQueries';
 import { toast } from 'react-toastify';
 
@@ -38,6 +39,7 @@ const SettingMember = () => {
   const { refetch } = useFetchInviteUser(useremail);
   const inviteMemberMutation = useInviteMember();
   const { data: waitUser, refetch: refetchWaitUser } = useWaitUserList(currentWorkspaceId);
+  const deleteMemberMutation = useUserMembershipDelete();
 
   const userListInWorkspace = useCallback(async () => {
     await refetchWaitUser(); // waitUser 데이터를 가져오는 로직
@@ -112,7 +114,18 @@ const SettingMember = () => {
 
   // 유저 삭제 요청
   const DeleteUser = (userId) => {
-    console.log(`${userId}를 삭제 요청하셨습니다.`);
+    deleteMemberMutation.mutate(
+      { userId, workspaceId: currentWorkspaceId },
+      {
+        onSuccess: () => {
+          toast.success('유저 삭제 성공!');
+          userListInWorkspace(); // 삭제 성공 후 userList 갱신
+        },
+        onError: () => {
+          toast.error('유저 삭제 실패. 다시 시도해주세요.');
+        },
+      }
+    );
   };
 
   // 메뉴 외부 클릭 시 닫기
@@ -171,7 +184,15 @@ const SettingMember = () => {
       workspaceId: currentWorkspaceId,
     };
 
-    inviteMemberMutation.mutate(requestData);
+    inviteMemberMutation.mutate(requestData, {
+      onSuccess: () => {
+        toast.success('유저 초대 성공!');
+        userListInWorkspace(); // 초대 성공 후 userList 갱신
+      },
+      onError: () => {
+        toast.error('유저 초대 실패. 다시 시도해주세요.');
+      },
+    });
 
     setUseremail('');
     setEmailValid(false);

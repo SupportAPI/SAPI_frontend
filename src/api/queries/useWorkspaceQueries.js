@@ -302,20 +302,7 @@ export const userMembershipDelete = async (userId, workspaceId) => {
 };
 // React Query 훅: 팀원 쫓아내기
 export const useUserMembershipDelete = () => {
-  return useMutation(({ userId, workspaceId }) => userMembershipDelete(userId, workspaceId), {
-    onSuccess: () => {
-      toast.success('유저를 내보냈습니다.'); // 성공 메시지
-    },
-    onError: (error) => {
-      if (error.response?.status === 403) {
-        toast.error('접근 불가한 요청입니다.'); // 에러 메시지
-      } else {
-        toast.error('작업 중 문제가 발생했습니다.'); // 기타 문제
-      }
-    },
-    retry: false, // 요청 실패 시 자동 재시도 비활성화
-    refetchOnWindowFocus: false, // 포커스 시 데이터 리패치 비활성화
-  });
+  return useMutation(({ userId, workspaceId }) => userMembershipDelete(userId, workspaceId));
 };
 
 // 워크스페이스 점유 상태
