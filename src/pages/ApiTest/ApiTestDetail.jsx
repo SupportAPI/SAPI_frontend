@@ -265,7 +265,12 @@ const ApiTestDetail = () => {
       const category = apiData.category;
       if (category && !expandedCategories[category]) expandCategory(category);
       if (!openTabs.find((tab) => tab.id === apiId)) {
-        addTab({ id: apiId, name: apiData.name, path: `/workspace/${workspaceId}/api-test/${apiId}` });
+        addTab({
+          id: apiId,
+          name: apiData.name,
+          path: `/workspace/${workspaceId}/api-test/${apiId}`,
+          type: 'api-test',
+        });
       }
     }
   }, [apiData, apiId, expandCategory, addTab, setMenu, expandedCategories, openTabs, location.pathname, workspaceId]);

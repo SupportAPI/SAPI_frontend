@@ -14,16 +14,16 @@ const TabBar = () => {
     navigate(tab.path);
   };
 
-  const handleTabDoubleClick = (tabId) => {
-    confirmTab(tabId);
+  const handleTabDoubleClick = (tabId, tabType) => {
+    confirmTab(tabId, tabType);
   };
 
-  const handleTabClose = (tabId) => {
-    const tabIndex = openTabs.findIndex((tab) => tab.id === tabId);
-    const isActiveTab = openTabs[tabIndex].path === currentPath;
+  const handleTabClose = (tabId, tabType) => {
+    const tabIndex = openTabs.findIndex((tab) => tab.id === tabId && tab.type === tabType);
+    const isActiveTab = openTabs[tabIndex]?.path === currentPath;
 
     // 탭을 먼저 제거
-    removeTab(tabId);
+    removeTab(tabId, tabType);
 
     // 탭이 활성화된 상태에서 닫혔다면, 다른 탭을 활성화
     if (isActiveTab) {
@@ -51,12 +51,12 @@ const TabBar = () => {
 
         return (
           <div
-            key={tab.id}
+            key={`${tab.id}-${tab.type}`} // `id`와 `type`을 조합하여 고유한 키 생성
             className={`flex items-center cursor-pointer relative px-2 h-10 dark:bg-dark-background   ${
               isActive ? 'bg-white border-t-2 border-gray-800 dark:border-white' : 'bg-gray-100 border-b'
             }`}
             onClick={() => handleTabClick(tab)}
-            onDoubleClick={() => handleTabDoubleClick(tab.id)}
+            onDoubleClick={() => handleTabDoubleClick(tab.id, tab.type)}
             style={{
               width: '150px',
               flexShrink: 0,
@@ -88,7 +88,7 @@ const TabBar = () => {
               }`}
               onClick={(e) => {
                 e.stopPropagation(); // 클릭 이벤트가 부모로 전파되지 않도록 합니다.
-                handleTabClose(tab.id);
+                handleTabClose(tab.id, tab.type);
               }}
             />
           </div>
