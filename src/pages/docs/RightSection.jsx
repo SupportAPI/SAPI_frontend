@@ -25,7 +25,7 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
   return (
     <>
       <div
-        className={`transition-width duration-300 p-8 mr-[50px] relative overflow-y-auto ${
+        className={`transition-width duration-300 p-8 mr-[50px] relative overflow-y-auto dark:bg-dark-background dark:text-dark-text ${
           activeRightTab ? 'w-[500px] min-w-[500px] max-w-[500px]' : 'w-[350px] min-w-[350px] max-w-[350px]'
         } ${activeRightTab ? 'border-l' : ''} sidebar-scrollbar h-[775px] pb-5`}
       >
@@ -63,7 +63,7 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
         )}
       </div>
 
-      <div className='absolute right-0 top-[104px] h-[calc(100vh-104px)] w-[50px] flex flex-col items-center pt-4 bg-white shadow-lg'>
+      <div className='absolute right-0 top-[104px] h-[calc(100vh-104px)] w-[50px] flex flex-col items-center pt-4 bg-white shadow-lg dark:bg-dark-background dark:text-dark-text'>
         <FiMessageSquare
           className={`cursor-pointer mb-4 ${activeRightTab === 'comment' ? 'text-blue-500' : 'text-gray-500'}`}
           size={24}

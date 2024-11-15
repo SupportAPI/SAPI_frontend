@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { FiCopy } from 'react-icons/fi';
+import { toast } from 'react-toastify';
 
 const CodeSnippet = ({ path, method, parameters, request }) => {
   const [library, setLibrary] = useState('axios'); // 기본값을 'axios'로 설정
@@ -30,24 +31,28 @@ fetch(\`\${url}/${path}\`, {
 
   const copyToClipboard = (code) => {
     navigator.clipboard.writeText(code);
-    alert('코드가 클립보드에 복사되었습니다!');
+    toast('클립보드에 복사되었습니다!');
   };
 
   return (
-    <div>
+    <div className=''>
       <h3 className='text-lg font-bold mb-4'>API 코드 스니펫</h3>
 
       {/* axios와 fetch 선택 버튼 */}
       <div className='flex items-center space-x-4 mb-6'>
         <button
           onClick={() => setLibrary('axios')}
-          className={`p-3 rounded-full ${library === 'axios' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+          className={`p-3 rounded-full ${
+            library === 'axios' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:text-black'
+          }`}
         >
           Axios
         </button>
         <button
           onClick={() => setLibrary('fetch')}
-          className={`p-3 rounded-full ${library === 'fetch' ? 'bg-green-500 text-white' : 'bg-gray-200'}`}
+          className={`p-3 rounded-full ${
+            library === 'fetch' ? 'bg-green-500 text-white' : 'bg-gray-200 dark:text-black'
+          }`}
         >
           Fetch
         </button>
@@ -57,7 +62,7 @@ fetch(\`\${url}/${path}\`, {
       <div className='mb-4 relative group'>
         <span className='text-sm font-semibold mb-2'>{library.toUpperCase()}</span>
         <div
-          className='border border-gray-300 rounded-md p-4 relative'
+          className='border border-gray-300 rounded-md p-4 relative bg-white'
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <Editor
