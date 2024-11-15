@@ -9,10 +9,12 @@ import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useSidebarStore } from '../../stores/useSidebarStore';
 import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
 import { useTabStore } from '../../stores/useTabStore';
+import { useTestStore } from '../../stores/useTestStore';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useFetchApiDetail, patchApiDetail, requestApiTest } from '../../api/queries/useApiTestQueries';
 import { toast } from 'react-toastify';
 import { useMutation } from 'react-query';
+import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 
 const ApiTestDetail = () => {
   const { workspaceId, apiId } = useParams();
@@ -26,11 +28,15 @@ const ApiTestDetail = () => {
   const [activeTabContent, setActiveTabContent] = useState(null); // 기본 탭을 'Parameters'로 설정
   const [activeTabResult, setActiveTabResult] = useState('Body'); // 기본 탭을 'Parameters'로 설정
   const [copySuccess, setCopySuccess] = useState(false); // 복사 성공 여부 상태 추가
+  const [localHost, setLocalHost] = useState(null);
+  const [urlType, setUrlType] = useState('Server');
+  const [showUrlDropdown, setShowUrlDropdown] = useState(false);
   const { environment } = useEnvironmentStore();
 
   const { expandedCategories, expandCategory } = useSidebarStore();
   const { addTab, openTabs, removeTab } = useTabStore();
   const { setMenu } = useNavbarStore();
+  const { testUrl, setTestUrl } = useTestStore();
 
   const [renderApi, setRenderApi] = useState(false);
   const [renderInfo, setRenderInfo] = useState(false);
@@ -61,6 +67,15 @@ const ApiTestDetail = () => {
       refetch();
     }
   }, [apiId, workspaceId, location.pathname, refetch]); // apiId 또는 경로가 변경될 때마다 refetch 호출
+
+  const handleUrlSelect = (selectedUrl) => {
+    setUrlType(selectedUrl);
+    setShowUrlDropdown(false);
+  };
+
+  const handleInputChange = (e) => {
+    setTestUrl(e.target.value);
+  };
 
   useEffect(() => {
     if (apiInfo && (!apiDetail || JSON.stringify(apiDetail) !== JSON.stringify(apiInfo))) {
@@ -382,7 +397,52 @@ const ApiTestDetail = () => {
                   </div>
                 </div>
               </div>
-              <div className='flex'>
+              <div className='flex mr-2'>
+                <div className='relative'>
+                  <div className='w-[450px] flex flex-row '>
+                    <button
+                      className={`w-[160px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center hover:bg-[#4B5569]`}
+                      onClick={() => {
+                        setShowUrlDropdown((prev) => !prev);
+                      }}
+                    >
+                      <div className='flex justify-between items-center pr-1 pl-4'>
+                        <span>{urlType}</span>
+                        {showUrlDropdown ? (
+                          <RiArrowDropDownLine className='text-2xl' />
+                        ) : (
+                          <RiArrowDropUpLine className='text-2xl' />
+                        )}
+                      </div>
+                    </button>
+                    <input
+                      type='text'
+                      value={urlType === 'Server' ? '' : testUrl}
+                      disabled={urlType === 'Server'}
+                      onChange={(e) => handleInputChange(e)}
+                      placeholder={urlType === 'Server' ? '서버 URL 입력 불가' : '로컬 호스트 URL을 입력하세요'}
+                      className={`w-full text-sm border p-1 text-center rounded-lg ${
+                        urlType === 'Server' ? 'bg-[#F0F5F8] cursor-not-allowed' : 'bg-white'
+                      }`}
+                    />
+                  </div>
+                  {showUrlDropdown && (
+                    <div
+                      className='absolute bg-white border-2 mt-1 rounded shadow-md z-10 text-center'
+                      style={{ top: '100%', left: 0, width: '115px' }}
+                    >
+                      {['Server', 'Local'].map((url) => (
+                        <div
+                          key={url}
+                          className={`px-4 py-2 cursor-pointer hover:bg-gray-200`}
+                          onClick={() => handleUrlSelect(url)}
+                        >
+                          {url}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {/* <button className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'>
                   <div className='flex items-center'>
                     <RiArrowDropDownLine className='text-xl' />
@@ -390,13 +450,13 @@ const ApiTestDetail = () => {
                   </div>
                 </button> */}
                 <button
-                  className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white mr-4 text-center'
+                  className='w-[80px] border p-3 rounded-lg bg-[#2D3648] text-white ml-4 mr-4 text-center hover:bg-[#4B5569]'
                   onClick={handleApiTest}
                 >
                   TEST
                 </button>
                 <button
-                  className='flex justify-center items-center w-[50px] border p-3 rounded-lg bg-[#2D3648] text-white'
+                  className='flex justify-center items-center w-[50px] border p-3 rounded-lg bg-[#2D3648] text-white  hover:bg-[#4B5569]'
                   onClick={handleEditApi}
                 >
                   <FaSave />
