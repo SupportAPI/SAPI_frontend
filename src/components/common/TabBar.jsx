@@ -1,6 +1,6 @@
 import { useTabStore } from '../../stores/useTabStore';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { FaFileAlt, FaTimes } from 'react-icons/fa';
+import { FaBook, FaTimes, FaFlask, FaTachometerAlt, FaListAlt } from 'react-icons/fa';
 
 const TabBar = () => {
   const { openTabs, confirmTab, removeTab } = useTabStore();
@@ -44,6 +44,23 @@ const TabBar = () => {
     }
   };
 
+  const renderTabIcon = (type, isActive) => {
+    const iconClasses = `mr-2 flex-shrink-0 ${
+      isActive ? 'text-gray-800 dark:text-dark-text' : 'text-gray-500 dark:text-gray-500'
+    }`;
+
+    switch (type) {
+      case 'apidocs':
+        return <FaBook className={iconClasses} />;
+      case 'api-test':
+        return <FaFlask className={iconClasses} />;
+      case 'dashboard':
+        return <FaTachometerAlt className={iconClasses} />;
+      default:
+        return <FaListAlt className={iconClasses} />;
+    }
+  };
+
   return (
     <div className='flex bg-white dark:bg-dark-background border-b h-10'>
       {openTabs.map((tab) => {
@@ -65,11 +82,7 @@ const TabBar = () => {
               borderBottom: isActive ? '0' : '',
             }}
           >
-            <FaFileAlt
-              className={`mr-2 flex-shrink-0 ${
-                isActive ? 'text-gray-800 dark:text-dark-text' : 'text-gray-500 dark:text-gray-500'
-              }`}
-            />
+            {renderTabIcon(tab.type, isActive)}
             <span
               className={`flex-1 overflow-hidden text-ellipsis ${
                 isActive ? 'font-bold text-gray-800 dark:text-dark-text' : 'text-gray-600 dark:text-gray-500'

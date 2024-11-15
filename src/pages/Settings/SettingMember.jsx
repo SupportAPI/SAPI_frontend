@@ -1,5 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { MdOutlineMail } from 'react-icons/md';
+import {
+  MdOutlineMail,
+  MdArrowDropDown,
+  MdArrowDropUp,
+  MdOutlineCheckBox,
+  MdOutlineCheckBoxOutlineBlank,
+} from 'react-icons/md';
 import { SlOptions } from 'react-icons/sl';
 import { useParams } from 'react-router-dom';
 import { useCallback } from 'react';
@@ -11,7 +17,10 @@ import {
   useUserInfo,
   useFetchAutoUserSearch,
   useWaitUserList,
+  useUserMembershipChange,
+  useUserPermissionChange,
 } from '../../api/queries/useWorkspaceQueries';
+import { toast } from 'react-toastify';
 
 const SettingMember = () => {
   const userId = useAuthStore((state) => state.userId);
@@ -22,6 +31,7 @@ const SettingMember = () => {
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const modalRef = useRef();
   const buttonRef = useRef(null);
+
   const { workspaceId: currentWorkspaceId } = useParams();
   const { data: userInfo } = useUserInfo(userId);
   const [userList, setUserList] = useState([]);
@@ -65,7 +75,6 @@ const SettingMember = () => {
       updateModalPosition();
     }
   };
-
   // 스크롤 및 리사이즈에 따라 모달 위치 업데이트 함수
   const updateModalPosition = () => {
     if (buttonRef.current) {
@@ -76,11 +85,29 @@ const SettingMember = () => {
       });
     }
   };
+  const [PermissionId, setPermissionId] = useState(null);
+  const [permissionPosition, setPermissionPosition] = useState({ top: 0, left: 0 });
+  const permissionRef = useRef();
+  const pbuttonRef = useRef(null);
 
-  // 유저 권한 수정 요청
-  const ChangeDevelopAuth = (userId) => {
-    console.log(userId);
-    console.log('권한 수정을 요청했습니다.');
+  const togglePermission = (index, e) => {
+    if (PermissionId === index) {
+      setPermissionId(null);
+    } else {
+      setPermissionId(index);
+      pbuttonRef.current = e.target;
+      updatePermissionPosition();
+    }
+  };
+
+  const updatePermissionPosition = () => {
+    if (pbuttonRef.current) {
+      const posi = pbuttonRef.current.getBoundingClientRect();
+      setPermissionPosition({
+        top: posi.top + window.scrollY + 30,
+        left: posi.left + window.scrollX + 5,
+      });
+    }
   };
 
   // 유저 삭제 요청
@@ -165,6 +192,7 @@ const SettingMember = () => {
   const handleAutoCompleteClick = (email) => {
     setUseremail(email);
     setShowAutoList(false);
+    refetchWaitUser();
   };
 
   const renderAutoCompleteList = () => {
@@ -185,6 +213,65 @@ const SettingMember = () => {
         </div>
       </div>
     ));
+  };
+
+  // 역할 및 권한 부여 아래 쪽에 작성
+  // 역할 및 권한 부여 아래 쪽에 작성
+  // 역할 및 권한 부여 아래 쪽에 작성
+  const membershipChangeMutation = useUserMembershipChange();
+  const permissionChangeMutation = useUserPermissionChange();
+  const [userRole, setUserRole] = useState('MEMBER');
+  const [userPermission, setUserPermission] = useState({
+    readAuthority: true,
+    updateAuthority: false,
+    saveAuthority: false,
+    deleteAuthority: false,
+  });
+
+  // 권한 변경 함수
+  const toggleUserPermission = (permissionKey) => {
+    setUserPermission((prev) => ({
+      ...prev,
+      [permissionKey]: !prev[permissionKey], // 현재 값의 반대로 설정
+    }));
+  };
+
+  const permissionSave = (membershipId) => {
+    membershipChangeMutation.mutate(
+      { membershipId, role: userRole }, // 첫 번째 역할 변경 API 호출
+      {
+        onSuccess: () => {
+          if (userRole != 'MAINTAINER') {
+            // 역할 변경 성공 후 권한 변경 API 호출
+            permissionChangeMutation.mutate(
+              { membershipId, permission: userPermission }, // 두 번째 권한 변경 API 호출
+              {
+                onSuccess: () => {
+                  userListInWorkspace(); // 목록 갱신
+                  toast('변경이 완료되었습니다.');
+                },
+                onError: (error) => {
+                  console.error('권한 변경 실패:', error);
+                  userListInWorkspace(); // 목록 갱신
+                  toast('변경에 실패하였습니다.');
+                },
+              }
+            );
+          } else {
+            userListInWorkspace(); // 목록 갱신
+            toast('변경이 완료되었습니다.');
+          }
+        },
+
+        onError: (error) => {
+          console.error('역할 변경 실패:', error); // 에러 로깅
+          userListInWorkspace(); // 목록 갱신
+          toast('변경에 실패하였습니다.'); // 실패 메시지
+        },
+      }
+    );
+    setPermissionId(null); // 모달 닫기
+    userListInWorkspace(); // 목록 갱신
   };
 
   return (
@@ -245,7 +332,156 @@ const SettingMember = () => {
                       </td>
                       <td className='border-b truncate w-[90px]'>{user.nickname}</td>
                       <td className='border-b truncate min-w-[120px] max-w-[120px] pr-3'>{user.email}</td>
-                      <td className='border-b truncate min-w-[120px] max-w-[120px] pr-3'>MainTainer _</td>
+                      <td
+                        className='border-b truncate min-w-[120px] max-w-[120px] pr-3'
+                        onMouseLeave={() => setPermissionId(null)}
+                      >
+                        <button
+                          className='w-[150px] p-3 border rounded-lg flex justify-around items-center'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePermission(index, e);
+                            setUserPermission(user.permission);
+                            setUserRole(user.role);
+                          }}
+                        >
+                          {user.role} {PermissionId ? <MdArrowDropUp /> : <MdArrowDropDown />}
+                        </button>
+                        {PermissionId === index && (
+                          <div
+                            ref={permissionRef}
+                            style={{
+                              position: 'absolute',
+                              top: permissionPosition.top,
+                              left: permissionPosition.left,
+                            }}
+                            className='bg-white rounded-lg shadow-lg z-10'
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className='flex flex-col p-4 bg-white dark:bg-dark-background rounded-lg justify-around'>
+                              <div className='flex justify-between w-[260px]'>
+                                {/* 역할 부여 */}
+                                <div className='flex flex-col w-[120px] justify-between'>
+                                  <button
+                                    className={`rounded-lg h-10 ${
+                                      userRole === 'MEMBER' ? 'bg-blue-300 text-white' : ''
+                                    }`}
+                                    onClick={() => {
+                                      setUserRole('MEMBER');
+                                    }}
+                                  >
+                                    MEMBER
+                                  </button>
+                                  <button
+                                    className={`rounded-lg h-10 ${
+                                      userRole === 'MANAGER' ? 'bg-blue-300 text-white' : ''
+                                    }`}
+                                    onClick={() => {
+                                      setUserRole('MANAGER');
+                                    }}
+                                  >
+                                    MANAGER
+                                  </button>
+                                  <button
+                                    className={`rounded-lg h-10 ${
+                                      userRole === 'MAINTAINER' ? 'bg-blue-300 text-white' : ''
+                                    }`}
+                                    onClick={() => {
+                                      setUserRole('MAINTAINER');
+                                    }}
+                                  >
+                                    MAINTAINER
+                                  </button>
+                                </div>
+
+                                <div className='border'></div>
+
+                                {/* 권한 부여 */}
+                                <div
+                                  className={`flex flex-col w-[120px] justify-between rounded-lg items-center ${
+                                    userRole === 'MAINTAINER' ? 'bg-gray-100 opacity-70 pointer-events-none' : ''
+                                  }`}
+                                >
+                                  <button
+                                    onClick={() => {
+                                      if (userRole !== 'MAINTAINER') {
+                                        toggleUserPermission('updateAuthority');
+                                      }
+                                    }}
+                                    className={`flex justify-center items-center w-full rounded-lg h-10 ${
+                                      userRole === 'MAINTAINER'
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' // MAINTAINER 상태일 때 스타일
+                                        : userPermission.updateAuthority
+                                        ? 'bg-green-500 text-white' // updateAuthority 활성화 상태
+                                        : ''
+                                    }`}
+                                    disabled={userRole === 'MAINTAINER'} // MAINTAINER 상태에서 버튼 비활성화
+                                  >
+                                    {userPermission.updateAuthority ? (
+                                      <MdOutlineCheckBox />
+                                    ) : (
+                                      <MdOutlineCheckBoxOutlineBlank />
+                                    )}
+                                    <div className='ml-2'>수정 권한</div>
+                                  </button>
+
+                                  <button
+                                    onClick={() => {
+                                      if (userRole !== 'MAINTAINER') {
+                                        toggleUserPermission('saveAuthority');
+                                      }
+                                    }}
+                                    className={`flex justify-center items-center w-full rounded-lg h-10 ${
+                                      userRole === 'MAINTAINER'
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' // MAINTAINER 상태일 때 스타일
+                                        : userPermission.saveAuthority
+                                        ? 'bg-green-500 text-white' // saveAuthority 활성화 상태
+                                        : ''
+                                    }`}
+                                    disabled={userRole === 'MAINTAINER'} // MAINTAINER 상태에서 버튼 비활성화
+                                  >
+                                    {userPermission.saveAuthority ? (
+                                      <MdOutlineCheckBox />
+                                    ) : (
+                                      <MdOutlineCheckBoxOutlineBlank />
+                                    )}
+                                    <div className='ml-2'>저장 권한</div>
+                                  </button>
+
+                                  <button
+                                    onClick={() => {
+                                      if (userRole !== 'MAINTAINER') {
+                                        toggleUserPermission('deleteAuthority');
+                                      }
+                                    }}
+                                    className={`flex justify-center items-center w-full rounded-lg h-10 ${
+                                      userRole === 'MAINTAINER'
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' // MAINTAINER 상태일 때 스타일
+                                        : userPermission.deleteAuthority
+                                        ? 'bg-green-500 text-white' // deleteAuthority 활성화 상태
+                                        : ''
+                                    }`}
+                                    disabled={userRole === 'MAINTAINER'} // MAINTAINER 상태에서 버튼 비활성화
+                                  >
+                                    {userPermission.deleteAuthority ? (
+                                      <MdOutlineCheckBox />
+                                    ) : (
+                                      <MdOutlineCheckBoxOutlineBlank />
+                                    )}
+                                    <div className='ml-2'>삭제 권한</div>
+                                  </button>
+                                </div>
+                              </div>
+                              <button
+                                className='border p-2 mt-2 rounded-lg bg-green-500 hover:bg-green-600 text-white'
+                                onClick={() => permissionSave(user.membershipId)}
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </td>
                       <td className='border-b pr-3' onMouseLeave={() => setDevelopAuthId(null)}>
                         <div className='option-button opacity-0 transition-opacity duration-200'>
                           <button
@@ -269,16 +505,10 @@ const SettingMember = () => {
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
-                              className='w-full rounded-t-lg text-left px-4 py-2 hover:bg-blue-100 dark:bg-dark-background dark:hover:bg-gray-600 dark:text-dark-text'
-                              onClick={() => ChangeDevelopAuth(user.userId)}
-                            >
-                              권한 수정
-                            </button>
-                            <button
                               className='w-full rounded-b-lg text-left px-4 py-2 hover:bg-red-100 text-red-500 dark:bg-dark-background dark:hover:bg-gray-600'
                               onClick={() => DeleteUser(user.userId)}
                             >
-                              삭제
+                              내보내기
                             </button>
                           </div>
                         )}

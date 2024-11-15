@@ -261,6 +261,63 @@ export const useWaitUserList = (workspaceId) => {
   });
 };
 
+// 13. 팀원 역할 수정
+export const userMembershipChange = async (membershipId, role) => {
+  await axiosInstance.patch(
+    `/api/memberships/${membershipId}/role`,
+    { role }, // 바디에 역할 전달
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+};
+// React Query 훅: 팀원 역할 수정
+export const useUserMembershipChange = () => {
+  return useMutation(({ membershipId, role }) => userMembershipChange(membershipId, role));
+};
+
+// 14. 팀원 권한 수정
+export const userPermissionChange = async (membershipId, permission) => {
+  console.log(membershipId);
+  console.log(membershipId);
+  console.log(permission);
+  console.log(permission);
+  await axiosInstance.patch(`/api/memberships/${membershipId}/authority`, permission, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+};
+// React Query 훅: 팀원 역할 수정
+export const useUserPermissionChange = () => {
+  return useMutation(({ membershipId, permission }) => userPermissionChange(membershipId, permission));
+};
+
+// 15. 워크스페이스에서 내보내기 (쫓아내기)
+export const userMembershipDelete = async (userId, workspaceId) => {
+  const response = await axiosInstance.delete(`/api/memberships/exile?userId=${userId}&workspaceId=${workspaceId}`);
+  return response.data.data;
+};
+// React Query 훅: 팀원 쫓아내기
+export const useUserMembershipDelete = () => {
+  return useMutation(({ userId, workspaceId }) => userMembershipDelete(userId, workspaceId), {
+    onSuccess: () => {
+      toast.success('유저를 내보냈습니다.'); // 성공 메시지
+    },
+    onError: (error) => {
+      if (error.response?.status === 403) {
+        toast.error('접근 불가한 요청입니다.'); // 에러 메시지
+      } else {
+        toast.error('작업 중 문제가 발생했습니다.'); // 기타 문제
+      }
+    },
+    retry: false, // 요청 실패 시 자동 재시도 비활성화
+    refetchOnWindowFocus: false, // 포커스 시 데이터 리패치 비활성화
+  });
+};
+
 // 워크스페이스 점유 상태
 export const fetchOccupationState = async (workspaceId) => {
   const response = await axiosInstance.get(`/api/workspaces/${workspaceId}/occupations`);
