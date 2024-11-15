@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.seniorcenter.sapi.domain.environment.domain.EnvironmentCategory;
+import com.seniorcenter.sapi.domain.environment.domain.repository.EnvironmentCategoryRepository;
+import com.seniorcenter.sapi.domain.environment.presentation.dto.request.CreateEnvironmentCategoryRequestDto;
 import com.seniorcenter.sapi.domain.membership.domain.InviteStatus;
 import com.seniorcenter.sapi.domain.membership.domain.Membership;
 import com.seniorcenter.sapi.domain.membership.domain.Role;
@@ -41,6 +44,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 	private final UserUtils userUtils;
 	private final S3UploadUtil s3UploadUtil;
 	private final CategoryRepository categoryRepository;
+	private final EnvironmentCategoryRepository environmentCategoryRepository;
 
 	@Override
 	@Transactional
@@ -60,6 +64,12 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
 		Category category = Category.createCategory("미설정",workspace);
 		categoryRepository.save(category);
+
+		CreateEnvironmentCategoryRequestDto environmentCategoryRequestDto =
+			new CreateEnvironmentCategoryRequestDto(workspace.getId(), "Local");
+		EnvironmentCategory environmentCategory =
+			EnvironmentCategory.createEnvironmentCategory(workspace, environmentCategoryRequestDto);
+		environmentCategoryRepository.save(environmentCategory);
 
 		return new WorkspaceInfoResponseDto(workspace.getId(),
 			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
