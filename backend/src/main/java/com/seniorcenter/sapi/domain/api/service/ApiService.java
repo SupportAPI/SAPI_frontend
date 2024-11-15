@@ -11,8 +11,10 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.RequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.ResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.SaveDataRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdValueRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ValueUserIdResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
 import com.seniorcenter.sapi.domain.api.util.ValueUtils;
@@ -113,12 +115,15 @@ public class ApiService {
 
     @Transactional
     public void updateApi(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
+        User user = userUtils.getUserFromSecurityPrincipal(principal);
 
         Object result = null;
         if (message.apiType().equals(ApiType.API_PATH)) {
-            result = valueUtils.updateByValue(message);
+            UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
+            result = new ValueUserIdResponseDto(updateValueRequestDto.value(), user.getId());
         } else if (message.apiType().equals(ApiType.API_NAME)) {
-            result = valueUtils.updateByValue(message);
+            UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
+            result = new ValueUserIdResponseDto(updateValueRequestDto.value(), user.getId());
         } else if (message.apiType().equals(ApiType.CATEGORY)) {
             UpdateIdValueRequestDto updateIdValueRequestDto = valueUtils.update(message);
             Api api = apiRepository.findById(apiId)
@@ -126,10 +131,12 @@ public class ApiService {
             api.updateCategory(updateIdValueRequestDto.value());
             result = updateIdValueRequestDto;
         } else if (message.apiType().equals(ApiType.API_DESCRIPTION)) {
-            result = valueUtils.updateByValue(message);
+            UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
+            result = new ValueUserIdResponseDto(updateValueRequestDto.value(), user.getId());
         } else if (message.apiType().equals(ApiType.PARAMETERS_AUTH_TYPE)) {
             updateAuthType(message, workspaceId, apiId);
-            result = valueUtils.updateByValue(message);
+            UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
+            result = new ValueUserIdResponseDto(updateValueRequestDto.value(), user.getId());
         } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
             result = apiQueryParameterService.updateApiQueryParameter(message, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
@@ -138,10 +145,15 @@ public class ApiService {
             result = apiHeaderService.updateApiHeader(message, apiId);
         } else if (message.apiType().equals(ApiType.API_METHOD)) {
             updateMethod(message, apiId);
-            result = valueUtils.updateByValue(message);
+            UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
+            result = new ValueUserIdResponseDto(updateValueRequestDto.value(), user.getId());
         } else if (message.apiType().equals(ApiType.REQUEST_TYPE)) {
             updateRequestType(message, apiId);
-            result = valueUtils.updateByValue(message);
+            UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
+            result = new ValueUserIdResponseDto(updateValueRequestDto.value(), user.getId());
+        } else if (message.apiType().equals(ApiType.RESPONSE_JSON)) {
+            UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
+            result = new ValueUserIdResponseDto(updateValueRequestDto.value(), user.getId());
         }
 
         messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
@@ -163,6 +175,8 @@ public class ApiService {
             updateDescription(message, workspaceId, apiId);
         } else if (message.apiType().equals(ApiType.API_NAME)) {
             updateApiName(message, workspaceId, apiId);
+        } else if (message.apiType().equals(ApiType.RESPONSE_JSON)) {
+            apiBodyService.updateDBFormData(message, workspaceId, apiId);
         }
     }
 
