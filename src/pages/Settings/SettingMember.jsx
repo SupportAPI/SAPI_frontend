@@ -10,6 +10,7 @@ import {
   fetchUserInWorkspace,
   useUserInfo,
   useFetchAutoUserSearch,
+  useWaitUserList,
 } from '../../api/queries/useWorkspaceQueries';
 
 const SettingMember = () => {
@@ -26,13 +27,29 @@ const SettingMember = () => {
   const [userList, setUserList] = useState([]);
   const { refetch } = useFetchInviteUser(useremail);
   const inviteMemberMutation = useInviteMember();
+  const { data: waitUser, refetch: refetchWaitUser } = useWaitUserList(currentWorkspaceId);
 
   const userListInWorkspace = useCallback(async () => {
+    await refetchWaitUser(); // waitUser 데이터를 가져오는 로직
+
     if (currentWorkspaceId) {
+      // 워크스페이스 내 유저 목록 가져오기
       const userList = await fetchUserInWorkspace(currentWorkspaceId);
-      setUserList(userList.filter((user) => user.email != userInfo.email));
+
+      // 현재 유저를 제외한 목록 필터링
+      const filteredUserList = userList.filter((user) => user.email !== userInfo.email);
+
+      // waitUser가 배열 형태일 경우 리스트 맨 앞에 추가
+      if (Array.isArray(waitUser) && waitUser.length > 0) {
+        console.log(waitUser);
+        filteredUserList.unshift(...waitUser); // spread 문법으로 배열의 각 요소를 삽입
+        console.log(filteredUserList);
+      }
+
+      // 최종 유저 리스트 설정
+      setUserList(filteredUserList);
     }
-  }, [currentWorkspaceId]);
+  }, [currentWorkspaceId, waitUser]);
 
   useEffect(() => {
     userListInWorkspace();
@@ -226,8 +243,9 @@ const SettingMember = () => {
                           className='border w-12 h-12 rounded-full object-contain'
                         />
                       </td>
-                      <td className='border-b truncate min-w-[100px] max-w-[100px]'>{user.nickname}</td>
+                      <td className='border-b truncate w-[90px]'>{user.nickname}</td>
                       <td className='border-b truncate min-w-[120px] max-w-[120px] pr-3'>{user.email}</td>
+                      <td className='border-b truncate min-w-[120px] max-w-[120px] pr-3'>MainTainer _</td>
                       <td className='border-b pr-3' onMouseLeave={() => setDevelopAuthId(null)}>
                         <div className='option-button opacity-0 transition-opacity duration-200'>
                           <button

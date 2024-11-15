@@ -161,7 +161,7 @@ export const useUserInWorkspace = (workspaceId) => {
   });
 };
 
-// 8. 자기자신 워크스페이스 초대 현황 확인
+// 8. 자기자신 워크스페이스 초대된 현황 확인
 export const fetchUserInvitedList = async () => {
   const response = await axiosInstance.get(`/api/memberships/invited`);
   return response.data.data;
@@ -247,6 +247,18 @@ export const useModifiedWorkspace = () => {
       },
     }
   );
+};
+
+// 12. 워크스페이스 내 초대한 유저 목록 조회
+export const fetchWaitUserList = async (workspaceId) => {
+  const response = await axiosInstance.get(`/api/memberships/invited-members?workspaceId=${workspaceId}`);
+  return response.data.data;
+};
+// React Query 훅 : 워크스페이스 유저 초대 조회
+export const useWaitUserList = (workspaceId) => {
+  return useQuery(['WaitUserList', workspaceId], () => fetchWaitUserList(workspaceId), {
+    enabled: false,
+  });
 };
 
 // 워크스페이스 점유 상태
