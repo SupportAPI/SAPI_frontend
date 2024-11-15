@@ -29,6 +29,7 @@ const ApiTest = () => {
           id: 'api-test',
           name: 'API Test',
           path: location.pathname,
+          type: 'api-test',
         });
       }
     }
@@ -65,6 +66,7 @@ const ApiTest = () => {
       id: apiId,
       name: apiName,
       path,
+      type: 'api-test',
     });
     navigate(path);
   };

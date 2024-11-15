@@ -77,6 +77,7 @@ const EnvironmentSidebar = () => {
         id: selectedPath.id,
         name: selectedPath.name,
         path: selectedPath.path,
+        type: 'dashboard',
       });
 
       navigate(selectedPath.path);
@@ -84,7 +85,7 @@ const EnvironmentSidebar = () => {
   };
 
   const handleDashboardDoubleClick = (id) => {
-    confirmTab(id);
+    confirmTab(id, 'dashboard');
   };
 
   const handleNameChange = (e) => {

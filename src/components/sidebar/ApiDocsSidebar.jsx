@@ -39,12 +39,13 @@ const ApiDocsSidebar = () => {
       id: apiId,
       name: apiName,
       path,
+      type: 'apidocs',
     });
     navigate(path);
   };
 
   const handleApiDoubleClick = (apiId) => {
-    confirmTab(apiId);
+    confirmTab(apiId, 'apidocs');
   };
 
   const handleCategoryToggle = (category) => {
@@ -56,7 +57,7 @@ const ApiDocsSidebar = () => {
   };
 
   const handleAllApiDoubleClick = () => {
-    confirmTab('all');
+    confirmTab('all', 'apidocs');
   };
 
   const handleDropdownToggle = (apiId) => {
