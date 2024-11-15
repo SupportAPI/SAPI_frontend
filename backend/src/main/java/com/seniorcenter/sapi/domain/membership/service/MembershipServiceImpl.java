@@ -164,6 +164,7 @@ public class MembershipServiceImpl implements MembershipService {
 
 		return memberships.stream()
 			.map(membership -> new MemberInfoResponseDto(
+				membership.getId(),
 				membership.getUser().getId(),
 				membership.getUser().getEmail(),
 				membership.getUser().getNickname(),
@@ -200,6 +201,7 @@ public class MembershipServiceImpl implements MembershipService {
 
 		return memberships.stream()
 			.map(membership -> new MemberInfoResponseDto(
+				membership.getId(),
 				membership.getUser().getId(),
 				membership.getUser().getEmail(),
 				membership.getUser().getNickname(),
