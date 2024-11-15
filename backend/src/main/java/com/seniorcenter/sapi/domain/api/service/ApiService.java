@@ -138,11 +138,11 @@ public class ApiService {
             UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
             result = new ValueUserIdResponseDto(updateValueRequestDto.value(), user.getId());
         } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
-            result = apiQueryParameterService.updateApiQueryParameter(message, apiId);
+            result = apiQueryParameterService.updateApiQueryParameter(message, apiId, user);
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
-            result = apiCookieService.updateApiCookie(message, apiId);
+            result = apiCookieService.updateApiCookie(message, apiId, user);
         } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
-            result = apiHeaderService.updateApiHeader(message, apiId);
+            result = apiHeaderService.updateApiHeader(message, apiId, user);
         } else if (message.apiType().equals(ApiType.API_METHOD)) {
             updateMethod(message, apiId);
             UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
