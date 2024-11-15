@@ -76,7 +76,7 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
             result = apiCookieService.createApiCookie(workspaceId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
-            result = apiHeaderService.createApiHeader(workspaceId);
+            result = apiHeaderService.createApiHeader(apiId);
         } else if (message.apiType().equals(ApiType.OCCUPATION)) {
             result = occupationService.createOccupaction(workspaceId, message, user);
         } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {

@@ -16,6 +16,8 @@ public interface ApiRepository extends JpaRepository<Api, UUID>, ApiRepositoryCu
 
     Optional<Api> findTopBySpecificationIdOrderByCreatedDateDesc(UUID specificationId);
 
+    List<Api> findByCategory(String category);
+
     @Query("SELECT a FROM Api a JOIN a.specification s WHERE a.id = :apiId AND s.workspace.id = :workspaceId")
     Optional<Api> findByIdAndWorkspaceId(@Param("apiId") UUID apiId, @Param("workspaceId") UUID workspaceId);
 }
