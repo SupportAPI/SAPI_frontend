@@ -9,7 +9,6 @@ import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMe
 import com.seniorcenter.sapi.domain.membership.presentation.dto.request.UpdateMembershipRoleRequestDto;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.response.InvitedWorkspaceInfoResponseDto;
 import com.seniorcenter.sapi.domain.membership.presentation.dto.response.MemberInfoResponseDto;
-import com.seniorcenter.sapi.domain.user.presentation.dto.response.UserResponseDto;
 
 public interface MembershipService {
 
@@ -21,7 +20,7 @@ public interface MembershipService {
 	void updateMembershipColor(UpdateMembershipColorRequestDto requestDto, Long membershipId);
 	List<MemberInfoResponseDto> getMembershipsAtWorkspace(UUID workspaceId);
 	List<InvitedWorkspaceInfoResponseDto> getInvitedMemberships();
-	List<UserResponseDto> getPendingUsersInWorkspace(UUID workspaceId);
+	List<MemberInfoResponseDto> getPendingUsersInWorkspace(UUID workspaceId);
 	void resign(UUID workspaceId);
 	void exile(Long userId, UUID workspaceId);
 }
