@@ -11,18 +11,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Alarm = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: 4,
-      fromId: '8fcef436-3641-444b-b7d4-48e281a769d7',
-      workspaceId: '8fcef436-3641-444b-b7d4-48e281a769d7',
-      fromName: 'testProject',
-      message: 'testProject 워크스페이스에서 초대받았습니다.',
-      notificationType: 'WORKSPACE_INVITE',
-      isRead: true,
-      createdDatetime: '2024-11-08T12:49:12.198137',
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
   const [isLoad, setIsLoad] = useState(false);
 
   const [isSettingModalOpen, setIsSettingModalOpen] = useState(false);
