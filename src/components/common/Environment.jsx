@@ -49,7 +49,8 @@ const Environment = ({ workspaceId }) => {
 
   return (
     <select
-      className='dark:bg-dark-background dark:text-dark-text light:bg-light-background light:text-light-text mr-3 font-semibold'
+      className='w-[300px] dark:bg-dark-background dark:text-dark-text light:bg-light-background light:text-light-text mr-3 font-semibold
+      border pl-4 truncate'
       value={selectedCategoryId || ''}
       onChange={handleEnvironmentChange}
     >
