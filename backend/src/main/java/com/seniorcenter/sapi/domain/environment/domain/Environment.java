@@ -47,7 +47,7 @@ public class Environment {
 
 	private Environment(EnvironmentCategory environmentCategory, Integer orderIndex) {
 		this.environmentCategory = environmentCategory;
-		this.variable = "";
+		this.variable = " ";
 		this.type = EnvironmentType.DEFAULT;
 		this.value = "";
 		this.description = "";
