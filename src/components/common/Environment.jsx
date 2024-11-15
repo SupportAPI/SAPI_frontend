@@ -42,18 +42,19 @@ const Environment = ({ workspaceId }) => {
   // environmentData가 업데이트될 때 useEnvironmentStore에 저장
   useEffect(() => {
     if (environmentData) {
-      setEnvironment(environmentData);
-      console.log(environmentData);
+      setEnvironment(environmentData.environments);
+      console.log(environmentData.environments);
     }
   }, [environmentData, setEnvironment]);
 
   return (
     <select
-      className='dark:bg-dark-background dark:text-dark-text'
+      className='w-[300px] dark:bg-dark-background dark:text-dark-text light:bg-light-background light:text-light-text mr-3 font-semibold
+      border pl-4 truncate'
       value={selectedCategoryId || ''}
       onChange={handleEnvironmentChange}
     >
-      <option value=''>Select Environment</option>
+      <option value=''>Environment Variable</option>
       {environmentList &&
         environmentList.map((env) => (
           <option key={env.id} value={env.id}>
