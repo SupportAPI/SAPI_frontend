@@ -117,6 +117,10 @@ public class MembershipServiceImpl implements MembershipService {
 			throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
 		}
 
+		if (requestDto.role().equals(Role.MAINTAINER)) {
+			updatedMembership.updateAuthorityForMaintainer();
+		}
+
 		updatedMembership.updateRole(requestDto.role());
 	}
 
