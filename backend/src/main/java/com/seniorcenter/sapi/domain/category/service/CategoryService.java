@@ -68,12 +68,16 @@ public class CategoryService {
 
     @Transactional
     public IdValueDto removeCategory(ApiMessage message, UUID workspaceId, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+        String originApiCategoryName = api.getCategory();
+
         RemoveCategoryRequestDto removeCategoryRequestDto = categoryUtils.removeCategory(message);
         log.info(removeCategoryRequestDto.toString());
 
         Category category = categoryRepository.findById(removeCategoryRequestDto.id())
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
-        String categoryName = category.getName();
+        String deleteCategoryName = category.getName();
 
         if (!category.getWorkspace().getId().equals(workspaceId)) {
             throw new MainException(CustomException.NOT_FOUND_CATEGORY);
@@ -83,14 +87,21 @@ public class CategoryService {
         Category defaultCategory = categoryRepository.findByWorkspaceIdAndName(workspaceId, defaultCategoryName)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
 
-        List<Api> apis = apiRepository.findByCategory(categoryName);
-        for (Api api : apis) {
-            if (api.getSpecification().getWorkspace().getId().equals(workspaceId)) {
-                api.updateCategory(defaultCategory.getName());
+        List<Api> apis = apiRepository.findByCategory(deleteCategoryName);
+        for (Api tempApi : apis) {
+            if (tempApi.getSpecification().getWorkspace().getId().equals(workspaceId)) {
+                tempApi.updateCategory(defaultCategory.getName());
             }
         }
 
-        return new IdValueDto(defaultCategory.getId(), defaultCategory.getName());
+        if (originApiCategoryName.equals(deleteCategoryName)) {
+            return new IdValueDto(defaultCategory.getId(), defaultCategory.getName());
+        }
+
+        Category originCategory = categoryRepository.findByWorkspaceIdAndName(workspaceId, originApiCategoryName)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
+
+        return new IdValueDto(originCategory.getId(), originCategory.getName());
     }
 
     @Transactional
