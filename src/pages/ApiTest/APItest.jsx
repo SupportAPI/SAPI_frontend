@@ -8,6 +8,7 @@ import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 import { IoCopyOutline, IoCopy } from 'react-icons/io5';
 import { RiDropdownList } from 'react-icons/ri';
 import { toast } from 'react-toastify';
+import { useTestStore } from '../../stores/useTestStore';
 
 const ApiTest = () => {
   const { workspaceId } = useParams();
@@ -15,6 +16,7 @@ const ApiTest = () => {
   const { addTab, openTabs } = useTabStore();
   const { data: dataTest = [], isLoading, error } = useFetchApiList(workspaceId);
   const navigate = useNavigate();
+  const { testUrl, setTestUrl } = useTestStore();
 
   const [selectedItems, setSelectedItems] = useState({});
   const [isAllSelected, setIsAllSelected] = useState(false);
@@ -69,11 +71,9 @@ const ApiTest = () => {
     navigate(path);
   };
 
-  // 검색 필터 상태 관리
-  const [search, setSearch] = useState('');
   // Dropdown 상태 관리
   const [isShowEnvironment, setShowEnvironment] = useState(false); // 환경 선택 모달 오픈 값
-  const [stateEnvironment, setStateEnvironment] = useState('Local'); // 개발환경 선택 시 해당 값 사용
+  const [stateEnvironment, setStateEnvironment] = useState('Server'); // 개발환경 선택 시 해당 값 사용
 
   // Dropdown 열기/닫기 및 옵션 선택 함수
   const toggleEnvironmentDropdown = () => {
@@ -147,7 +147,7 @@ const ApiTest = () => {
             style={{ top: '100%', left: '0px', width: '120px' }}
           >
             <ul>
-              {['Local', 'Server'].map((option) => (
+              {['Server', 'Local'].map((option) => (
                 <li
                   key={option}
                   onClick={() => handleEnvironmentOptionClick(option)}
@@ -161,11 +161,14 @@ const ApiTest = () => {
         )}
 
         <input
-          className='border-2 p-3 w-[500px] h-[40px] border-[#2D3648] rounded-lg mr-5'
+          disabled={stateEnvironment === 'Server'}
+          placeholder={stateEnvironment === 'Server' ? '서버 URL 입력 불가' : '로컬 호스트 URL을 입력하세요'}
+          className={`border-2 p-3 w-[500px] h-[40px] border-[#2D3648] rounded-lg mr-5 ${
+            stateEnvironment === 'Server' ? 'bg-[#F0F5F8] cursor-not-allowed' : 'bg-white'
+          }`}
           type='text'
-          placeholder='Search'
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={stateEnvironment === 'Server' ? '' : testUrl}
+          onChange={(e) => setTestUrl(e.target.value)}
         />
         <button
           className='flex justify-center items-center p-3 w-[100px] h-[40px] bg-[#2D3648] rounded-lg text-white hover:bg-[#2D3648]/90'
