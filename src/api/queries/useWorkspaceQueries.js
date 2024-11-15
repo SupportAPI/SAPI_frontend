@@ -280,10 +280,6 @@ export const useUserMembershipChange = () => {
 
 // 14. 팀원 권한 수정
 export const userPermissionChange = async (membershipId, permission) => {
-  console.log(membershipId);
-  console.log(membershipId);
-  console.log(permission);
-  console.log(permission);
   await axiosInstance.patch(`/api/memberships/${membershipId}/authority`, permission, {
     headers: {
       'Content-Type': 'application/json',
