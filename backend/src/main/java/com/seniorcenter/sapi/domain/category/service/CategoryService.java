@@ -74,7 +74,7 @@ public class CategoryService {
         Category category = categoryRepository.findById(removeCategoryRequestDto.id())
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
 
-        if (category.getWorkspace().getId().equals(workspaceId)) {
+        if (!category.getWorkspace().getId().equals(workspaceId)) {
             throw new MainException(CustomException.NOT_FOUND_CATEGORY);
         }
         categoryRepository.delete(category);
