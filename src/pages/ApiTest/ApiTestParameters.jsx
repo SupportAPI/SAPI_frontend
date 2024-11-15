@@ -190,7 +190,7 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
                   className='w-full text-sm border p-1 text-center'
                 />
                 {showDropdown[index] && (
-                  <div className='absolute left-0 right-0 bg-white border border-gray-300 mt-1 z-10'>
+                  <div className='w-[58%] absolute left-[40%] right-0 bg-white border border-gray-300 mt-1 z-10'>
                     {envDropdown.map((env, i) => (
                       <div
                         key={i}
