@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getToken } from '../utils/cookies';
 
-const base_URL = 'http://k11b305.p.ssafy.io';
+const base_URL = 'https://k11b305.p.ssafy.io';
 // const base_URL = 'http://192.168.31.35:8080';
 
 // axiosInstance 설정
