@@ -40,10 +40,10 @@ public class ApiHeaderService {
 
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
         ApiHeader apiHeader;
-        if(data.key() == null){
+        if (data.key() == null) {
             apiHeader = ApiHeader.createApiHeader(api);
         } else {
-            apiHeader = ApiHeader.createApiHeader(api,data.key(),data.value(),data.required());
+            apiHeader = ApiHeader.createApiHeader(api, data.key(), data.value(), data.required());
         }
         apiHeaderRepository.save(apiHeader);
         return new ApiIdResponseDto(apiHeader.getId());
@@ -74,7 +74,7 @@ public class ApiHeaderService {
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
         ApiHeader apiHeader = apiHeaderRepository.findById(Long.valueOf(data.id()))
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
-        apiHeader.updateApiHeaderKeyAndValue(data.key(), data.value());
+        apiHeader.updateApiHeaderKeyAndValueAndDescriptionAndIsEssential(data.key(), data.value(), data.description(), data.required());
 
         String hashKey = workspaceId.toString();
         log.info("[API HEADER DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());

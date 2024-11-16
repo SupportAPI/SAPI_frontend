@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -78,9 +80,11 @@ public class ApiHeader extends BaseTimeEntity {
         this.isChecked = isChecked;
     }
 
-    public void updateApiHeaderKeyAndValue(String headerKey, String headerValue) {
+    public void updateApiHeaderKeyAndValueAndDescriptionAndIsEssential(String headerKey, String headerValue, String description, boolean isEssential) {
         this.headerKey = headerKey;
         this.headerValue = headerValue;
+        this.description = description;
+        this.isEssential = isEssential;
     }
 }
 
