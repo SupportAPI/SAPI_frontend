@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @ExcludeFromAdvice
@@ -26,7 +27,7 @@ public class ProxyController {
 
     @RequestMapping(value = "/mock/**")
     public Mono<ResponseEntity<byte[]>> mockServerDefaultRequest(
-            @PathVariable("workspaceId") String workspaceId,
+            @PathVariable("workspaceId") UUID workspaceId,
             @RequestHeader(required = false) Map<String, String> headers,
             HttpMethod method,
             HttpServletRequest request
@@ -37,7 +38,7 @@ public class ProxyController {
 
     @RequestMapping(value = "/mock/**", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<byte[]>> mockServerFormRequest(
-            @PathVariable("workspaceId") String workspaceId,
+            @PathVariable("workspaceId") UUID workspaceId,
             @RequestHeader(required = false) Map<String, String> headers,
             @RequestParam Map<String, MultipartFile> files,
             @RequestParam(required = false) Map<String, Object> formParams,
@@ -50,7 +51,7 @@ public class ProxyController {
 
     @RequestMapping(value = "/mock/**", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<byte[]>> mockServerJsonRequest(
-            @PathVariable("workspaceId") String workspaceId,
+            @PathVariable("workspaceId") UUID workspaceId,
             @RequestHeader(required = false) Map<String, String> headers,
             @RequestBody Map<String, Object> body,
             HttpMethod method,
@@ -62,7 +63,7 @@ public class ProxyController {
 
     @RequestMapping(value = "/user/**")
     public Mono<ResponseEntity<byte[]>> userServerDefaultRequest(
-            @PathVariable("workspaceId") String workspaceId,
+            @PathVariable("workspaceId") UUID workspaceId,
             @RequestHeader(required = false) Map<String, String> headers,
             HttpMethod method,
             HttpServletRequest request
@@ -73,7 +74,7 @@ public class ProxyController {
 
     @RequestMapping(value = "/user/**", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<byte[]>> userServerFormRequest(
-            @PathVariable("workspaceId") String workspaceId,
+            @PathVariable("workspaceId") UUID workspaceId,
             @RequestHeader(required = false) Map<String, String> headers,
             @RequestParam Map<String, MultipartFile> files,
             @RequestParam(required = false) Map<String, Object> formParams,
@@ -88,11 +89,50 @@ public class ProxyController {
 
     @RequestMapping(value = "/user/**", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<byte[]>> userServerJsonRequest(
-            @PathVariable("workspaceId") String workspaceId,
+            @PathVariable("workspaceId") UUID workspaceId,
             @RequestHeader(required = false) Map<String, String> headers,
             @RequestBody Map<String, Object> body,
             HttpMethod method,
             HttpServletRequest request
+    ) {
+        ServerRequestInfoDto serverRequestInfoDto = proxyService.getUserServerInfo(workspaceId, request, headers);
+        return proxyService.jsonRequest(serverRequestInfoDto, body, method);
+    }
+
+
+    @RequestMapping(value = "/dynamic/**")
+    public Mono<ResponseEntity<byte[]>> dynamicDefaultRequest(
+        @PathVariable("workspaceId") UUID workspaceId,
+        @RequestHeader(required = false) Map<String, String> headers,
+        HttpMethod method,
+        HttpServletRequest request
+    ) {
+        ServerRequestInfoDto serverRequestInfoDto = proxyService.getDynamicRequestInfo(workspaceId, request, headers);
+        return proxyService.formDataRequest(serverRequestInfoDto, Map.of(), Map.of(), method);
+    }
+
+    @RequestMapping(value = "/dynamic/**", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Mono<ResponseEntity<byte[]>> dynamicFormRequest(
+        @PathVariable("workspaceId") UUID workspaceId,
+        @RequestHeader(required = false) Map<String, String> headers,
+        @RequestParam Map<String, MultipartFile> files,
+        @RequestParam(required = false) Map<String, Object> formParams,
+        HttpMethod method,
+        HttpServletRequest request
+    ) {
+        ServerRequestInfoDto serverRequestInfoDto = proxyService.getUserServerInfo(workspaceId, request, headers);
+        Mono<ResponseEntity<byte[]>> responseEntityMono = proxyService.formDataRequest(serverRequestInfoDto, formParams, files, method);
+        System.out.println(responseEntityMono);
+        return responseEntityMono;
+    }
+
+    @RequestMapping(value = "/user/**", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<byte[]>> dynamicJsonRequest(
+        @PathVariable("workspaceId") UUID workspaceId,
+        @RequestHeader(required = false) Map<String, String> headers,
+        @RequestBody Map<String, Object> body,
+        HttpMethod method,
+        HttpServletRequest request
     ) {
         ServerRequestInfoDto serverRequestInfoDto = proxyService.getUserServerInfo(workspaceId, request, headers);
         return proxyService.jsonRequest(serverRequestInfoDto, body, method);
