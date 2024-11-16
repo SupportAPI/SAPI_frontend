@@ -126,7 +126,7 @@ public class ProxyController {
         return responseEntityMono;
     }
 
-    @RequestMapping(value = "/user/**", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/dynamic/**", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<byte[]>> dynamicJsonRequest(
         @PathVariable("workspaceId") UUID workspaceId,
         @RequestHeader(required = false) Map<String, String> headers,
