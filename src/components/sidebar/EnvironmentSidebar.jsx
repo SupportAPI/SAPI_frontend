@@ -205,10 +205,10 @@ const EnvironmentSidebar = () => {
                         onKeyDown={(e) => {
                           handleKeyDown(e, p.id);
                         }}
-                        className='bg-white dark:bg-dark-background border-b outline-none'
+                        className='bg-white dark:bg-dark-background dark:text-dark-text border-b outline-none'
                       />
                     ) : (
-                      <span>{p.name}</span>
+                      <span className='dark:text-dark-text'>{p.name}</span>
                     )}
                     {p.name !== 'Local' && (
                       <BsThreeDots
@@ -220,15 +220,18 @@ const EnvironmentSidebar = () => {
                     )}
                   </div>
                   {selectedCategoryId === p.id && (
-                    <div ref={setRef} className='absolute right-0 w-28 bg-white shadow-lg rounded border z-20'>
+                    <div
+                      ref={setRef}
+                      className='absolute right-0 w-28 bg-white text-gray-500 dark:bg-dark-background dark:text-dark-text shadow-lg rounded-lg border z-20'
+                    >
                       <button
-                        className='w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal'
+                        className='w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover font-normal rounded-t-lg'
                         onClick={(e) => handleEdit(e, p.id, p.name)}
                       >
                         Edit
                       </button>
                       <button
-                        className='w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal'
+                        className='w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover font-normal rounded-b-lg'
                         onClick={(e) => handleDelete(e, p.id)}
                       >
                         Delete

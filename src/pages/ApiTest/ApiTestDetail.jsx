@@ -201,8 +201,6 @@ const ApiTestDetail = () => {
 
   useEffect(() => {
     if (!renderApi && renderInfo) {
-      console.log('들어옴?');
-      console.log(apiDetail);
       setActiveTabContent('Parameters');
       setRenderApi(true);
       setRenderInfo(false);
