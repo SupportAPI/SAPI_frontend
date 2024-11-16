@@ -1,6 +1,7 @@
 package com.seniorcenter.sapi.domain.statistics.domain.repository;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -56,11 +57,57 @@ public class StatisticsRepositoryCustomImpl implements StatisticsRepositoryCusto
 		return fillMissingDatesWithZero(startDate, results);
 	}
 
+	@Override
+	public List<StatisticsDto> findStatisticsByWorkspaceAndDateRange(UUID workspaceId, LocalDate startDate, LocalDate endDate) {
+		QStatistics statistics = QStatistics.statistics;
+
+		List<StatisticsDto> results = queryFactory
+			.select(Projections.constructor(StatisticsDto.class, statistics.date, statistics.successCount))
+			.from(statistics)
+			.where(
+				statistics.workspace.id.eq(workspaceId),
+				statistics.date.between(startDate, endDate)
+			)
+			.fetch();
+
+		return fillMissingDatesWithZero(startDate, endDate, results);
+	}
+
+	@Override
+	public List<StatisticsDto> findStatisticsByWorkspaceUserAndDateRange(UUID workspaceId, Long userId, LocalDate startDate, LocalDate endDate) {
+		QStatistics statistics = QStatistics.statistics;
+
+		List<StatisticsDto> results = queryFactory
+			.select(Projections.constructor(StatisticsDto.class, statistics.date, statistics.successCount))
+			.from(statistics)
+			.where(
+				statistics.workspace.id.eq(workspaceId),
+				statistics.userId.eq(userId),
+				statistics.date.between(startDate, endDate)
+			)
+			.fetch();
+
+		return fillMissingDatesWithZero(startDate, endDate, results);
+	}
+
 	private List<StatisticsDto> fillMissingDatesWithZero(LocalDate startDate, List<StatisticsDto> results) {
 		LocalDate today = LocalDate.now();
 
 		List<LocalDate> allDates = Stream.iterate(startDate, date -> date.plusDays(1))
 			.limit(today.toEpochDay() - startDate.toEpochDay() + 1)
+			.collect(Collectors.toList());
+
+		Map<LocalDate, Integer> resultMap = results.stream()
+			.collect(Collectors.toMap(StatisticsDto::getDate, StatisticsDto::getSuccessCount));
+
+		return allDates.stream()
+			.map(date -> new StatisticsDto(date, resultMap.getOrDefault(date, 0)))
+			.collect(Collectors.toList());
+	}
+
+	private List<StatisticsDto> fillMissingDatesWithZero(LocalDate startDate, LocalDate endDate, List<StatisticsDto> results) {
+		List<LocalDate> allDates = Stream.iterate(startDate, date -> date.plusDays(1))
+			.limit(ChronoUnit.DAYS.between(startDate, endDate) + 1)
 			.collect(Collectors.toList());
 
 		Map<LocalDate, Integer> resultMap = results.stream()

@@ -11,7 +11,9 @@ public enum HttpMethod {
     POST("POST"),
     PUT("PUT"),
     PATCH("PATCH"),
-    DELETE("DELETE");
+    DELETE("DELETE"),
+    HEAD("HEAD"),
+    OPTIONS("OPTIONS");
 
     private final String value;
 }

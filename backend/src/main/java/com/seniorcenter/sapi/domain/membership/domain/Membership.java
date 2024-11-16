@@ -59,10 +59,11 @@ public class Membership extends BaseTimeEntity {
     private Boolean deleteAuthority;
 
     @Column(nullable = false)
-    private String color;
+    @Enumerated(EnumType.STRING)
+    private Color color;
 
     @Builder
-    private Membership(User user, Workspace workspace, Role role, InviteStatus inviteStatus, String color) {
+    private Membership(User user, Workspace workspace, Role role, InviteStatus inviteStatus, Color color) {
         this.user = user;
         this.workspace = workspace;
         this.role = role;
@@ -74,7 +75,7 @@ public class Membership extends BaseTimeEntity {
         this.color = color;
     }
 
-    public static Membership createMembership(User user, Workspace workspace, Role role, InviteStatus inviteStatus, String color) {
+    public static Membership createMembership(User user, Workspace workspace, Role role, InviteStatus inviteStatus, Color color) {
         return Membership.builder()
                 .user(user)
                 .workspace(workspace)
@@ -107,7 +108,7 @@ public class Membership extends BaseTimeEntity {
         this.deleteAuthority = deleteAuthority;
     }
 
-    public void updateColor(String color) {
+    public void updateColor(Color color) {
         this.color = color;
     }
 }

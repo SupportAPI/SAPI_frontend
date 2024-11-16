@@ -1,6 +1,8 @@
 package com.seniorcenter.sapi.domain.occupation.service;
 
+import com.seniorcenter.sapi.domain.api.presentation.dto.ComponentIdDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.AddRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.SaveDataRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiStringResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
@@ -8,6 +10,7 @@ import com.seniorcenter.sapi.domain.membership.domain.Membership;
 import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepository;
 import com.seniorcenter.sapi.domain.occupation.presentation.dto.OccupationResponseDto;
 import com.seniorcenter.sapi.domain.user.domain.User;
+import com.seniorcenter.sapi.domain.user.domain.repository.UserRepository;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.utils.RedisUtil;
@@ -30,19 +33,24 @@ public class OccupationService {
     private final KeyValueUtils keyValueUtils;
     private final UserUtils userUtils;
     private final MembershipRepository membershipRepository;
+    private final UserRepository userRepository;
 
     public List<OccupationResponseDto> getOccupations(UUID workspaceId) {
         String hashKey = workspaceId.toString();
         Map<String, Object> datas = redisUtil.getAllData(hashKey);
 
         User user = userUtils.getUserFromSecurityContext();
-        Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
-                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
 
         List<OccupationResponseDto> occupationList = new ArrayList<>();
         for (Map.Entry<String, Object> entry : datas.entrySet()) {
-            occupationList.add(new OccupationResponseDto(entry.getKey(), Long.parseLong(entry.getValue().toString()),
-                    user.getNickname(), user.getProfileImage(), membership.getColor()));
+            Long userId = Long.parseLong(entry.getValue().toString());
+
+            User occupationUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
+            Membership occupationMembership = membershipRepository.findByUserIdAndWorkspaceId(userId, workspaceId)
+                    .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
+            occupationList.add(new OccupationResponseDto(entry.getKey(), userId,
+                    occupationUser.getNickname(), occupationUser.getProfileImage(), occupationMembership.getColor().getColor()));
         }
         return occupationList;
     }
@@ -55,14 +63,14 @@ public class OccupationService {
 
         AddRequestDto addRequestDto = keyValueUtils.createById(message);
         redisUtil.saveData(hashKey, addRequestDto.id(), user.getId().toString());
-        return new OccupationResponseDto(addRequestDto.id(), user.getId(), user.getNickname(), user.getProfileImage(), membership.getColor());
+        return new OccupationResponseDto(addRequestDto.id(), user.getId(), user.getNickname(), user.getProfileImage(), membership.getColor().getColor());
     }
 
-    public ApiStringResponseDto removeOccupaction(UUID workspaceId, ApiMessage message) {
+    public ComponentIdDto removeOccupaction(UUID workspaceId, ApiMessage message) {
         String hashKey = workspaceId.toString();
-        ApiStringResponseDto removeRequestDto = keyValueUtils.removeAndReturnString(message);
-        redisUtil.deleteData(hashKey, removeRequestDto.id().toString());
-        return new ApiStringResponseDto(removeRequestDto.id().toString());
+        SaveDataRequestDto removeRequestDto = keyValueUtils.translateToSaveDataRequestDto(message);
+        redisUtil.deleteData(hashKey, removeRequestDto.componentId());
+        return new ComponentIdDto(removeRequestDto.componentId());
     }
 
 }

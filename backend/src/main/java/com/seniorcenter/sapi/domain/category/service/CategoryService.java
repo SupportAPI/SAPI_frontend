@@ -36,6 +36,7 @@ public class CategoryService {
     private final CategoryUtils categoryUtils;
     private final ValueUtils valueUtils;
     private final ApiRepository apiRepository;
+    private final String defaultCategoryName = "미설정";
 
     public List<CategoryResponseDto> getCategories(UUID workspaceId) {
         Workspace workspace = workspaceRepository.findById(workspaceId)
@@ -67,20 +68,40 @@ public class CategoryService {
 
     @Transactional
     public IdValueDto removeCategory(ApiMessage message, UUID workspaceId, UUID apiId) {
-        RemoveCategoryRequestDto removeCategoryRequestDto = categoryUtils.removeCategory(message);
-        log.info(removeCategoryRequestDto.toString());
-        Category category = categoryRepository.findById(removeCategoryRequestDto.id())
-                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
-        categoryRepository.delete(category);
-
-        Category defaultCategory = categoryRepository.findByWorkspaceIdAndName(workspaceId, "미설정")
-                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
-
         Api api = apiRepository.findById(apiId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
-        api.updateCategory(defaultCategory.getName());
+        String originApiCategoryName = api.getCategory();
 
-        return new IdValueDto(defaultCategory.getId(), defaultCategory.getName());
+        RemoveCategoryRequestDto removeCategoryRequestDto = categoryUtils.removeCategory(message);
+        log.info(removeCategoryRequestDto.toString());
+
+        Category category = categoryRepository.findById(removeCategoryRequestDto.id())
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
+        String deleteCategoryName = category.getName();
+
+        if (!category.getWorkspace().getId().equals(workspaceId)) {
+            throw new MainException(CustomException.NOT_FOUND_CATEGORY);
+        }
+        categoryRepository.delete(category);
+
+        Category defaultCategory = categoryRepository.findByWorkspaceIdAndName(workspaceId, defaultCategoryName)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
+
+        List<Api> apis = apiRepository.findByCategory(deleteCategoryName);
+        for (Api tempApi : apis) {
+            if (tempApi.getSpecification().getWorkspace().getId().equals(workspaceId)) {
+                tempApi.updateCategory(defaultCategory.getName());
+            }
+        }
+
+        if (originApiCategoryName.equals(deleteCategoryName)) {
+            return new IdValueDto(defaultCategory.getId(), defaultCategory.getName());
+        }
+
+        Category originCategory = categoryRepository.findByWorkspaceIdAndName(workspaceId, originApiCategoryName)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_CATEGORY));
+
+        return new IdValueDto(originCategory.getId(), originCategory.getName());
     }
 
     @Transactional

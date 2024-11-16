@@ -75,5 +75,11 @@ public class ApiBody extends BaseTimeEntity {
         this.bodyValue = bodyValue;
         this.isChecked = isChecked;
     }
+
+    public void updateBodyKeyAndValueAndDescription(String bodyKey, String bodyValue, String description) {
+        this.bodyKey = bodyKey;
+        this.bodyValue = bodyValue;
+        this.description = description;
+    }
 }
 

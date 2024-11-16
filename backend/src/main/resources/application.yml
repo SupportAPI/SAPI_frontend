@@ -11,7 +11,7 @@ spring:
       hibernate:
         format_sql: true
     open-in-view: false
-    show-sql: true
+    show-sql: false
   servlet:
     multipart:
       max-file-size: 10MB

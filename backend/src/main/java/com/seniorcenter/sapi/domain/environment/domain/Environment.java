@@ -30,7 +30,7 @@ public class Environment {
 	@JoinColumn(name = "category_id")
 	private EnvironmentCategory environmentCategory;
 
-	@Column(nullable = false)
+	@Column(nullable = false, unique = true)
 	private String variable;
 
 	@Column(nullable = false)
@@ -47,7 +47,7 @@ public class Environment {
 
 	private Environment(EnvironmentCategory environmentCategory, Integer orderIndex) {
 		this.environmentCategory = environmentCategory;
-		this.variable = "";
+		this.variable = " ";
 		this.type = EnvironmentType.DEFAULT;
 		this.value = "";
 		this.description = "";

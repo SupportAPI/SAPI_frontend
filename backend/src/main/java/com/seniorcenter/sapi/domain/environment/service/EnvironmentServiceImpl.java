@@ -65,6 +65,12 @@ public class EnvironmentServiceImpl implements EnvironmentService {
 	@Transactional
 	@Override
 	public void deleteEnvironmentCategory(Long categoryId) {
+		EnvironmentCategory environmentCategory = environmentCategoryRepository.findById(categoryId)
+				.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_ENVIRONMENT_CATEGORY));
+
+		if (environmentCategory.getName().equals("Local"))
+			throw new MainException(CustomException.IMPOSSIBLE_REMOVE_LOCAL_ENVIRONMENT_CATEGORY);
+
 		environmentCategoryRepository.deleteById(categoryId);
 	}
 
@@ -73,6 +79,7 @@ public class EnvironmentServiceImpl implements EnvironmentService {
 	public EnvironmentResponseDto createEnvironment(Long categoryId, CreateEnvironmentRequestDto requestDto) {
 		EnvironmentCategory category = environmentCategoryRepository.findById(categoryId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_ENVIRONMENT_CATEGORY));
+
 		Environment environment = Environment.createEnvironment(category, requestDto.orderIndex());
 		environmentRepository.save(environment);
 		return new EnvironmentResponseDto(environment.getId(), environment.getVariable(), environment.getType(),
@@ -129,6 +136,12 @@ public class EnvironmentServiceImpl implements EnvironmentService {
 	public void updateEnvironment(Long environmentId, UpdateEnvironmentRequestDto requestDto) {
 		Environment environment = environmentRepository.findById(environmentId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_ENVIRONMENT));
+
+		if (environmentRepository.existsByEnvironmentCategoryAndVariableAndIdNot(environment.getEnvironmentCategory(),
+			requestDto.variable(), environmentId)) {
+			throw new MainException(CustomException.DUPLICATE_VARIABLE_IN_CATEGORY);
+		}
+
 		environment.updateEnvironment(requestDto);
 	}
 
