@@ -25,7 +25,9 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
   return (
     <>
       <div
-        className={`transition-width duration-300 p-8 mr-[50px] relative overflow-y-auto dark:bg-dark-background dark:text-dark-text ${
+        className={`transition-width duration-300 p-8 mr-[50px] relative ${
+          activeRightTab === 'comment' ? '' : 'overflow-y-auto'
+        } dark:bg-dark-background dark:text-dark-text ${
           activeRightTab ? 'w-[500px] min-w-[500px] max-w-[500px]' : 'w-[350px] min-w-[350px] max-w-[350px]'
         } ${activeRightTab ? 'border-l' : ''} sidebar-scrollbar h-[775px] pb-5`}
       >
