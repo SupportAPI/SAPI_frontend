@@ -14,7 +14,6 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdValueRe
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
-import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiStringResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ValueUserIdResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
@@ -30,7 +29,6 @@ import com.seniorcenter.sapi.domain.specification.domain.repository.Specificatio
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
-import com.seniorcenter.sapi.global.type.MessageType;
 import com.seniorcenter.sapi.global.utils.RedisUtil;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
 import lombok.RequiredArgsConstructor;
@@ -301,7 +299,7 @@ public class ApiService {
                             header.getHeaderKey(),
                             header.getHeaderValue(),
                             header.getDescription(),
-                            header.getIsEssential(),
+                            header.getIsRequired(),
                             header.getIsChecked()
                     );
                 })
@@ -330,7 +328,7 @@ public class ApiService {
                             queryParameter.getParamKey(),
                             queryParameter.getParamValue(),
                             queryParameter.getDescription(),
-                            queryParameter.getIsEssential(),
+                            queryParameter.getIsRequired(),
                             queryParameter.getIsChecked()
                     );
                 })
@@ -347,7 +345,7 @@ public class ApiService {
                             cookie.getCookieKey(),
                             cookie.getCookieValue(),
                             cookie.getDescription(),
-                            cookie.getIsEssential(),
+                            cookie.getIsRequired(),
                             cookie.getIsChecked()
                     );
                 })
@@ -389,7 +387,7 @@ public class ApiService {
                             formData.getParameterType().name(),
                             null,
                             formData.getDescription(),
-                            formData.getIsEssential(),
+                            formData.getIsRequired(),
                             formData.getIsChecked()
                     );
                 })

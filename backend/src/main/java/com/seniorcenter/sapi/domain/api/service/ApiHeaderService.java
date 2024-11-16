@@ -74,7 +74,7 @@ public class ApiHeaderService {
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
         ApiHeader apiHeader = apiHeaderRepository.findById(Long.valueOf(data.id()))
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
-        apiHeader.updateApiHeaderKeyAndValueAndDescriptionAndIsEssential(data.key(), data.value(), data.description(), data.required());
+        apiHeader.updateApiHeaderKeyAndValueAndDescriptionAndIsRequired(data.key(), data.value(), data.description(), data.required());
 
         String hashKey = workspaceId.toString();
         log.info("[API HEADER DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
