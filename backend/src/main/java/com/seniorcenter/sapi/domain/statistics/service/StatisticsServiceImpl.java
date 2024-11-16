@@ -1,6 +1,7 @@
 package com.seniorcenter.sapi.domain.statistics.service;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,7 +14,8 @@ import com.seniorcenter.sapi.domain.statistics.domain.Statistics;
 import com.seniorcenter.sapi.domain.statistics.domain.repository.StatisticsRepository;
 import com.seniorcenter.sapi.domain.statistics.presentation.dto.ConfirmedApiCountDto;
 import com.seniorcenter.sapi.domain.statistics.presentation.dto.StatisticsDto;
-import com.seniorcenter.sapi.domain.statistics.presentation.dto.response.DashboardDto;
+import com.seniorcenter.sapi.domain.statistics.presentation.dto.response.DashboardResponseDto;
+import com.seniorcenter.sapi.domain.statistics.presentation.dto.response.StatisticsRangeResponseDto;
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
@@ -59,7 +61,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 	}
 
 	@Override
-	public DashboardDto getDashboardData(UUID workspaceId) {
+	public DashboardResponseDto getDashboardData(UUID workspaceId) {
 		User user = userUtils.getUserFromSecurityContext();
 		Long userId = user.getId();
 
@@ -75,8 +77,24 @@ public class StatisticsServiceImpl implements StatisticsService {
 		List<StatisticsDto> recentStatistics = statisticsRepository.findRecentStatisticsByWorkspace(workspaceId, startDate);
 		List<StatisticsDto> userRecentStatistics = statisticsRepository.findRecentStatisticsByWorkspaceAndUser(workspaceId, userId, startDate);
 
-		return new DashboardDto(totalSpecifications, localSuccessCount, serverSuccessCount,
+		return new DashboardResponseDto(totalSpecifications, localSuccessCount, serverSuccessCount,
 			userTotalSpecifications, userLocalSuccessCount, userServerSuccessCount,
 			recentStatistics, userRecentStatistics);
+	}
+
+	@Override
+	public StatisticsRangeResponseDto getStatisticsByDateRange(UUID workspaceId, LocalDate startDate, LocalDate endDate) {
+		long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
+		if (daysBetween > 31) {
+			throw new MainException(CustomException.NOT_ALLOWED_STATISTICS_OVER_31DAYS);
+		}
+
+		User user = userUtils.getUserFromSecurityContext();
+		Long userId = user.getId();
+
+		List<StatisticsDto> statistics = statisticsRepository.findStatisticsByWorkspaceAndDateRange(workspaceId, startDate, endDate);
+		List<StatisticsDto> userStatistics = statisticsRepository.findStatisticsByWorkspaceUserAndDateRange(workspaceId, userId, startDate, endDate);
+
+		return new StatisticsRangeResponseDto(statistics, userStatistics);
 	}
 }
