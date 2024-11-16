@@ -46,7 +46,7 @@ public class ApiBodyService {
 
     }
 
-    public ApiStringResponseDto updateDBFormData(ApiMessage message, UUID workspaceId, UUID apiId) {
+    public void updateDBFormData(ApiMessage message, UUID workspaceId, UUID apiId) {
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
 
         Api api = apiRepository.findById(apiId)
@@ -58,9 +58,7 @@ public class ApiBodyService {
 
         String hashKey = workspaceId.toString();
         log.info("[FORM DATA DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
-        redisUtil.deleteData(hashKey, data.componentId().toString());
-
-        return new ApiStringResponseDto(data.componentId());
+        redisUtil.deleteData(hashKey, data.componentId());
     }
 
 //    public ApiIdResponseDto removeApiBody(ApiMessage message, UUID apiId) {

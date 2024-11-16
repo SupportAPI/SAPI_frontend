@@ -62,7 +62,7 @@ public class ApiQueryParameterService {
         return new ApiIdKeyValueResponseDto(apiQueryParameter.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value(), user.getId());
     }
 
-    public ApiStringResponseDto updateDBApiQueryParameter(ApiMessage message, UUID workspaceId, UUID apiId) {
+    public void updateDBApiQueryParameter(ApiMessage message, UUID workspaceId, UUID apiId) {
         Api api = apiRepository.findById(apiId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
 
@@ -73,8 +73,6 @@ public class ApiQueryParameterService {
 
         String hashKey = workspaceId.toString();
         log.info("[API QUERY_PARAMETER DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
-        redisUtil.deleteData(hashKey, data.componentId().toString());
-
-        return new ApiStringResponseDto(data.componentId());
+        redisUtil.deleteData(hashKey, data.componentId());
     }
 }

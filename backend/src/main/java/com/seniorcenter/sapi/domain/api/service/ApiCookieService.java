@@ -64,7 +64,7 @@ public class ApiCookieService {
         return new ApiIdKeyValueResponseDto(apiCookie.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value(), user.getId());
     }
 
-    public ApiStringResponseDto updateDBApiCookie(ApiMessage message, UUID workspaceId) {
+    public void updateDBApiCookie(ApiMessage message, UUID workspaceId) {
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
         ApiCookie apiCookie = apiCookieRepository.findById(Long.valueOf(data.id()))
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
@@ -72,9 +72,7 @@ public class ApiCookieService {
 
         String hashKey = workspaceId.toString();
         log.info("[API COOKIE DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
-        redisUtil.deleteData(hashKey, data.componentId().toString());
-
-        return new ApiStringResponseDto(data.componentId());
+        redisUtil.deleteData(hashKey, data.componentId());
     }
 
 }

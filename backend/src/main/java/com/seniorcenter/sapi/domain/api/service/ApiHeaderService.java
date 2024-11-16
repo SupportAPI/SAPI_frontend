@@ -64,7 +64,7 @@ public class ApiHeaderService {
         return new ApiIdKeyValueResponseDto(apiHeader.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value(), user.getId());
     }
 
-    public ApiStringResponseDto updateDBApiHeader(ApiMessage message, UUID workspaceId) {
+    public void updateDBApiHeader(ApiMessage message, UUID workspaceId) {
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
         ApiHeader apiHeader = apiHeaderRepository.findById(Long.valueOf(data.id()))
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
@@ -72,9 +72,7 @@ public class ApiHeaderService {
 
         String hashKey = workspaceId.toString();
         log.info("[API HEADER DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
-        redisUtil.deleteData(hashKey, data.componentId().toString());
-
-        return new ApiStringResponseDto(data.componentId());
+        redisUtil.deleteData(hashKey, data.componentId());
     }
 
 }

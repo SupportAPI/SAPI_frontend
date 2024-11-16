@@ -1,6 +1,8 @@
 package com.seniorcenter.sapi.domain.occupation.service;
 
+import com.seniorcenter.sapi.domain.api.presentation.dto.ComponentIdDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.AddRequestDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.request.SaveDataRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiStringResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
@@ -64,11 +66,11 @@ public class OccupationService {
         return new OccupationResponseDto(addRequestDto.id(), user.getId(), user.getNickname(), user.getProfileImage(), membership.getColor().getColor());
     }
 
-    public ApiStringResponseDto removeOccupaction(UUID workspaceId, ApiMessage message) {
+    public ComponentIdDto removeOccupaction(UUID workspaceId, ApiMessage message) {
         String hashKey = workspaceId.toString();
-        ApiStringResponseDto removeRequestDto = keyValueUtils.removeAndReturnString(message);
-        redisUtil.deleteData(hashKey, removeRequestDto.id().toString());
-        return new ApiStringResponseDto(removeRequestDto.id().toString());
+        SaveDataRequestDto removeRequestDto = keyValueUtils.translateToSaveDataRequestDto(message);
+        redisUtil.deleteData(hashKey, removeRequestDto.componentId());
+        return new ComponentIdDto(removeRequestDto.componentId());
     }
 
 }
