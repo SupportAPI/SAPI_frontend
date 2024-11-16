@@ -4,6 +4,7 @@ import com.seniorcenter.sapi.domain.api.domain.Api;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
+import com.seniorcenter.sapi.domain.workspace.domain.Workspace;
 import com.seniorcenter.sapi.domain.workspace.domain.repository.WorkspaceRepository;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
@@ -47,11 +48,11 @@ public class ProxyServiceImpl implements ProxyService {
 
     // Mock 서버 정보 가져오기
     @Override
-    public ServerRequestInfoDto getMockServerInfo(String workspaceId, HttpServletRequest request, Map<String, String> headers) {
+    public ServerRequestInfoDto getMockServerInfo(UUID workspaceId, HttpServletRequest request, Map<String, String> headers) {
         String path = request.getRequestURI().replace("/proxy/" + workspaceId + "/mock", "");
         String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
 
-        List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(UUID.fromString(workspaceId));
+        List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         List<UUID> apiIds = specifications.stream()
             .filter(specification -> !specification.getConfirmedApiId().equals(""))
             .map(Specification::getConfirmedApiId)
@@ -94,14 +95,14 @@ public class ProxyServiceImpl implements ProxyService {
     }
 
     @Override
-    public ServerRequestInfoDto getUserServerInfo(String workspaceId, HttpServletRequest request, Map<String, String> headers) {
+    public ServerRequestInfoDto getUserServerInfo(UUID workspaceId, HttpServletRequest request, Map<String, String> headers) {
 
         String path = request.getRequestURI().replace("/proxy/" + workspaceId + "/user", "");
         String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
 
         String domain = headers.containsKey("sapi-local-domain")
             ? headers.get("sapi-local-domain")
-            : workspaceRepository.findById(UUID.fromString(workspaceId))
+            : workspaceRepository.findById(workspaceId)
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
 
         String url = domain + path + queryString;
@@ -116,6 +117,60 @@ public class ProxyServiceImpl implements ProxyService {
             for (Cookie cookie : request.getCookies()) {
                 headers.put("cookies", cookie.getName() + "=" + cookie.getValue());
             }
+        }
+
+        return new ServerRequestInfoDto(url, httpHeaders);
+    }
+
+    @Override
+    public ServerRequestInfoDto getDynamicRequestInfo(UUID workspaceId, HttpServletRequest request, Map<String, String> headers) {
+        String path = request.getRequestURI().replace("/proxy/" + workspaceId + "/dynamic", "");
+        String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
+
+        List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
+        List<UUID> apiIds = specifications.stream()
+            .filter(specification -> !specification.getConfirmedApiId().equals(""))
+            .map(Specification::getConfirmedApiId)
+            .toList();
+
+        List<Api> apiList = apiRepository.findAllById(apiIds);
+
+        Api matchingApi = apiList.stream()
+            .filter(api -> api.getMethod().getValue().equals(request.getMethod()) && pathMatches(api.getPath(), path))
+            .findFirst()
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        Specification specification = matchingApi.getSpecification();
+        String url;
+        HttpHeaders httpHeaders = new HttpHeaders();
+        if (specification.getServerStatus().getValue().equals("SUCCESS")) {
+            url = String.format("https://%s.execute-api.%s.amazonaws.com%s", matchingApi.getSpecification().getApiGatewayId(), region.id(), queryString);
+
+            Set<String> excludeHeaders = Set.of(
+                "host",
+                "connection",
+                "content-length",
+                "accept-encoding"
+            );
+
+            headers.forEach((key, value) -> {
+                if (!excludeHeaders.contains(key.toLowerCase())) {
+                    httpHeaders.add(key, value);
+                }
+            });
+
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    headers.put("cookies", cookie.getName() + "=" + cookie.getValue());
+                }
+            }
+        } else {
+            Workspace workspace = workspaceRepository.findById(workspaceId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
+
+            url = String.format("%s%s%s", workspace.getDomain(), path, queryString);
+
+            headers.forEach(httpHeaders::add);
         }
 
         return new ServerRequestInfoDto(url, httpHeaders);
