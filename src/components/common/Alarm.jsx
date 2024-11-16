@@ -112,19 +112,21 @@ const Alarm = () => {
   return (
     <div
       className='absolute right-0 mt-4 w-80 h-[500px] bg-white 
-        border border-gray-200 rounded-2xl shadow-2xl 
+        border-gray-200 rounded-2xl shadow-2xl 
         overflow-y-scroll sidebar-scrollbar transition-all duration-300 z-50 scrollbar-gutter-stable'
     >
-      <div className='flex items-center p-4 bg-[#DEEBF0] text-black font-bold text-2xl h-[70px]'>Notifications</div>
+      <div className='flex items-center border-b p-4 bg-[#DEEBF0] text-black font-bold text-2xl h-[70px] dark:bg-dark-background dark:text-dark-text'>
+        Notifications
+      </div>
 
-      <div className='min-h-70 overflow-y-auto'>
+      <div className='min-h-70 overflow-y-auto '>
         {notifications.length > 0 ? (
           notifications
             .sort((a, b) => new Date(b.createdDatetime) - new Date(a.createdDatetime))
             .map((notification) => (
               <div
                 key={notification.id}
-                className={`flex flex-col gap-1 p-3 hover:bg-[#E0ECF0]
+                className={`flex flex-col gap-1 p-3 hover:bg-[#E0ECF0] dark:bg-dark-background dark:hover:bg-gray-600
           ${notification.isRead ? 'bg-white' : 'bg-[#EEF6F9]'}
           border-b border-gray-100 last:border-b-0`}
                 onClick={() =>
@@ -132,8 +134,8 @@ const Alarm = () => {
                 }
               >
                 <div className='flex flex-row ml-1'>
-                  <p className='text-lg text-black font-bold'>{notification.fromName}</p>
-                  <p className='text-xs text-black ml-2 mt-2'>
+                  <p className='text-lg text-black dark:text-dark-text font-bold'>{notification.fromName}</p>
+                  <p className='text-xs text-black dark:text-dark-text ml-2 mt-2'>
                     {new Date(notification.createdDatetime).toLocaleString('ko-KR', {
                       year: 'numeric',
                       month: '2-digit',
@@ -147,7 +149,9 @@ const Alarm = () => {
                     onClick={(event) => handleDeleteNotification(notification.id, event)}
                   />
                 </div>
-                <p className='text-sm text-gray-700 ml-1 break-words whitespace-normal'>{notification.message}</p>
+                <p className='text-sm text-gray-700 dark:text-dark-text ml-1 break-words whitespace-normal'>
+                  {notification.message}
+                </p>
               </div>
             ))
         ) : (

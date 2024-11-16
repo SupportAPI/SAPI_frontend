@@ -45,15 +45,15 @@ const TabBar = () => {
   };
 
   return (
-    <div className='flex bg-white border-b h-10'>
+    <div className='flex bg-white dark:bg-dark-background border-b h-10'>
       {openTabs.map((tab) => {
         const isActive = currentPath === tab.path;
 
         return (
           <div
             key={tab.id}
-            className={`flex items-center cursor-pointer relative px-2 h-10 ${
-              isActive ? 'bg-white border-t-2 border-gray-800' : 'bg-gray-100 border-b'
+            className={`flex items-center cursor-pointer relative px-2 h-10 dark:bg-dark-background   ${
+              isActive ? 'bg-white border-t-2 border-gray-800 dark:border-white' : 'bg-gray-100 border-b'
             }`}
             onClick={() => handleTabClick(tab)}
             onDoubleClick={() => handleTabDoubleClick(tab.id)}
@@ -65,10 +65,14 @@ const TabBar = () => {
               borderBottom: isActive ? '0' : '',
             }}
           >
-            <FaFileAlt className={`mr-2 flex-shrink-0 ${isActive ? 'text-gray-800' : 'text-gray-500'}`} />
+            <FaFileAlt
+              className={`mr-2 flex-shrink-0 ${
+                isActive ? 'text-gray-800 dark:text-dark-text' : 'text-gray-500 dark:text-gray-500'
+              }`}
+            />
             <span
               className={`flex-1 overflow-hidden text-ellipsis ${
-                isActive ? 'font-bold text-gray-800' : 'text-gray-600'
+                isActive ? 'font-bold text-gray-800 dark:text-dark-text' : 'text-gray-600 dark:text-gray-500'
               } ${tab.confirmed ? '' : 'italic'}`}
               style={{
                 whiteSpace: 'nowrap',
@@ -78,7 +82,9 @@ const TabBar = () => {
             </span>
             <FaTimes
               className={`ml-2 flex-shrink-0 cursor-pointer ${
-                isActive ? 'text-gray-500 hover:text-gray-800' : 'text-gray-400 hover:text-gray-600'
+                isActive
+                  ? 'text-gray-500 hover:text-gray-800 dark:text-dark-text'
+                  : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400'
               }`}
               onClick={(e) => {
                 e.stopPropagation(); // 클릭 이벤트가 부모로 전파되지 않도록 합니다.
@@ -88,7 +94,7 @@ const TabBar = () => {
           </div>
         );
       })}
-      {openTabs.length === 0 && <div className='flex bg-white border-b h-10'></div>}
+      {openTabs.length === 0 && <div className='flex bg-white dark:bg-dark-background border-b h-10'></div>}
     </div>
   );
 };
