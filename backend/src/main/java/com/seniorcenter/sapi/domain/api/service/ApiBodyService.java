@@ -7,6 +7,7 @@ import com.seniorcenter.sapi.domain.api.domain.repository.ApiBodyRepository;
 import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.SaveDataRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiStringResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
@@ -45,7 +46,7 @@ public class ApiBodyService {
 
     }
 
-    public void updateDBFormData(ApiMessage message, UUID workspaceId, UUID apiId) {
+    public ApiStringResponseDto updateDBFormData(ApiMessage message, UUID workspaceId, UUID apiId) {
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
 
         Api api = apiRepository.findById(apiId)
@@ -57,7 +58,9 @@ public class ApiBodyService {
 
         String hashKey = workspaceId.toString();
         log.info("[FORM DATA DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
-        redisUtil.deleteData(hashKey, data.componentId());
+        redisUtil.deleteData(hashKey, data.componentId().toString());
+
+        return new ApiStringResponseDto(data.componentId());
     }
 
 //    public ApiIdResponseDto removeApiBody(ApiMessage message, UUID apiId) {

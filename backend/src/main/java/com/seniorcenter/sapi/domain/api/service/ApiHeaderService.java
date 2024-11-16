@@ -9,6 +9,7 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.request.SaveDataRequest
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdKeyValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdKeyValueResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiStringResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
 import com.seniorcenter.sapi.domain.user.domain.User;
@@ -63,7 +64,7 @@ public class ApiHeaderService {
         return new ApiIdKeyValueResponseDto(apiHeader.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value(), user.getId());
     }
 
-    public void updateDBApiHeader(ApiMessage message, UUID workspaceId) {
+    public ApiStringResponseDto updateDBApiHeader(ApiMessage message, UUID workspaceId) {
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
         ApiHeader apiHeader = apiHeaderRepository.findById(Long.valueOf(data.id()))
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
@@ -71,7 +72,9 @@ public class ApiHeaderService {
 
         String hashKey = workspaceId.toString();
         log.info("[API HEADER DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
-        redisUtil.deleteData(hashKey, data.componentId());
+        redisUtil.deleteData(hashKey, data.componentId().toString());
+
+        return new ApiStringResponseDto(data.componentId());
     }
 
 }

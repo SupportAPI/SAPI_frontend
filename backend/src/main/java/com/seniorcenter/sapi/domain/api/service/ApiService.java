@@ -14,6 +14,7 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateIdValueRe
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.UpdateValueRequestDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiDetailResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiStringResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ValueUserIdResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
@@ -164,20 +165,21 @@ public class ApiService {
 
         Object result = null;
         if (message.apiType().equals(ApiType.API_PATH)) {
-            updatePath(message, workspaceId, apiId);
+            result = updatePath(message, workspaceId, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
-            apiQueryParameterService.updateDBApiQueryParameter(message, workspaceId, apiId);
+            result = apiQueryParameterService.updateDBApiQueryParameter(message, workspaceId, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
-            apiCookieService.updateDBApiCookie(message, workspaceId);
+            result = apiCookieService.updateDBApiCookie(message, workspaceId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
-            apiHeaderService.updateDBApiHeader(message, workspaceId);
+            result = apiHeaderService.updateDBApiHeader(message, workspaceId);
         } else if (message.apiType().equals(ApiType.API_DESCRIPTION)) {
-            updateDescription(message, workspaceId, apiId);
+            result = updateDescription(message, workspaceId, apiId);
         } else if (message.apiType().equals(ApiType.API_NAME)) {
-            updateApiName(message, workspaceId, apiId);
+            result = updateApiName(message, workspaceId, apiId);
         } else if (message.apiType().equals(ApiType.RESPONSE_JSON)) {
-            apiBodyService.updateDBFormData(message, workspaceId, apiId);
+            result = apiBodyService.updateDBFormData(message, workspaceId, apiId);
         }
+        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
     }
 
     public void updateRequestType(ApiMessage message, UUID apiId) {
@@ -188,7 +190,7 @@ public class ApiService {
         api.updateBodyType(BodyType.valueOf(data.value()));
     }
 
-    public void updatePath(ApiMessage message, UUID workspaceId, UUID apiId) {
+    public ApiStringResponseDto updatePath(ApiMessage message, UUID workspaceId, UUID apiId) {
         Api api = apiRepository.findById(apiId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
@@ -198,6 +200,8 @@ public class ApiService {
         String hashKey = workspaceId.toString();
         log.info("[API NAME DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
         redisUtil.deleteData(hashKey, data.componentId());
+
+        return new ApiStringResponseDto(data.componentId());
     }
 
     public void updateMethod(ApiMessage message, UUID apiId) {
@@ -208,7 +212,7 @@ public class ApiService {
         api.updateMethod(data.value());
     }
 
-    public void updateDescription(ApiMessage message, UUID workspaceId, UUID apiId) {
+    public ApiStringResponseDto updateDescription(ApiMessage message, UUID workspaceId, UUID apiId) {
         Api api = apiRepository.findById(apiId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
@@ -217,7 +221,9 @@ public class ApiService {
 
         String hashKey = workspaceId.toString();
         log.info("[API DESCRIPTION DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
-        redisUtil.deleteData(hashKey, data.componentId());
+        redisUtil.deleteData(hashKey, data.componentId().toString());
+
+        return new ApiStringResponseDto(data.componentId());
     }
 
     public void updateAuthType(ApiMessage message, UUID workspaceId, UUID apiId) {
@@ -228,7 +234,7 @@ public class ApiService {
         api.updateAuthType(AuthenticationType.valueOf(data.value()));
     }
 
-    public void updateApiName(ApiMessage message, UUID workspaceId, UUID apiId) {
+    public ApiStringResponseDto updateApiName(ApiMessage message, UUID workspaceId, UUID apiId) {
         Api api = apiRepository.findById(apiId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
@@ -238,7 +244,9 @@ public class ApiService {
         String hashKey = workspaceId.toString();
 
         log.info("[API NAME DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
-        redisUtil.deleteData(hashKey, data.componentId());
+        redisUtil.deleteData(hashKey, data.componentId().toString());
+
+        return new ApiStringResponseDto(data.componentId());
     }
 
     @Transactional

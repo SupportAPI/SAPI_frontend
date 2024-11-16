@@ -7,6 +7,7 @@ import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.api.presentation.dto.request.*;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiIdKeyValueResponseDto;
+import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiStringResponseDto;
 import com.seniorcenter.sapi.domain.api.presentation.message.ApiMessage;
 import com.seniorcenter.sapi.domain.api.util.KeyValueUtils;
 import com.seniorcenter.sapi.domain.user.domain.User;
@@ -61,7 +62,7 @@ public class ApiQueryParameterService {
         return new ApiIdKeyValueResponseDto(apiQueryParameter.getId(), updateIdKeyValueRequestDto.type(), updateIdKeyValueRequestDto.value(), user.getId());
     }
 
-    public void updateDBApiQueryParameter(ApiMessage message, UUID workspaceId, UUID apiId) {
+    public ApiStringResponseDto updateDBApiQueryParameter(ApiMessage message, UUID workspaceId, UUID apiId) {
         Api api = apiRepository.findById(apiId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
 
@@ -72,6 +73,8 @@ public class ApiQueryParameterService {
 
         String hashKey = workspaceId.toString();
         log.info("[API QUERY_PARAMETER DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
-        redisUtil.deleteData(hashKey, data.componentId());
+        redisUtil.deleteData(hashKey, data.componentId().toString());
+
+        return new ApiStringResponseDto(data.componentId());
     }
 }
