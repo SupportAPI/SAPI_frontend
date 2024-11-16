@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
 import com.seniorcenter.sapi.domain.category.domain.Category;
 import com.seniorcenter.sapi.domain.category.domain.repository.CategoryRepository;
 import com.seniorcenter.sapi.domain.membership.service.MembershipServiceImpl;
+import com.seniorcenter.sapi.global.utils.WebSocketUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,6 +49,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 	private final CategoryRepository categoryRepository;
 	private final EnvironmentCategoryRepository environmentCategoryRepository;
 	private final MembershipServiceImpl membershipServiceImpl;
+	private final WebSocketUtil webSocketUtil;
+	private final ApiRepository apiRepository;
 
 	@Override
 	@Transactional
@@ -75,16 +79,17 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
 		return new WorkspaceInfoResponseDto(workspace.getId(),
 			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
-			workspace.getIsCompleted());
+			workspace.getIsCompleted(), 0);
 	}
 
 	@Override
 	public WorkspaceInfoResponseDto getWorkspace(UUID workspaceId) {
 		Workspace workspace = workSpaceRepository.findById(workspaceId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
+
 		WorkspaceInfoResponseDto workspaceInfoResponseDto = new WorkspaceInfoResponseDto(workspace.getId(),
 			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
-			workspace.getIsCompleted());
+			workspace.getIsCompleted(), webSocketUtil.countUsersSubscribedToDestination("/workspaces/"+ workspaceId +"/docs"));
 		return workspaceInfoResponseDto;
 	}
 
@@ -102,7 +107,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 					workspace.getDescription(),
 					workspace.getMainImage(),
 					workspace.getDomain(),
-					workspace.getIsCompleted()
+					workspace.getIsCompleted(),
+					webSocketUtil.countUsersSubscribedToDestination("/workspaces/"+ workspace.getId() +"/docs")
 				);
 			})
 			.collect(Collectors.toList());
