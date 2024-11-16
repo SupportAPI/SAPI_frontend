@@ -123,7 +123,7 @@ public class SpecificationService {
         List<SpecificationCategoryResponseDto> categoryResponseDtos = new ArrayList<>();
         specifications.stream()
             .map(specification -> {
-                Api api = apiRepository.findById(specification.getConfirmedApiId())
+                Api api = apiRepository.findTopBySpecificationIdOrderByCreatedDateDesc(specification.getId())
                     .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
                 if (!categoryMap.containsKey(api.getCategory())) {
                     categoryMap.put(api.getCategory(), categoryIndex.incrementAndGet() - 1);
