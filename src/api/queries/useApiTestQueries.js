@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient, useMutation } from 'react-query';
 import axiosInstance from '../axiosInstance';
 
 // 1. Api List 호출 (전체)
@@ -34,15 +34,28 @@ export const patchApiDetail = async (workspaceId, apiId, apiTestDetails) => {
 };
 
 // 4. API TEST Request
-export const requestApiTest = async (workspaceId, apiDetail) => {
-  const response = await axiosInstance.post(
-    `/api/workspaces/${workspaceId}/request`,
-    { apiDetail },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
+export const requestApiTestDetail = async (workspaceId, apiDetail, apiUrl) => {
+  // 기본 headers 객체
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  // apiUrl이 null이 아니면 "sapi-local-host" 헤더 추가
+  if (apiUrl !== null) {
+    headers['sapi-local-host'] = apiUrl;
+  }
+
+  // axios 요청
+  const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/request`, { apiDetail }, { headers });
+
   return response.data.data;
+};
+
+export const useRequestApiTestDetail = (setTestResult) => {
+  const queryClient = useQueryClient();
+  return useMutation(({ workspaceId, apiDetail, apiUrl }) => requestApiTestDetail(workspaceId, apiDetail, apiUrl), {
+    onSuccess: (data) => {
+      setTestResult(data);
+    },
+  });
 };

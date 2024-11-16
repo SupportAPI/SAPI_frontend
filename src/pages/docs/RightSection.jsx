@@ -49,7 +49,7 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
             response={apiDocDetail?.response}
           />
         )}
-        {activeRightTab === 'comment' && <Comments />}
+        {activeRightTab === 'comment' && <Comments docsId={apiDocDetail.docId} workspaceId={workspaceId} />}
         {activeRightTab === 'code' && (
           <CodeSnippet
             path={apiDocDetail?.path}

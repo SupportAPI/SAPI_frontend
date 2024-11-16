@@ -210,12 +210,14 @@ const EnvironmentSidebar = () => {
                     ) : (
                       <span>{p.name}</span>
                     )}
-                    <BsThreeDots
-                      className={`text-gray-500 hover:text-gray-700 cursor-pointer opacity-0 group-hover:opacity-100`}
-                      onClick={(e) => {
-                        handleCategoryOption(e, p.id);
-                      }}
-                    />
+                    {p.name !== 'Local' && (
+                      <BsThreeDots
+                        className={`text-gray-500 hover:text-gray-700 cursor-pointer opacity-0 group-hover:opacity-100`}
+                        onClick={(e) => {
+                          handleCategoryOption(e, p.id);
+                        }}
+                      />
+                    )}
                   </div>
                   {selectedCategoryId === p.id && (
                     <div ref={setRef} className='absolute right-0 w-28 bg-white shadow-lg rounded border z-20'>

@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
-import Environment from '../Environment/Environment';
 
 const ApiTestBody = ({ initialValues, paramsChange }) => {
   const [headers, setHeaders] = useState(initialValues?.headers || []);
@@ -16,30 +15,7 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
   const [showQueryParametersDropdown, setShowQueryParametersDropdown] = useState([]);
   const [showCookiesDropdown, setShowCookiesDropdown] = useState([]);
 
-  // useEffect(() => {
-  //   if (initialValues) {
-  //     setHeaders(initialValues?.headers || []);
-  //     setPathVariables(initialValues?.pathVariables || []);
-  //     setQueryParameters(initialValues?.queryParameters || []);
-  //     setCookies(initialValues?.cookies || []);
-  //     setAuthType(initialValues?.authType || 'None');
-  //   }
-  // }, [initialValues]);
-
-  // `paramsChange`를 메모이제이션하여 변경사항이 있을 때만 호출
-  // const updateParams = useCallback(() => {
-  //   paramsChange({
-  //     headers,
-  //     pathVariables,
-  //     queryParameters,
-  //     cookies,
-  //     authType,
-  //   });
-  // }, [headers, pathVariables, queryParameters, cookies, authType, paramsChange]);
-
-  // useEffect(() => {
-  //   updateParams();
-  // }, [updateParams]);
+  const [hoveredEnvIndex, setHoveredEnvIndex] = useState(null); // hover된 항목의 인덱스를 저장하는 상태
 
   useEffect(() => {
     paramsChange({
@@ -104,9 +80,21 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
         return;
       }
 
-      console.log(Environment);
       const searchValue = firstSpaceIndex === -1 ? afterStart : afterStart.slice(0, firstSpaceIndex);
-      const filteredEnvironments = environment?.filter((env) => env.value.startsWith(searchValue)) || [];
+      const filteredEnvironments = environment?.filter((env) => env.variable.includes(searchValue)) || [];
+
+      if (filteredEnvironments.length > 0) {
+        // 최소값 찾기
+        const minValueObject = filteredEnvironments.reduce((min, current) => {
+          return current.id < min.id ? current : min;
+        });
+
+        // 최소값을 가진 항목을 초기 hover 값으로 설정
+        setHoveredEnvIndex(filteredEnvironments.indexOf(minValueObject));
+      } else {
+        setHoveredEnvIndex(null);
+      }
+
       setEnvDropDown(filteredEnvironments);
 
       const newShowDropdown = Array(data.length).fill(false);
@@ -115,6 +103,7 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
     } else {
       const newShowDropdown = Array(data.length).fill(false);
       setShowDropdown(newShowDropdown);
+      setHoveredEnvIndex(null);
     }
 
     updateState(data, setData);
@@ -153,8 +142,11 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
 
     if (nearestStartIndex !== -1) {
       const before = originalValue.slice(0, nearestStartIndex);
-      const after = originalValue.slice(nearestStartIndex + 2); // 이 부분 수정 필요
-      const newValue = `${before}{{${selectedVariable}}}${after.trimStart()}`; // 공백 제거하여 원하는 형식으로 설정
+      const after = originalValue.slice(nearestStartIndex + 2);
+
+      const firstSpaceIndex = after.indexOf(' ');
+      const trimmedAfter = firstSpaceIndex !== -1 ? after.slice(firstSpaceIndex) : '';
+      const newValue = `${before}{{${selectedVariable}}} ${trimmedAfter.trimStart()}`;
 
       updated[index].value = newValue;
       setData(updated);
@@ -164,56 +156,98 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
     setShowDropdown(newShowDropdown);
   };
 
-  const renderTable = (title, data, type, showDropdown) => (
-    <div className='mb-4'>
-      <h3 className='font-bold text-sm mb-2'>{title}</h3>
-      <table className='w-full border border-gray-300'>
-        <thead>
-          <tr>
-            <th className='py-2 px-4 text-sm border bg-gray-100 w-[40%]'>Parameter Name</th>
-            <th className='py-2 px-4 text-sm border bg-gray-100 w-[60%]'>Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item, index) => (
-            <tr key={index} className='hover:bg-gray-50'>
-              <td className='py-2 px-4 text-sm border text-center w-[40%]'>{item.key}</td>
-              <td className='py-2 px-4 border text-center w-[60%]'>
-                <input
-                  type='text'
-                  value={item.value}
-                  onChange={(e) => handleInputChange(e, index, type)}
-                  className='w-full text-sm border p-1 text-center'
-                />
-                {showDropdown[index] && (
-                  <div className='absolute left-0 right-0 bg-white border border-gray-300 mt-1 z-10'>
-                    {envDropdown.map((env, i) => (
-                      <div
-                        key={i}
-                        onClick={() => handleEnvironmentSelect(env.variable, index, type)}
-                        className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
-                      >
-                        {env.variable}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </td>
+  const renderTable = (title, data, type) => {
+    let showDropdown;
+    switch (type) {
+      case 'headers':
+        showDropdown = showHeadersDropdown;
+        break;
+      case 'pathVariables':
+        showDropdown = showPathVariablesDropdown;
+        break;
+      case 'queryParameters':
+        showDropdown = showQueryParametersDropdown;
+        break;
+      case 'cookies':
+        showDropdown = showCookiesDropdown;
+        break;
+      default:
+        return null;
+    }
+
+    return (
+      <div className='mb-4'>
+        <h3 className='font-bold text-sm mb-2'>{title}</h3>
+        <table className='w-full border border-gray-300'>
+          <thead>
+            <tr>
+              <th className='py-2 px-4 text-sm border bg-gray-100 w-[40%]'>Parameter Name</th>
+              <th className='py-2 px-4 text-sm border bg-gray-100 w-[60%]'>Value</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+          </thead>
+          <tbody>
+            {data.map((item, index) => (
+              <tr key={item.id} className='hover:bg-gray-50'>
+                <td className='py-2 px-4 text-sm border text-center w-[40%]'>{item.key}</td>
+                <td className='py-2 px-4 border text-center w-[60%]'>
+                  <input
+                    type='text'
+                    value={item.value}
+                    onChange={(e) => handleInputChange(e, index, type)}
+                    className='w-full text-sm border p-1 text-center'
+                  />
+                  {showDropdown[index] && (
+                    <>
+                      <div className='w-[15%] rounded-bl-lg absolute left-[45%] right-0 bg-white border border-gray-300 mt-1 z-10 h-[150px] overflow-y-scroll sidebar-scrollbar'>
+                        {envDropdown.map((env, i) => (
+                          <div
+                            key={i}
+                            onClick={() => handleEnvironmentSelect(env.variable, index, type)}
+                            onMouseEnter={() => setHoveredEnvIndex(i)} // hover 시 인덱스를 상태에 저장
+                            className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
+                          >
+                            {env.variable}
+                          </div>
+                        ))}
+                      </div>
+                      {hoveredEnvIndex !== null && (
+                        <div className='w-[28%] rounded-br-lg absolute left-[60%] right-0 bg-white border border-gray-300 mt-1 z-10 h-[150px]'>
+                          <div key={hoveredEnvIndex} className='p-2 text-sm flex flex-col'>
+                            <div className='flex flex-col'>
+                              {Object.entries(envDropdown[hoveredEnvIndex]).map(([key, value]) => {
+                                if (key !== 'id' && key !== 'orderIndex') {
+                                  return (
+                                    <div
+                                      key={key}
+                                      className='flex flex-row dark:text-dark-text text-[#121212] text-start ml-4'
+                                    >
+                                      <div className='w-[30%] font-semibold'>{key}</div> {value}
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   return (
     <div>
-      {headers.length > 0 && renderTable('Headers', headers, 'headers', showHeadersDropdown)}
-      {pathVariables.length > 0 &&
-        renderTable('Path Variables', pathVariables, 'pathVariables', showPathVariablesDropdown)}
-      {queryParameters.length > 0 &&
-        renderTable('Query Parameters', queryParameters, 'queryParameters', showQueryParametersDropdown)}
-      {cookies.length > 0 && renderTable('Cookies', cookies, 'cookies', showCookiesDropdown)}
+      {headers.length > 0 && renderTable('Headers', headers, 'headers')}
+      {pathVariables.length > 0 && renderTable('Path Variables', pathVariables, 'pathVariables')}
+      {queryParameters.length > 0 && renderTable('Query Parameters', queryParameters, 'queryParameters')}
+      {cookies.length > 0 && renderTable('Cookies', cookies, 'cookies')}
     </div>
   );
 };
