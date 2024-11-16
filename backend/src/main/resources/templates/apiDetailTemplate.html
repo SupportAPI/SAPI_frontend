@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>API Specification</title>
+    <style>
+        @font-face {
+            font-family: 'NanumGothic';
+            src: url('fonts/NanumGothic.ttf') format('truetype');
+        }
+
+        * {
+            font-family: 'NanumGothic', sans-serif !important;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h3 {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        /* HTTP 메서드 버튼 스타일 */
+        .method {
+            display: inline-block;
+            margin: 10px 5px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-align: center;
+            width: 60px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .method-get {
+            background-color: #4caf50; /* 초록색 */
+        }
+
+        .method-post {
+            background-color: #4caf50; /* 초록색 */
+        }
+
+        .method-delete {
+            background-color: #f44336; /* 빨강색 */
+        }
+
+        .method-put,
+        .method-patch {
+            background-color: #ff9800; /* 주황색 */
+        }
+
+        .path {
+            display: inline-block;
+            margin: 0 0 0 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            border: 2px solid #cde8ff;
+            width: 700px;
+        }
+
+        @media print {
+            .path {
+                width: 480px;
+            }
+        }
+
+        .description-card {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 1em;
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .description-text {
+            color: #333333;
+        }
+
+        .section {
+            margin-top: 30px;
+        }
+
+        .divider {
+            border-top: 1px solid #ccc;
+            margin: 10px 0 0px;
+        }
+
+        .flex-row {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .ml-3 {
+            margin-left: 10px;
+        }
+
+        .bg-gray {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .required {
+            color: red;
+            font-weight: bold;
+        }
+
+        .empty-message {
+            font-style: italic;
+            color: #999999;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .json-container {
+            background-color: #ffffff;
+            color: #333333;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            overflow-x: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+
+        .json-container * {
+            font-size: 12px;
+        }
+
+        .json-key {
+            color: #e69a18;
+            font-weight: bold;
+        }
+
+        .json-string {
+            color: #0288d1;
+        }
+
+        .json-number {
+            color: #d32f2f;
+        }
+
+        .json-boolean {
+            color: #388e3c;
+            font-weight: bold;
+        }
+
+        .json-null {
+            color: #f4511e;
+            font-style: italic;
+        }
+
+        .code {
+            width: 40px;
+            text-align: center;
+        }
+
+        /* Response status code background colors */
+        .response-2xx, .code-200 {
+            background-color: #4caf50; /* 초록 */
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .response-4xx, .code-404 {
+            background-color: #ff9800; /* 주황 */
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .response-5xx {
+            background-color: #f44336; /* 빨강 */
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .response-1xx, .response-3xx {
+            background-color: #e0e0e0; /* 회색 */
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .status-text {
+            margin-left: 10px;
+            font-weight: bold;
+            color: #666666;
+        }
+
+        .section h4 {
+            font-size: 1.5em;
+            margin-bottom: 0;
+            margin-top: 50px;
+        }
+
+        .header {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .header::before {
+            content: "• ";
+            color: #666666;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h3 th:text="${api.name}"></h3>
+    <div class="flex-row">
+        <p class="method" th:classappend="'method-' + ${api.method.toString().toLowerCase()}" th:text="${api.method}"></p>
+        <p class="path ml-3" th:text="${api.path}"></p>
+    </div>
+    <div class="description-card">
+        <p class="description-text" th:text="${api.description}"></p>
+    </div>
+    <div class="section">
+        <h4>Request</h4>
+        <div class="divider"></div>
+
+        <!-- PathVariable Table -->
+        <p class="header">Path Variables</p>
+        <table th:if="${!api.pathVariables.isEmpty()}">
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Description</th>
+            </tr>
+            <tr th:each="pathVariable : ${api.pathVariables}">
+                <td th:text="${pathVariable.variableKey}">Key</td>
+                <td th:text="${pathVariable.variableValue}">Value</td>
+                <td th:text="${pathVariable.description}">Description</td>
+            </tr>
+        </table>
+        <div class="empty-message" th:if="${api.pathVariables.isEmpty()}">No path variable available.</div>
+
+
+        <!-- Query Parameters Table -->
+        <p class="header">Query Parameters</p>
+        <table th:if="${!api.queryParameters.isEmpty()}">
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Description</th>
+            </tr>
+            <tr th:each="queryParam : ${api.queryParameters}">
+                <td>
+                    <span th:text="${queryParam.paramKey}"></span>
+                    <span class="required" th:if="${queryParam.isEssential()}"> *</span>
+                </td>
+                <td th:text="${queryParam.paramValue}"></td>
+                <td th:text="${queryParam.description}"></td>
+            </tr>
+        </table>
+        <div class="empty-message" th:if="${api.queryParameters.isEmpty()}">No query parameters available.</div>
+
+        <!-- Headers Table -->
+        <p class="header">Headers</p>
+        <table th:if="${!api.headers.isEmpty()}">
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Description</th>
+            </tr>
+            <tr th:each="header : ${api.headers}">
+                <td>
+                    <span th:text="${header.headerKey}"> </span>
+                    <span class="required" th:if="${header.isEssential()}"> *</span></td>
+                <td th:text="${header.headerValue}"></td>
+                <td th:text="${header.description}"></td>
+            </tr>
+        </table>
+        <div class="empty-message" th:if="${api.headers.isEmpty()}">No headers available.</div>
+
+        <!-- Cookies Table -->
+        <p class="header">Cookies</p>
+        <table th:if="${!api.cookies.isEmpty()}">
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Description</th>
+            </tr>
+            <tr th:each="cookie : ${api.cookies}">
+                <td>
+                    <span th:text="${cookie.cookieKey}"></span>
+                    <span class="required" th:if="${cookie.isEssential()}"> *</span></td>
+                </td>
+                <td th:text="${cookie.cookieValue}"></td>
+                <td th:text="${cookie.description}"></td>
+            </tr>
+        </table>
+        <div class="empty-message" th:if="${api.cookies.isEmpty()}">No cookies available.</div>
+
+        <!-- Request Body -->
+        <p class="header">Request Body</p>
+        <div th:if="${api.bodyType.getValue().equals('JSON')}">
+            <div th:each="body : ${api.bodies}">
+                <div class="json-container"
+                     th:if="${body.parameterType().getValue().equals('JSON')}"
+                     th:utext="${body.bodyValue()}"></div>
+            </div>
+        </div>
+        <div th:if="${api.bodyType.getValue().equals('FORM_DATA')}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Type</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="body : ${api.bodies}"
+                    th:if="${body.parameterType.getValue().equals('TEXT') or body.parameterType.getValue().equals('FILE')}">
+                    <td th:text="${body.bodyKey}"><span class="required" th:if="${body.isEssential()}"> *</span></td>
+                    <td th:text="${body.parameterType}"></td>
+                    <td>
+                        <span th:if="${body.parameterType.getValue().equals('TEXT')}" th:text="${body.bodyValue}"></span>
+                        <span th:if="${body.parameterType.getValue().equals('FILE')}">[파일 첨부]</span>
+                    </td>
+                    <td th:text="${body.description}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="empty-message" th:if="${api.bodyType.getValue().equals('NONE')}">No request body available.</div>
+
+
+    </div>
+
+    <div class="section">
+        <h4>Response</h4>
+        <div class="divider"></div>
+
+        <!-- Responses -->
+        <div th:each="response : ${api.responses}">
+            <div class="flex-row">
+                <p th:class="'code code-' + ${response.code}" th:text="${response.code}">200</p>
+                <span class="status-text" th:text="${response.description}">Status Description</span>
+            </div>
+            <div class="json-container" th:utext="${response.bodyData()}"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
