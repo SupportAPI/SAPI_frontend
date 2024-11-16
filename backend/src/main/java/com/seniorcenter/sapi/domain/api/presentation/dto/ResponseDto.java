@@ -2,9 +2,10 @@ package com.seniorcenter.sapi.domain.api.presentation.dto;
 
 public record ResponseDto(
     String id,
-    String code,
+    int code,
+    String name,
     String description,
-    String contentType,
+    String bodyType,
     String bodyData
 ) {
 }

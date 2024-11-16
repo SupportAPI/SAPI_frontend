@@ -23,6 +23,8 @@ public class ApiResponse extends BaseTimeEntity {
 
     private int code;
 
+    private String name;
+
     @Enumerated(EnumType.STRING)
     private BodyType bodyType;
 
@@ -31,9 +33,10 @@ public class ApiResponse extends BaseTimeEntity {
     private String description;
 
     @Builder
-    public ApiResponse(Api api, int code, BodyType bodyType, String bodyData, String description) {
+    public ApiResponse(Api api, int code, String name, BodyType bodyType, String bodyData, String description) {
         this.api = api;
         this.code = code;
+        this.name = name;
         this.bodyType = bodyType;
         this.bodyData = bodyData;
         this.description = description;
@@ -41,21 +44,22 @@ public class ApiResponse extends BaseTimeEntity {
 
     public static ApiResponse createApiResponse(Api api, int code) {
         return ApiResponse.builder()
-                .api(api)
-                .code(code)
-                .bodyType(BodyType.NONE)
-                .bodyData("")
-                .description("")
-                .build();
+            .api(api)
+            .code(code)
+            .bodyType(BodyType.NONE)
+            .bodyData("")
+            .description("")
+            .build();
     }
 
     public static ApiResponse copyApiResponse(Api api, ApiResponse originResponse) {
         return ApiResponse.builder()
-                .api(api)
-                .code(originResponse.getCode())
-                .bodyType(originResponse.getBodyType())
-                .bodyData(originResponse.getBodyData())
-                .description(originResponse.getDescription())
-                .build();
+            .api(api)
+            .code(originResponse.getCode())
+            .name(originResponse.getName())
+            .bodyType(originResponse.getBodyType())
+            .bodyData(originResponse.getBodyData())
+            .description(originResponse.getDescription())
+            .build();
     }
 }

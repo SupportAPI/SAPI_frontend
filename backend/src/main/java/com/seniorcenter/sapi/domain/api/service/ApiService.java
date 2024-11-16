@@ -409,7 +409,8 @@ public class ApiService {
                     }
                     return new ResponseDto(
                             response.getId().toString(),
-                            String.valueOf(response.getCode()),
+                            response.getCode(),
+                            response.getName(),
                             response.getDescription(),
                             response.getBodyType() != null ? response.getBodyType().name() : "",
                             response.getBodyData()
