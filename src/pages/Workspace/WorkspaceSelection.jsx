@@ -323,7 +323,7 @@ const WorkspaceSelection = () => {
                                     className='border min-w-[60px] max-w-[60px] min-h-[50px] max-h-[50px] rounded-lg object-contain'
                                   />
                                   <div className='flex flex-col ml-3'>
-                                    <div className='text-left text-xl w-[194px]'>{item.projectName}</div>
+                                    <div className='text-left max-w-[150px]'>{item.projectName}</div>
                                   </div>
                                 </div>
                               </td>
@@ -497,7 +497,7 @@ const WorkspaceSelection = () => {
                                     className='border min-w-[60px] max-w-[60px] min-h-[50px] max-h-[50px] rounded-lg object-contain'
                                   />
                                   <div className='flex flex-col ml-3'>
-                                    <div className='text-left text-xl'>{item.projectName}</div>
+                                    <div className='text-left'>{item.projectName}</div>
                                   </div>
                                 </div>
                               </td>

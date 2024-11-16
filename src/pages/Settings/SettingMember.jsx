@@ -322,7 +322,7 @@ const SettingMember = () => {
               }}
             />
             {showAutoList && useremail && (
-              <div className='absolute top-full left-0 right-0 rounded-lg overflow-y-auto max-h-40 bg-white shadow-lg z-10 sidebar-scrollbar dark:bg-dark-background dark:text-dark-text'>
+              <div className='absolute top-full left-0 right-0 rounded-lg overflow-y-auto max-h-60 bg-white shadow-lg z-10 sidebar-scrollbar dark:bg-dark-background dark:text-dark-text'>
                 {renderAutoCompleteList()}
               </div>
             )}
