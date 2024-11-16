@@ -77,7 +77,7 @@ const Settings = ({ onClose }) => {
             <div className='flex flex-col'>
               <p className='text-2xl font-medium ml-2 mb-3 '>WorkSpace</p>
               <div className='flex flex-col w-full m-auto'>
-                <button className={`w-[100%] h-16 text-gray-200 dark:text-dark-mutedText `}>workspacedetail</button>
+                <button className={`w-[100%] h-16 text-gray-200 dark:text-dark-mutedText `}>Workspace</button>
                 <button className={`w-[100%] h-16 text-gray-200 dark:text-dark-mutedText `}>Member</button>
                 <button className='w-[100%] h-16 text-gray-200 dark:text-dark-mutedText'>Exit</button>
               </div>

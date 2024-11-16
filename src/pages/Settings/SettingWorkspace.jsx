@@ -55,6 +55,7 @@ const SettingWorkspace = () => {
       );
     } else {
       if (!projectName) {
+        setNameErrorMessage('프로젝트 이름을 입력해주세요.');
         setShowNameError(true);
       } else if (projectName.length > 30) {
         setNameErrorMessage('최대 30글자까지 입력 가능합니다.');
@@ -62,6 +63,7 @@ const SettingWorkspace = () => {
       }
 
       if (!domain) {
+        setDomainErrorMessage('도메인 주소를 입력해주세요.');
         setShowDomainError(true);
       } else if (domain.length > 255) {
         setDomainErrorMessage('최대 255글자까지 입력 가능합니다.');
@@ -123,7 +125,6 @@ const SettingWorkspace = () => {
               onChange={(e) => setProjectName(e.target.value)}
               className='border-b w-full dark:bg-dark-background'
             />
-            {/* 수정 필요 */}
           </div>
           <div className={`${isShowNameError ? 'visible' : 'invisible'} text-red-500 ml-[120px]`}>
             {nameErrorMessage}
@@ -137,7 +138,6 @@ const SettingWorkspace = () => {
               onChange={(e) => setDomain(e.target.value)}
               className='border-b w-full dark:bg-dark-background '
             />
-            {/* 수정 필요 */}
           </div>
           <div className={`${isShowDomainError ? 'visible' : 'invisible'} text-red-500 ml-[120px]`}>
             {domainErrorMessage}
@@ -150,13 +150,12 @@ const SettingWorkspace = () => {
               onChange={(e) => setDescription(e.target.value)}
               className='border p-2 w-full dark:bg-dark-background sidebar-scrollbar rounded-lg'
             ></textarea>
-            {/* 수정필요 */}
           </div>
           <div className={`${isShowDescriptionError ? 'visible' : 'invisible'} text-red-500 ml-[120px]`}>
             {descriptionErrorMessage}
           </div>
-          <button onClick={handleSave} className='bg-blue-500 text-white py-2 px-5 rounded-md'>
-            저장
+          <button onClick={handleSave} className={`py-2 px-5 rounded-md bg-blue-500 text-white`}>
+            Save
           </button>
         </div>
       </div>

@@ -205,15 +205,25 @@ const InviteUser = ({ workspaceId, onClose }) => {
               </div>
             ))}
           </div>
-          <button
-            className={`text-white py-2 px-4 rounded-lg ${
-              isactiveSend ? 'bg-blue-500 hover:bg-blue-400' : 'bg-gray-300'
-            }`}
-            disabled={!isactiveSend}
-            onClick={sendInvitation}
-          >
-            Send Invitation
-          </button>
+          <div className='flex flex-col w-full items-center'>
+            <button
+              className={`text-white w-full py-2 px-4 mb-2 rounded-lg ${
+                isactiveSend ? 'bg-blue-500 hover:bg-blue-400' : 'bg-gray-300'
+              }`}
+              disabled={!isactiveSend}
+              onClick={sendInvitation}
+            >
+              Send Invitation
+            </button>
+            <button
+              className='text-sm text-blue-500'
+              onClick={() => {
+                onClose();
+              }}
+            >
+              Skip for Now
+            </button>
+          </div>
         </div>
       </div>
     </div>

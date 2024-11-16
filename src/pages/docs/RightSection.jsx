@@ -63,7 +63,7 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
         )}
       </div>
 
-      <div className='absolute right-0 top-[104px] h-[calc(100vh-104px)] w-[50px] flex flex-col items-center pt-4 bg-white shadow-lg dark:bg-dark-background dark:text-dark-text'>
+      <div className='absolute border-l right-0 top-[104px] h-[calc(100vh-104px)] w-[50px] flex flex-col items-center pt-4 bg-white shadow-lg dark:bg-dark-background dark:text-dark-text'>
         <FiMessageSquare
           className={`cursor-pointer mb-4 ${activeRightTab === 'comment' ? 'text-blue-500' : 'text-gray-500'}`}
           size={24}

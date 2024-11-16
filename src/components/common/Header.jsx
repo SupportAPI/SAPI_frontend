@@ -97,7 +97,7 @@ const Header = () => {
               {filteredWorkspaces.map((workspace) => (
                 <li
                   key={workspace.id}
-                  className='px-4 py-2 hover:bg-gray-200 cursor-pointer'
+                  className='px-4 py-2 hover:bg-gray-200 cursor-pointer truncate'
                   onClick={() => handleWorkspaceSelect(workspace.id)}
                 >
                   {workspace.projectName}
