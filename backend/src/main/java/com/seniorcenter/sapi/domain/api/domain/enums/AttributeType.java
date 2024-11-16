@@ -8,7 +8,8 @@ import lombok.Getter;
 public enum AttributeType {
     KEY("KEY"),
     VALUE("VALUE"),
-    DESCRIPTION("DESCRIPTION");
+    DESCRIPTION("DESCRIPTION"),
+    REQUIRED("REQUIRED"),;
 
     private String value;
 }
