@@ -23,7 +23,7 @@ public record RequestDto(
         String type,
         ApiFileDto file,
         String description,
-        Boolean isEssential,
+        Boolean isRequired,
         Boolean isChecked
     ) {
         public record ApiFileDto(

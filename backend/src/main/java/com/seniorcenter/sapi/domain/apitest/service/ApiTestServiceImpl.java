@@ -27,7 +27,6 @@ import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.utils.JsonUtil;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -90,7 +89,7 @@ public class ApiTestServiceImpl implements ApiTestService {
                     header.getHeaderKey(),
                     header.getHeaderValue(),
                     header.getDescription(),
-                    header.getIsEssential(),
+                    header.getIsRequired(),
                     header.getIsChecked()
                 );
             })
@@ -116,7 +115,7 @@ public class ApiTestServiceImpl implements ApiTestService {
                     queryParameter.getParamKey(),
                     queryParameter.getParamValue(),
                     queryParameter.getDescription(),
-                    queryParameter.getIsEssential(),
+                    queryParameter.getIsRequired(),
                     queryParameter.getIsChecked()
                 );
             })
@@ -130,7 +129,7 @@ public class ApiTestServiceImpl implements ApiTestService {
                     cookie.getCookieKey(),
                     cookie.getCookieValue(),
                     cookie.getDescription(),
-                    cookie.getIsEssential(),
+                    cookie.getIsRequired(),
                     cookie.getIsChecked()
                 );
             })
@@ -172,7 +171,7 @@ public class ApiTestServiceImpl implements ApiTestService {
                     formData.getParameterType().name(),
                     apiFileDto,
                     formData.getDescription(),
-                    formData.getIsEssential(),
+                    formData.getIsRequired(),
                     formData.getIsChecked()
                 );
             })

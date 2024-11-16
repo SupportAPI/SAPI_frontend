@@ -51,7 +51,7 @@ public class ExportUtil {
                         body.bodyKey(),
                         highlightedBodyValue,
                         body.description(),
-                        body.isEssential(),
+                        body.isRequired(),
                         body.isChecked()
                     );
                 } else {
@@ -170,7 +170,7 @@ public class ExportUtil {
                 markdownBuilder.append("| Parameter Key | Parameter Value | Description |\n");
                 markdownBuilder.append("|---------------|----------------|-------------|\n");
                 for (ApiDto.ApiQueryParameterDto queryParam : api.queryParameters()) {
-                    markdownBuilder.append("| ").append(queryParam.paramKey()).append(queryParam.isEssential() ? " *" : "").append(" | ")
+                    markdownBuilder.append("| ").append(queryParam.paramKey()).append(queryParam.isRequired() ? " *" : "").append(" | ")
                         .append(queryParam.paramValue()).append(" | ")
                         .append(queryParam.description()).append(" |\n");
                 }
@@ -185,7 +185,7 @@ public class ExportUtil {
                 markdownBuilder.append("| Header Key | Header Value | Description |\n");
                 markdownBuilder.append("|------------|-------------|-------------|\n");
                 for (ApiDto.ApiHeaderDto header : api.headers()) {
-                    markdownBuilder.append("| ").append(header.headerKey()).append(header.isEssential() ? " *" : "").append(" | ")
+                    markdownBuilder.append("| ").append(header.headerKey()).append(header.isRequired() ? " *" : "").append(" | ")
                         .append(header.headerValue()).append(" | ")
                         .append(header.description()).append(" |\n");
                 }
@@ -200,7 +200,7 @@ public class ExportUtil {
                 markdownBuilder.append("| Cookie Key | Cookie Value | Description |\n");
                 markdownBuilder.append("|------------|--------------|-------------|\n");
                 for (ApiDto.ApiCookieDto cookie : api.cookies()) {
-                    markdownBuilder.append("| ").append(cookie.cookieKey()).append(cookie.isEssential() ? " *" : "").append(" | ")
+                    markdownBuilder.append("| ").append(cookie.cookieKey()).append(cookie.isRequired() ? " *" : "").append(" | ")
                         .append(cookie.cookieValue()).append(" | ")
                         .append(cookie.description()).append(" |\n");
                 }
@@ -222,7 +222,7 @@ public class ExportUtil {
                 markdownBuilder.append("| Key | Type | Value | Description |\n");
                 markdownBuilder.append("|-----|------|-------|-------------|\n");
                 for (ApiDto.ApiBodyDto body : api.bodies()) {
-                    markdownBuilder.append("| ").append(body.bodyKey()).append(body.isEssential() ? " *" : "").append(" | ")
+                    markdownBuilder.append("| ").append(body.bodyKey()).append(body.isRequired() ? " *" : "").append(" | ")
                         .append(body.parameterType().getValue()).append(" | ")
                         .append(body.bodyValue()).append(" | ")
                         .append(body.description()).append(" |\n");

@@ -58,7 +58,7 @@ public record ApiDto(
         String headerKey,
         String headerValue,
         String description,
-        Boolean isEssential,
+        Boolean isRequired,
         Boolean isChecked
     ) {
         public static ApiHeaderDto from(ApiHeader header) {
@@ -66,7 +66,7 @@ public record ApiDto(
                 header.getHeaderKey(),
                 header.getHeaderValue(),
                 header.getDescription(),
-                header.getIsEssential(),
+                header.getIsRequired(),
                 header.getIsChecked()
             );
         }
@@ -76,7 +76,7 @@ public record ApiDto(
         String cookieKey,
         String cookieValue,
         String description,
-        Boolean isEssential,
+        Boolean isRequired,
         Boolean isChecked
     ) {
         public static ApiCookieDto from(ApiCookie cookie) {
@@ -84,7 +84,7 @@ public record ApiDto(
                 cookie.getCookieKey(),
                 cookie.getCookieValue(),
                 cookie.getDescription(),
-                cookie.getIsEssential(),
+                cookie.getIsRequired(),
                 cookie.getIsChecked()
             );
         }
@@ -94,7 +94,7 @@ public record ApiDto(
         String paramKey,
         String paramValue,
         String description,
-        Boolean isEssential,
+        Boolean isRequired,
         Boolean isChecked
     ) {
         public static ApiQueryParameterDto from(ApiQueryParameter param) {
@@ -102,7 +102,7 @@ public record ApiDto(
                 param.getParamKey(),
                 param.getParamValue(),
                 param.getDescription(),
-                param.getIsEssential(),
+                param.getIsRequired(),
                 param.getIsChecked()
             );
         }
@@ -127,7 +127,7 @@ public record ApiDto(
         String bodyKey,
         String bodyValue,
         String description,
-        Boolean isEssential,
+        Boolean isRequired,
         Boolean isChecked
     ) {
         public static ApiBodyDto from(ApiBody body) {
@@ -136,7 +136,7 @@ public record ApiDto(
                 body.getBodyKey(),
                 body.getBodyValue(),
                 body.getDescription(),
-                body.getIsEssential(),
+                body.getIsRequired(),
                 body.getIsChecked()
             );
         }

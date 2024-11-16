@@ -14,7 +14,7 @@ public record ParametersDto(
         String key,
         String value,
         String description,
-        Boolean isEssential,
+        Boolean isRequired,
         Boolean isChecked
     ) {
     }
@@ -32,7 +32,7 @@ public record ParametersDto(
         String key,
         String value,
         String description,
-        Boolean isEssential,
+        Boolean isRequired,
         Boolean isChecked
     ) {
     }
@@ -42,7 +42,7 @@ public record ParametersDto(
         String key,
         String value,
         String description,
-        Boolean isEssential,
+        Boolean isRequired,
         Boolean isChecked
     ) {
     }

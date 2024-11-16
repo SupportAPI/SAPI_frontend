@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Objects;
-
 @Entity
 @Getter
 @NoArgsConstructor
@@ -27,18 +25,18 @@ public class ApiHeader extends BaseTimeEntity {
     private String description;
 
     @Column(nullable = false)
-    private Boolean isEssential;
+    private Boolean isRequired;
 
     @Column(nullable = false)
     private Boolean isChecked;
 
     @Builder
-    public ApiHeader(Api api, String headerKey, String headerValue, String description, Boolean isEssential, Boolean isChecked) {
+    public ApiHeader(Api api, String headerKey, String headerValue, String description, Boolean isRequired, Boolean isChecked) {
         this.api = api;
         this.headerKey = headerKey;
         this.headerValue = headerValue;
         this.description = description;
-        this.isEssential = isEssential;
+        this.isRequired = isRequired;
         this.isChecked = isChecked;
     }
 
@@ -48,18 +46,18 @@ public class ApiHeader extends BaseTimeEntity {
                 .headerKey("")
                 .headerValue("")
                 .description("")
-                .isEssential(true)
+                .isRequired(true)
                 .isChecked(true)
                 .build();
     }
 
-    public static ApiHeader createApiHeader(Api api, String headerKey, String headerValue, boolean isEssential) {
+    public static ApiHeader createApiHeader(Api api, String headerKey, String headerValue, boolean isRequired) {
         return ApiHeader.builder()
                 .api(api)
                 .headerKey(headerKey)
                 .headerValue(headerValue)
                 .description("")
-                .isEssential(isEssential)
+                .isRequired(isRequired)
                 .isChecked(true)
                 .build();
     }
@@ -70,7 +68,7 @@ public class ApiHeader extends BaseTimeEntity {
                 .headerKey(originHeader.getHeaderKey())
                 .headerValue(originHeader.getHeaderValue())
                 .description(originHeader.getDescription())
-                .isEssential(originHeader.getIsEssential())
+                .isRequired(originHeader.getIsRequired())
                 .isChecked(originHeader.getIsChecked())
                 .build();
     }
@@ -80,11 +78,11 @@ public class ApiHeader extends BaseTimeEntity {
         this.isChecked = isChecked;
     }
 
-    public void updateApiHeaderKeyAndValueAndDescriptionAndIsEssential(String headerKey, String headerValue, String description, boolean isEssential) {
+    public void updateApiHeaderKeyAndValueAndDescriptionAndIsRequired(String headerKey, String headerValue, String description, boolean isRequired) {
         this.headerKey = headerKey;
         this.headerValue = headerValue;
         this.description = description;
-        this.isEssential = isEssential;
+        this.isRequired = isRequired;
     }
 }
 

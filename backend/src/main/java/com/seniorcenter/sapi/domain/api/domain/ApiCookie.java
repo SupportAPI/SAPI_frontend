@@ -25,18 +25,18 @@ public class ApiCookie extends BaseTimeEntity {
     private String description;
 
     @Column(nullable = false)
-    private Boolean isEssential;
+    private Boolean isRequired;
 
     @Column(nullable = false)
     private Boolean isChecked;
 
     @Builder
-    public ApiCookie(Api api, String cookieKey, String cookieValue, String description, Boolean isEssential, Boolean isChecked) {
+    public ApiCookie(Api api, String cookieKey, String cookieValue, String description, Boolean isRequired, Boolean isChecked) {
         this.api = api;
         this.cookieKey = cookieKey;
         this.cookieValue = cookieValue;
         this.description= description;
-        this.isEssential = isEssential;
+        this.isRequired = isRequired;
         this.isChecked = isChecked;
     }
 
@@ -46,7 +46,7 @@ public class ApiCookie extends BaseTimeEntity {
                 .cookieKey("")
                 .cookieValue("")
                 .description("")
-                .isEssential(true)
+                .isRequired(true)
                 .isChecked(true)
                 .build();
     }
@@ -57,7 +57,7 @@ public class ApiCookie extends BaseTimeEntity {
                 .cookieKey(originCookie.getCookieKey())
                 .cookieValue(originCookie.getCookieValue())
                 .description(originCookie.getDescription())
-                .isEssential(originCookie.getIsEssential())
+                .isRequired(originCookie.getIsRequired())
                 .isChecked(originCookie.getIsChecked())
                 .build();
     }

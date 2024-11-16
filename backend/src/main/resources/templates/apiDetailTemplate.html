@@ -289,7 +289,7 @@
             <tr th:each="queryParam : ${api.queryParameters}">
                 <td>
                     <span th:text="${queryParam.paramKey}"></span>
-                    <span class="required" th:if="${queryParam.isEssential()}"> *</span>
+                    <span class="required" th:if="${queryParam.isRequired()}"> *</span>
                 </td>
                 <td th:text="${queryParam.paramValue}"></td>
                 <td th:text="${queryParam.description}"></td>
@@ -308,7 +308,7 @@
             <tr th:each="header : ${api.headers}">
                 <td>
                     <span th:text="${header.headerKey}"> </span>
-                    <span class="required" th:if="${header.isEssential()}"> *</span></td>
+                    <span class="required" th:if="${header.isRequired()}"> *</span></td>
                 <td th:text="${header.headerValue}"></td>
                 <td th:text="${header.description}"></td>
             </tr>
@@ -326,7 +326,7 @@
             <tr th:each="cookie : ${api.cookies}">
                 <td>
                     <span th:text="${cookie.cookieKey}"></span>
-                    <span class="required" th:if="${cookie.isEssential()}"> *</span></td>
+                    <span class="required" th:if="${cookie.isRequired()}"> *</span></td>
                 </td>
                 <td th:text="${cookie.cookieValue}"></td>
                 <td th:text="${cookie.description}"></td>
@@ -356,7 +356,7 @@
                 <tbody>
                 <tr th:each="body : ${api.bodies}"
                     th:if="${body.parameterType.getValue().equals('TEXT') or body.parameterType.getValue().equals('FILE')}">
-                    <td th:text="${body.bodyKey}"><span class="required" th:if="${body.isEssential()}"> *</span></td>
+                    <td th:text="${body.bodyKey}"><span class="required" th:if="${body.isRequired()}"> *</span></td>
                     <td th:text="${body.parameterType}"></td>
                     <td>
                         <span th:if="${body.parameterType.getValue().equals('TEXT')}" th:text="${body.bodyValue}"></span>
