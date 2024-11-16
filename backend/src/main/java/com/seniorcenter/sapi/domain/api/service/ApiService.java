@@ -30,6 +30,7 @@ import com.seniorcenter.sapi.domain.specification.domain.repository.Specificatio
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
+import com.seniorcenter.sapi.global.type.MessageType;
 import com.seniorcenter.sapi.global.utils.RedisUtil;
 import com.seniorcenter.sapi.global.utils.user.UserUtils;
 import lombok.RequiredArgsConstructor;
@@ -179,7 +180,7 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.RESPONSE_JSON)) {
             result = apiBodyService.updateDBFormData(message, workspaceId, apiId);
         }
-        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
+        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(ApiType.OCCUPATION, MessageType.DELETE, result));
     }
 
     public void updateRequestType(ApiMessage message, UUID apiId) {
