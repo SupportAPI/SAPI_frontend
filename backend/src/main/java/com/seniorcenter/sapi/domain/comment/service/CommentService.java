@@ -23,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.messaging.simp.user.SimpUser;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,7 @@ public class CommentService {
     private final String userSpecifier = "/%^)(/";
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final SimpUserRegistry simpUserRegistry;
 
     @Transactional
     public Comment createComment(CommentMessage message, UUID docId, Principal principal) {
@@ -183,7 +186,9 @@ public class CommentService {
     public void createAndSendComment(CommentMessage message, UUID docId, Principal principal) {
         Comment comment = createComment(message, docId, principal);
         CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
-        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", new CommentMessage(MessageType.ADD, commentResponseDto));
+        messagingTemplate.convertAndSendToUser(principal.getName(), "/ws/sub/docs/" + docId + "/comments", new CommentMessage(MessageType.ADD, commentResponseDto));
+        CommentResponseDto yourMessage = new CommentResponseDto(commentResponseDto.commentId(),commentResponseDto.writerNickname(),commentResponseDto.writerProfileImage(),commentResponseDto.comment(),commentResponseDto.createdDate(),false);
+        sendToAllExceptSender(principal.getName(),"/ws/sub/docs/" + docId + "/comments", new CommentMessage(MessageType.ADD, yourMessage));
     }
 
     public String makeCommentText(List<CommentPart> messages) {
@@ -203,5 +208,17 @@ public class CommentService {
             }
         }
         return resultText;
+    }
+
+    public void sendToAllExceptSender(String senderUserName, String destination, Object messageContent) {
+        for (SimpUser user : simpUserRegistry.getUsers()) {
+            if (!user.getName().equals(senderUserName)) {
+                user.getSessions().forEach(session -> {
+                    session.getSubscriptions().forEach(subscription -> {
+                        messagingTemplate.convertAndSendToUser(user.getName(), destination, messageContent);
+                    });
+                });
+            }
+        }
     }
 }
