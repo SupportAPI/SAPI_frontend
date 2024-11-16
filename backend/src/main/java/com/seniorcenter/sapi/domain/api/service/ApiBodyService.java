@@ -35,7 +35,7 @@ public class ApiBodyService {
         Api api = apiRepository.findById(apiId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
 
-        ApiBody body = ApiBody.createApiBody(api, ParameterType.JSON);
+        ApiBody body = ApiBody.createApiBody(api, ParameterType.TEXT);
         apiBodyRepository.save(body);
         return new ApiIdResponseDto(body.getId());
     }
