@@ -55,14 +55,14 @@ public class Specification extends BaseTimeEntity {
     public Specification(UUID confirmedApiId, Workspace workspace) {
         this.localStatus = TestStatus.PENDING;
         this.serverStatus = TestStatus.PENDING;
-        this.confirmedApiId = confirmedApiId;
+        this.confirmedApiId = null;
         this.apiGatewayId = "";
+
         this.workspace = workspace;
     }
 
-    public static Specification createSpecification(UUID confirmedApiId, Workspace workspace) {
+    public static Specification createSpecification(Workspace workspace) {
         return builder()
-                .confirmedApiId(confirmedApiId)
                 .workspace(workspace)
                 .build();
     }
