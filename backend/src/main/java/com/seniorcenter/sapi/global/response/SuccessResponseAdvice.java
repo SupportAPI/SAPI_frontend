@@ -27,7 +27,9 @@ public class SuccessResponseAdvice implements ResponseBodyAdvice {
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {
         // ExcludeFromAdvice 어노테이션이 있는 경우 Advice를 적용하지 않음
-        return !returnType.getContainingClass().isAnnotationPresent(ExcludeFromAdvice.class);
+        return !returnType.getContainingClass().isAnnotationPresent(ExcludeFromAdvice.class)
+            && !returnType.getMethod().isAnnotationPresent(ExcludeFromAdvice.class);
+
     }
 
 	@Override
