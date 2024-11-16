@@ -220,7 +220,7 @@ public class ApiService {
 
         String hashKey = workspaceId.toString();
         log.info("[API DESCRIPTION DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
-        redisUtil.deleteData(hashKey, data.componentId().toString());
+        redisUtil.deleteData(hashKey, data.componentId());
     }
 
     public void updateAuthType(ApiMessage message, UUID workspaceId, UUID apiId) {
@@ -241,7 +241,7 @@ public class ApiService {
         String hashKey = workspaceId.toString();
 
         log.info("[API NAME DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
-        redisUtil.deleteData(hashKey, data.componentId().toString());
+        redisUtil.deleteData(hashKey, data.componentId());
     }
 
     @Transactional

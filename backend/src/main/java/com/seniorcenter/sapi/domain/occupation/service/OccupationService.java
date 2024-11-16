@@ -61,9 +61,9 @@ public class OccupationService {
         Membership membership = membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
 
-        AddRequestDto addRequestDto = keyValueUtils.createById(message);
-        redisUtil.saveData(hashKey, addRequestDto.id(), user.getId().toString());
-        return new OccupationResponseDto(addRequestDto.id(), user.getId(), user.getNickname(), user.getProfileImage(), membership.getColor().getColor());
+        SaveDataRequestDto saveDataRequestDto = keyValueUtils.translateToSaveDataRequestDto(message);
+        redisUtil.saveData(hashKey, saveDataRequestDto.componentId(), user.getId().toString());
+        return new OccupationResponseDto(saveDataRequestDto.componentId(), user.getId(), user.getNickname(), user.getProfileImage(), membership.getColor().getColor());
     }
 
     public ComponentIdDto removeOccupaction(UUID workspaceId, ApiMessage message) {
