@@ -33,6 +33,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
       toast('워크스페이스가 생성되었습니다.');
     } else {
       if (!projectName) {
+        setNameErrorMessage('프로젝트 이름을 입력해주세요.');
         setShowNameError(true);
       } else if (projectName.length > 30) {
         setNameErrorMessage('최대 30글자까지 입력 가능합니다.');
@@ -40,6 +41,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
       }
 
       if (!domain) {
+        setDomainErrorMessage('도메인 주소를 입력해주세요.');
         setShowDomainError(true);
       } else if (domain.length > 255) {
         setDomainErrorMessage('최대 255글자까지 입력 가능합니다.');

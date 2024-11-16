@@ -161,7 +161,7 @@ export const useUserInWorkspace = (workspaceId) => {
   });
 };
 
-// 8. 자기자신 워크스페이스 초대 현황 확인
+// 8. 자기자신 워크스페이스 초대된 현황 확인
 export const fetchUserInvitedList = async () => {
   const response = await axiosInstance.get(`/api/memberships/invited`);
   return response.data.data;
@@ -247,6 +247,58 @@ export const useModifiedWorkspace = () => {
       },
     }
   );
+};
+
+// 12. 워크스페이스 내 초대한 유저 목록 조회
+export const fetchWaitUserList = async (workspaceId) => {
+  const response = await axiosInstance.get(`/api/memberships/invited-members?workspaceId=${workspaceId}`);
+  return response.data.data;
+};
+// React Query 훅 : 워크스페이스 유저 초대 조회
+export const useWaitUserList = (workspaceId) => {
+  return useQuery(['WaitUserList', workspaceId], () => fetchWaitUserList(workspaceId), {
+    enabled: false,
+  });
+};
+
+// 13. 팀원 역할 수정
+export const userMembershipChange = async (membershipId, role) => {
+  await axiosInstance.patch(
+    `/api/memberships/${membershipId}/role`,
+    { role }, // 바디에 역할 전달
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+};
+// React Query 훅: 팀원 역할 수정
+export const useUserMembershipChange = () => {
+  return useMutation(({ membershipId, role }) => userMembershipChange(membershipId, role));
+};
+
+// 14. 팀원 권한 수정
+export const userPermissionChange = async (membershipId, permission) => {
+  await axiosInstance.patch(`/api/memberships/${membershipId}/authority`, permission, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+};
+// React Query 훅: 팀원 역할 수정
+export const useUserPermissionChange = () => {
+  return useMutation(({ membershipId, permission }) => userPermissionChange(membershipId, permission));
+};
+
+// 15. 워크스페이스에서 내보내기 (쫓아내기)
+export const userMembershipDelete = async (userId, workspaceId) => {
+  const response = await axiosInstance.delete(`/api/memberships/exile?userId=${userId}&workspaceId=${workspaceId}`);
+  return response.data.data;
+};
+// React Query 훅: 팀원 쫓아내기
+export const useUserMembershipDelete = () => {
+  return useMutation(({ userId, workspaceId }) => userMembershipDelete(userId, workspaceId));
 };
 
 // 워크스페이스 점유 상태

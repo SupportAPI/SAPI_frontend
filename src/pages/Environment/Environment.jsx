@@ -158,6 +158,8 @@ const Environment = () => {
       currentIndex = lastIndex;
     }
 
+    console.log(currentIndex);
+
     const newRow = {
       variable: '',
       isSecreted: 'DEFAULT',

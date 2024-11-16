@@ -553,7 +553,7 @@ const Comments = ({ docsId, workspaceId }) => {
   return (
     <div
       ref={scrollContainerRef}
-      className='mt-5 w-full h-[calc(100vh-255px)] bg-white flex flex-col justify-start pt-5 pb-24 overflow-y-auto box-border sidebar-scrollbar'
+      className='mt-5 w-full h-[calc(100vh-255px)] bg-white dark:bg-dark-background flex flex-col justify-start pt-5 pb-24 overflow-y-auto box-border sidebar-scrollbar'
     >
       <div className='flex flex-col space-y-4 flex-grow'>
         {messages.map((message) => (

@@ -38,23 +38,24 @@ const InviteUser = ({ workspaceId, onClose }) => {
   };
 
   const renderAutoCompleteList = () => {
-    return InviteAutoList.map((user) => (
-      <div
-        key={user.userId}
-        className='flex items-center p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-dark-hover'
-        onClick={() => handleAutoCompleteClick(user.email)}
-      >
-        <img
-          className='border rounded-full w-14 h-14 mr-4 object-contain'
-          src={user.profileImage}
-          alt='프로필 이미지'
-        />
-        <div>
-          <div>{user.nickname}</div>
-          <div className='text-sm text-gray-500'>{user.email}</div>
+    return InviteAutoList.filter((user) => !userList.some((addedUser) => addedUser.email === user.email)) // 이미 추가된 유저 제외
+      .map((user) => (
+        <div
+          key={user.userId}
+          className='flex items-center p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-dark-hover'
+          onClick={() => handleAutoCompleteClick(user.email)}
+        >
+          <img
+            className='border rounded-full w-14 h-14 mr-4 object-contain'
+            src={user.profileImage}
+            alt='프로필 이미지'
+          />
+          <div>
+            <div>{user.nickname}</div>
+            <div className='text-sm text-gray-500'>{user.email}</div>
+          </div>
         </div>
-      </div>
-    ));
+      ));
   };
 
   // 사용자 이메일(양식-정상판단) API 조회
@@ -205,15 +206,25 @@ const InviteUser = ({ workspaceId, onClose }) => {
               </div>
             ))}
           </div>
-          <button
-            className={`text-white py-2 px-4 rounded-lg ${
-              isactiveSend ? 'bg-blue-500 hover:bg-blue-400' : 'bg-gray-300'
-            }`}
-            disabled={!isactiveSend}
-            onClick={sendInvitation}
-          >
-            Send Invitation
-          </button>
+          <div className='flex flex-col w-full items-center'>
+            <button
+              className={`text-white w-full py-2 px-4 mb-2 rounded-lg ${
+                isactiveSend ? 'bg-blue-500 hover:bg-blue-400' : 'bg-gray-300'
+              }`}
+              disabled={!isactiveSend}
+              onClick={sendInvitation}
+            >
+              Send Invitation
+            </button>
+            <button
+              className='text-sm text-blue-500'
+              onClick={() => {
+                onClose();
+              }}
+            >
+              Skip for Now
+            </button>
+          </div>
         </div>
       </div>
     </div>
