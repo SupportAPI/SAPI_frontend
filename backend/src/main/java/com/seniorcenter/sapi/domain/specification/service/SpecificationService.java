@@ -78,7 +78,7 @@ public class SpecificationService {
         Workspace workspace = workspaceRepository.findById(worksapceId)
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
 
-        Specification specification = Specification.createSpecification(api.getId(), workspace);
+        Specification specification = Specification.createSpecification(workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
         sendOriginMessageToAll(message, worksapceId);
@@ -159,7 +159,7 @@ public class SpecificationService {
         Workspace workspace = workspaceRepository.findById(workspaceId)
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
 
-        Specification specification = Specification.createSpecification(api.getId(), workspace);
+        Specification specification = Specification.createSpecification(workspace);
         api.updateSpecification(specification);
         specificationRepository.save(specification);
         return specification.getId();
