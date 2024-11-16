@@ -80,7 +80,7 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
             result = apiCookieService.createApiCookie(workspaceId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
-            result = apiHeaderService.createApiHeader(apiId);
+            result = apiHeaderService.createApiHeader(message, apiId);
         } else if (message.apiType().equals(ApiType.OCCUPATION)) {
             result = occupationService.createOccupaction(workspaceId, message, user);
         } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {

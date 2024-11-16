@@ -51,6 +51,17 @@ public class ApiHeader extends BaseTimeEntity {
                 .build();
     }
 
+    public static ApiHeader createApiHeader(Api api, String headerKey, String headerValue, boolean isEssential) {
+        return ApiHeader.builder()
+                .api(api)
+                .headerKey(headerKey)
+                .headerValue(headerValue)
+                .description("")
+                .isEssential(isEssential)
+                .isChecked(true)
+                .build();
+    }
+
     public static ApiHeader copyApiHeader(Api api, ApiHeader originHeader) {
         return ApiHeader.builder()
                 .api(api)

@@ -34,11 +34,17 @@ public class ApiHeaderService {
     private final KeyValueUtils keyValueUtils;
     private final RedisUtil redisUtil;
 
-    public ApiIdResponseDto createApiHeader(UUID apiId) {
+    public ApiIdResponseDto createApiHeader(ApiMessage message, UUID apiId) {
         Api api = apiRepository.findById(apiId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
 
-        ApiHeader apiHeader = ApiHeader.createApiHeader(api);
+        SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
+        ApiHeader apiHeader;
+        if(data.key() == null){
+            apiHeader = ApiHeader.createApiHeader(api);
+        } else {
+            apiHeader = ApiHeader.createApiHeader(api,data.key(),data.value(),data.required());
+        }
         apiHeaderRepository.save(apiHeader);
         return new ApiIdResponseDto(apiHeader.getId());
     }
