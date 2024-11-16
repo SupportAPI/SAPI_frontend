@@ -9,7 +9,7 @@ const DashboardOverview = () => {
   console.log('데이터', data);
 
   return (
-    <div className='p-8 h-screen overflow-y-scroll dark:bg-dark-background dark:text-dark-text'>
+    <div className='p-8 h-screen overflow-y-scroll dark:bg-dark-background dark:text-dark-text sidebar-scrollbar'>
       <div>
         <p className='text-2xl font-bold'>API Dashboard</p>
         <hr className='border-t mt-1 mb-8' />
