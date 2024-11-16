@@ -71,6 +71,7 @@ public class ApiQueryParameterService {
         apiQueryParameter.updateKeyAndValueAndDescription(data.key(), data.value(), data.description());
 
         String hashKey = workspaceId.toString();
+        log.info("[API QUERY_PARAMETER DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
         redisUtil.deleteData(hashKey, data.componentId());
     }
 }

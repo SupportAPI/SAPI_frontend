@@ -70,6 +70,7 @@ public class ApiHeaderService {
         apiHeader.updateApiHeaderKeyAndValue(data.key(), data.value());
 
         String hashKey = workspaceId.toString();
+        log.info("[API HEADER DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
         redisUtil.deleteData(hashKey, data.componentId());
     }
 

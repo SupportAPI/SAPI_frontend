@@ -196,6 +196,7 @@ public class ApiService {
         api.updatePath(data.value());
 
         String hashKey = workspaceId.toString();
+        log.info("[API NAME DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
         redisUtil.deleteData(hashKey, data.componentId());
     }
 
@@ -215,6 +216,7 @@ public class ApiService {
         api.updateDescription(data.value());
 
         String hashKey = workspaceId.toString();
+        log.info("[API DESCRIPTION DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
         redisUtil.deleteData(hashKey, data.componentId());
     }
 
@@ -234,6 +236,8 @@ public class ApiService {
         api.updateName(data.value());
 
         String hashKey = workspaceId.toString();
+
+        log.info("[API NAME DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
         redisUtil.deleteData(hashKey, data.componentId());
     }
 

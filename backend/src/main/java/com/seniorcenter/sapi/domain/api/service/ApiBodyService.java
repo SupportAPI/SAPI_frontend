@@ -56,6 +56,7 @@ public class ApiBodyService {
         apiBody.updateBodyKeyAndValueAndDescription(data.key(), data.value(), data.description());
 
         String hashKey = workspaceId.toString();
+        log.info("[FORM DATA DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
         redisUtil.deleteData(hashKey, data.componentId());
     }
 

@@ -70,6 +70,7 @@ public class ApiCookieService {
         apiCookie.updateCookieKeyAndValue(data.key(), data.value());
 
         String hashKey = workspaceId.toString();
+        log.info("[API COOKIE DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
         redisUtil.deleteData(hashKey, data.componentId());
     }
 
