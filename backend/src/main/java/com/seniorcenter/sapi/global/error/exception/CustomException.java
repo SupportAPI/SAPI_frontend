@@ -17,6 +17,7 @@ public enum CustomException {
     VERIFICATION_CODE_MISMATCH(400, "인증번호가 일치하지 않습니다"),
     INVALID_FORMAT(400, "입력 형태가 올바르지 않습니다."),
     INVALID_JSON_FORMAT(400, "잘못된 JSON 형식입니다."),
+    INVALID_FILE_EXTENSION(400, "유효하지 않은 파일 확장자입니다."),
 
     NOT_ALLOWED_INVITE_SELF(400, "자신을 워크스페이스에 초대할 수 없습니다."),
     FAIL_TO_SEND_NOTIFICATION(400, "알림 전송이 실패했습니다."),
