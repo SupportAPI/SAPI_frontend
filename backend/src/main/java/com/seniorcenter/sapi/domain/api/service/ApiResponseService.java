@@ -42,7 +42,8 @@ public class ApiResponseService {
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
 
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
-        ApiResponse apiResponse = ApiResponse.createApiResponse(api, Integer.parseInt(data.value()));
+        ApiResponse apiResponse = apiResponseRepository.findById(Long.valueOf(data.id()))
+                        .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API_RESPONSE));
         apiResponseRepository.delete(apiResponse);
     }
 
