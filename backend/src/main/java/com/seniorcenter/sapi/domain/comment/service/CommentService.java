@@ -184,12 +184,11 @@ public class CommentService {
 
     @Transactional
     public void createAndSendComment(CommentMessage message, UUID docId, Principal principal) {
-        User user = userUtils.getUserFromSecurityPrincipal(principal);
         Comment comment = createComment(message, docId, principal);
         CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
-        messagingTemplate.convertAndSendToUser(String.valueOf(user.getId()), "/user/" + user.getId() + "/messasge", new CommentMessage(MessageType.ADD, commentResponseDto));
-        CommentResponseDto yourMessage = new CommentResponseDto(commentResponseDto.commentId(), commentResponseDto.writerNickname(), commentResponseDto.writerProfileImage(), commentResponseDto.comment(), commentResponseDto.createdDate(), false);
-        sendToAllExceptSender(String.valueOf(user.getId()), "/user/" + user.getId() + "/messasge", new CommentMessage(MessageType.ADD, yourMessage));
+        messagingTemplate.convertAndSendToUser(principal.getName(), "/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/messasge", new CommentMessage(MessageType.ADD, commentResponseDto));
+        CommentResponseDto yourMessage = new CommentResponseDto(commentResponseDto.commentId(),commentResponseDto.writerNickname(),commentResponseDto.writerProfileImage(),commentResponseDto.comment(),commentResponseDto.createdDate(),false);
+        sendToAllExceptSender(principal.getName(),"/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/messasge", new CommentMessage(MessageType.ADD, yourMessage));
     }
 
     public String makeCommentText(List<CommentPart> messages) {

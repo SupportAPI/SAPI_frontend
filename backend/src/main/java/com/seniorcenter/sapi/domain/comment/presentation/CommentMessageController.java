@@ -26,13 +26,13 @@ public class CommentMessageController {
                         @Payload CommentMessage message,
                         @AuthenticationPrincipal Principal principal) {
         if (message.type().equals(MessageType.ADD)) {
-            log.info("[COMMENT ADD] message: {}", message);
+            log.info("[COMMENT ADD] message: {}, sender: {}", message, principal.getName());
             commentService.createAndSendComment(message, docId, principal);
         } else if (message.type().equals(MessageType.DELETE)) {
-            log.info("[COMMENT DELETE] message: {}", message);
+            log.info("[COMMENT DELETE] message: {}, sender: {}", message, principal.getName());
             commentService.deleteComment(message, docId, principal);
         } else if (message.type().equals(MessageType.UPDATE)) {
-            log.info("[COMMENT UPDATE] message: {}", message);
+            log.info("[COMMENT UPDATE] message: {}, sender: {}", message, principal.getName());
             commentService.updateComment(message, docId, principal);
         }
     }
