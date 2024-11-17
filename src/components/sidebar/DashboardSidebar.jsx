@@ -9,9 +9,7 @@ const DashboardSidebar = () => {
   const location = useLocation();
   const { workspaceId } = useParams();
 
-  const paths = [
-    { id: 1, name: 'Dashboard Overview', path: `/workspace/${workspaceId}/dashboard/all` },
-  ];
+  const paths = [{ id: 1, name: 'Dashboard Overview', path: `/workspace/${workspaceId}/dashboard/all` }];
 
   const handleDashboardClick = (id) => {
     if (!workspaceId) return;
@@ -23,6 +21,7 @@ const DashboardSidebar = () => {
         id: selectedPath.id,
         name: selectedPath.name,
         path: selectedPath.path,
+        type: 'dashboard',
       });
 
       navigate(selectedPath.path);
@@ -30,15 +29,15 @@ const DashboardSidebar = () => {
   };
 
   const handleDashboardDoubleClick = (id) => {
-    confirmTab(id);
+    confirmTab(id, 'dashboard');
   };
 
   return (
-    <div className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm'>
-      <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 z-10'>
+    <div className='w-[300px] bg-[#F0F5F8]/50 dark:bg-dark-background dark:text-dark-text h-full border-r flex flex-col text-sm'>
+      <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 dark:bg-dark-background z-10'>
         <div className='flex items-center'>
-          <div className='flex items-center flex-1 bg-white rounded border'>
-            <FaSearch className='text-gray-400 ml-2' />
+          <div className='flex items-center flex-1 bg-white dark:bg-dark-background rounded border'>
+            <FaSearch className='text-gray-400 dark:text-dark-text ml-2' />
             <input type='text' placeholder='Search' className='p-2 flex-1 bg-transparent outline-none' />
           </div>
         </div>
@@ -52,7 +51,9 @@ const DashboardSidebar = () => {
                 <li
                   key={p.id}
                   className={`cursor-pointer w-full relative ${
-                    isActive ? 'bg-blue-100 text-blue-800  hover:bg-gray-300 font-semibold' : ' hover:bg-gray-300'
+                    isActive
+                      ? 'bg-blue-100 text-blue-800 font-semibold dark:bg-dark-hover dark:text-dark-surface'
+                      : 'hover:bg-gray-300'
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();

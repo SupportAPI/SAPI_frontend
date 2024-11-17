@@ -40,9 +40,9 @@ const ApiDocsDetail = () => {
   const [categoryList, setCategoryList] = useState([]);
   const [occupationState, setOccupationState] = useState([]);
 
-  useEffect(() => {
-    if (location.pathname.includes('/apidocs')) setMenu('API Docs');
-  }, [setMenu]);
+  // useEffect(() => {
+  //   if (location.pathname.includes('/apidocs')) setMenu('API Docs');
+  // }, [setMenu]);
 
   useEffect(() => {
     if (
@@ -58,7 +58,12 @@ const ApiDocsDetail = () => {
       setOccupationState(occupationStateData);
 
       if (!openTabs.find((tab) => tab.id === apiId)) {
-        addTab({ id: apiId, name: apiDocDetailData.name, path: `/workspace/${workspaceId}/apidocs/${apiId}` });
+        addTab({
+          id: apiId,
+          name: apiDocDetailData.name,
+          path: `/workspace/${workspaceId}/apidocs/${apiId}`,
+          type: 'apidocs',
+        });
       }
 
       if (apiDocDetailData.category && !expandedCategories[apiDocDetailData.category])
@@ -179,7 +184,7 @@ const ApiDocsDetail = () => {
       />
 
       {/* 오른쪽 섹션 */}
-      <RightSection />
+      <RightSection apiDocDetail={apiDocDetail} apiId={apiId} workspaceId={workspaceId} />
     </div>
   );
 };

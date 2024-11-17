@@ -56,11 +56,13 @@ const Layout = ({ children }) => {
         <Navbar onMenuClick={handleMenuClick} />
         <div className='h-full'>{renderSidebar()}</div>
         <div className='flex-1 flex flex-col'>
-          <div className='flex flex-row justify-between'>
+          <div className='flex flex-row justify-between dark:bg-dark-background'>
             <TabBar />
             <Environment workspaceId={workspaceId} />
           </div>
-          <div className='flex-1'>{children}</div>
+          <div className='flex-1 overflow-y-scroll sidebar-scrollbar dark:bg-dark-background dark:text-dark-text '>
+            {children}
+          </div>
         </div>
       </div>
     </div>

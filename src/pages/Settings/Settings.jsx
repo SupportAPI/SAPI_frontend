@@ -1,6 +1,7 @@
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import UserComponent from './SettingUser';
 import SettingThemee from './SettingTheme';
+import SettingWorkspace from './SettingWorkspace';
 import SettingMember from './SettingMember';
 import SettingInvitation from './SettingInvitation';
 import { useNavigate } from 'react-router-dom';
@@ -32,10 +33,10 @@ const Settings = forwardRef(({ onClose }, ref) => {
     >
       {/* 모달 크기 정의 */}
       <div
-        className='flex flex-col items-center bg-white rounded-lg w-[900px] h-[700px] border rounded-lg'
+        className='flex flex-col items-center bg-white border-none rounded-2xl w-[900px] h-[700px] border'
         onClick={(e) => e.stopPropagation()}
       >
-        <header className='flex justify-between items-center w-full h-[80px] text-xl bg-[#f0f5f8] border-none rounded-t-lg'>
+        <header className='flex justify-between items-center w-full h-[80px] text-xl bg-[#f0f5f8] dark:bg-dark-background dark:text-dark-text border-none rounded-t-2xl'>
           <div className='text-3xl ml-10'>Settings</div>
           <button className='mr-4' onClick={onClose}>
             <IoClose className='text-3xl' />
@@ -43,33 +44,39 @@ const Settings = forwardRef(({ onClose }, ref) => {
         </header>
 
         {/* 내부 컴포넌트 크기 정의 */}
-        <div className='flex w-full h-full border-none rounded-2xl'>
+        <div className='flex w-full h-full border-t rounded-b-2xl dark:bg-dark-background dark:text-dark-text'>
           {/* 왼쪽에 목록 넣는 곳 */}
-          <div className='w-[250px] border-r p-6 border rounded-b-2xl'>
+          <div className='w-[250px] border-r p-6 rounded-b-2xl'>
             {/* Account 항목 */}
             <div className='flex flex-col'>
-              <p className='text-2xl font-medium ml-2 mb-3'>Account</p>
-              <div className='flex flex-col w-full h-72 m-auto'>
+              <p className='text-2xl font-medium ml-2 mb-1'>Account</p>
+              <div className='flex flex-col w-full h-60 m-auto'>
                 <button
-                  className={`w-[100%] h-20 mb-1 ${
-                    activeComponent === 'User' ? 'bg-blue-100 font-bold' : ''
-                  } hover:bg-blue-100 border-none rounded-xl`}
+                  className={`w-[100%] h-16 mb-1 ${
+                    activeComponent === 'User'
+                      ? 'bg-blue-100 dark:bg-gray-600 font-bold'
+                      : 'hover:bg-blue-100 dark:hover:bg-gray-700'
+                  } border-none rounded-xl`}
                   onClick={() => handleComponentChange(<UserComponent />, 'User')}
                 >
                   User
                 </button>
                 <button
-                  className={`w-[100%] h-20 mb-1 ${
-                    activeComponent === 'Theme' ? 'bg-blue-100 font-bold' : ''
-                  } hover:bg-blue-100 border-none rounded-xl`}
+                  className={`w-[100%] h-16 mb-1 ${
+                    activeComponent === 'Theme'
+                      ? 'bg-blue-100 dark:bg-gray-600 font-bold'
+                      : 'hover:bg-blue-100 dark:hover:bg-gray-700'
+                  } border-none rounded-xl`}
                   onClick={() => handleComponentChange(<SettingThemee />, 'Theme')}
                 >
                   Theme
                 </button>
                 <button
-                  className={`w-[100%] h-20 ${
-                    activeComponent === 'Invitation' ? 'bg-blue-100 font-bold' : ''
-                  } hover:bg-blue-100 border-none rounded-xl`}
+                  className={`w-[100%] h-16 ${
+                    activeComponent === 'Invitation'
+                      ? 'bg-blue-100 dark:bg-gray-600 font-bold'
+                      : 'hover:bg-blue-100 dark:hover:bg-gray-700'
+                  } border-none rounded-xl`}
                   onClick={() => handleComponentChange(<SettingInvitation />, 'Invitation')}
                 >
                   Invitation
@@ -79,19 +86,31 @@ const Settings = forwardRef(({ onClose }, ref) => {
 
             {/* WorkSpace 항목 */}
             <div className='flex flex-col'>
-              <p className='text-2xl font-medium ml-2 mb-3'>WorkSpace</p>
+              <p className='text-2xl font-medium ml-2 mb-1'>WorkSpace</p>
               <div className='flex flex-col w-full m-auto'>
                 <button
-                  className={`w-[100%] mb-1 h-20 ${
-                    activeComponent === 'Member' ? 'bg-blue-100 font-bold' : ''
-                  } hover:bg-blue-100 border-none rounded-xl`}
+                  className={`w-[100%] mb-1 h-16 ${
+                    activeComponent === 'Workspace'
+                      ? 'bg-blue-100 dark:bg-gray-600 font-bold'
+                      : 'hover:bg-blue-100 dark:hover:bg-gray-700'
+                  } border-none rounded-xl`}
+                  onClick={() => handleComponentChange(<SettingWorkspace />, 'Workspace')}
+                >
+                  Workspace
+                </button>
+                <button
+                  className={`w-[100%] mb-1 h-16 ${
+                    activeComponent === 'Member'
+                      ? 'bg-blue-100 dark:bg-gray-600 font-bold'
+                      : 'hover:bg-blue-100 dark:hover:bg-gray-700'
+                  } border-none rounded-xl`}
                   onClick={() => handleComponentChange(<SettingMember />, 'Member')}
                 >
                   Member
                 </button>
                 {/* Exit 누르면 네이게이션해서 WorkSpace 화면으로 이동할 것 */}
                 <button
-                  className='w-[100%] h-20 hover:bg-blue-100 border-none rounded-xl text-red-500'
+                  className='w-[100%] h-16 hover:bg-blue-100 dark:hover:bg-gray-600 border-none rounded-xl text-red-500'
                   onClick={() => navigate('/workspaces')}
                 >
                   Exit
@@ -106,5 +125,7 @@ const Settings = forwardRef(({ onClose }, ref) => {
     </div>
   );
 });
+
+Settings.displayName = 'Settings';
 
 export default Settings;

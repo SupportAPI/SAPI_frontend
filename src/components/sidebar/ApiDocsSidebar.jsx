@@ -39,12 +39,13 @@ const ApiDocsSidebar = () => {
       id: apiId,
       name: apiName,
       path,
+      type: 'apidocs',
     });
     navigate(path);
   };
 
   const handleApiDoubleClick = (apiId) => {
-    confirmTab(apiId);
+    confirmTab(apiId, 'apidocs');
   };
 
   const handleCategoryToggle = (category) => {
@@ -56,7 +57,7 @@ const ApiDocsSidebar = () => {
   };
 
   const handleAllApiDoubleClick = () => {
-    confirmTab('all');
+    confirmTab('all', 'apidocs');
   };
 
   const handleDropdownToggle = (apiId) => {
@@ -138,57 +139,60 @@ const ApiDocsSidebar = () => {
   if (error) return <div className='p-4'>Failed to load data.</div>;
 
   return (
-    <div className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm'>
-      <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 z-10'>
+    <div className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm dark:bg-dark-background dark:text-dark-text'>
+      <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 z-10 dark:bg-dark-background dark:text-dark-text'>
         <div className='flex items-center'>
-          <FaPlus className='text-gray-600 cursor-pointer mr-2' onClick={handleAddApiDoc} />
-          <div className='flex items-center flex-1 bg-white rounded border relative'>
-            <FaSearch className='text-gray-400 ml-2' />
+          <FaPlus className='text-gray-600 cursor-pointer mr-2 dark:text-dark-text' onClick={handleAddApiDoc} />
+          <div className='flex items-center flex-1 bg-white rounded border relative dark:bg-dark-background dark:text-dark-text'>
+            <FaSearch className='text-gray-400 ml-2 dark:text-dark-text' />
             <input
               type='text'
               placeholder='Search by State'
-              className='p-2 flex-1 bg-transparent outline-none'
+              className='p-2 flex-1 bg-transparent outline-none dark:bg-dark-background dark:text-dark-text'
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {searchTerm && (
-              <FaTimes className='text-gray-400 cursor-pointer absolute right-2' onClick={() => setSearchTerm('')} />
+              <FaTimes
+                className='text-gray-400 dark:text-dark-text cursor-pointer absolute right-2'
+                onClick={() => setSearchTerm('')}
+              />
             )}
           </div>
         </div>
       </div>
       <div className='flex justify-between items-center px-4 mb-2 h-10'>
         <div
-          className='flex items-center cursor-pointer hover:bg-gray-200'
+          className='flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-dark-hover'
           onClick={handleAllApiClick}
           onDoubleClick={handleAllApiDoubleClick}
         >
-          <FaBars className='text-gray-500 mr-2' />
-          <span className='text-lg font-semibold text-[#475467]'>API Overview</span>
+          <FaBars className='text-gray-500 mr-2 dark:text-dark-text' />
+          <span className='text-lg font-semibold text-[#475467] dark:text-dark-text'>API Overview</span>
         </div>
         <div className='flex space-x-2'>
           <BiExpandVertical
             onClick={() => setAllCategories(data, true)}
-            className='text-blue-600 cursor-pointer hover:text-blue-800'
+            className='text-blue-600 cursor-pointer hover:text-blue-800 dark:text-dark-text'
             title='Expand All'
           />
           <BiCollapseVertical
             onClick={() => setAllCategories(data, false)}
-            className='text-blue-600 cursor-pointer hover:text-blue-800'
+            className='text-blue-600 cursor-pointer hover:text-blue-800 dark:text-dark-text'
             title='Collapse All'
           />
         </div>
       </div>
 
       {showDeleteModal && (
-        <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
-          <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
+        <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 dark:text-dark-text'>
+          <div className='bg-white dark:bg-dark-background dark:text-dark-text p-6 rounded-lg shadow-lg w-80'>
             <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
             <p className='mb-6'>선택한 API 문서를 삭제하시겠습니까?</p>
-            <div className='flex justify-end space-x-4'>
+            <div className='flex justify-end space-x-4 '>
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'
+                className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 dark:text-black'
               >
                 취소
               </button>
@@ -208,7 +212,7 @@ const ApiDocsSidebar = () => {
           {filteredData.map((category) => (
             <div key={category.category}>
               <div
-                className='flex items-center px-4 py-1 text-[#475467] cursor-pointer h-10 hover:bg-gray-300'
+                className='flex items-center px-4 py-1 text-[#475467] dark:text-dark-text cursor-pointer h-10 hover:bg-gray-300 dark:hover:bg-dark-hover'
                 onClick={(e) => {
                   e.stopPropagation();
                   handleCategoryToggle(category.category);
@@ -230,8 +234,12 @@ const ApiDocsSidebar = () => {
                       <li
                         key={api.apiId}
                         className={`cursor-pointer w-full relative group ${
-                          isActive ? 'bg-blue-100 text-blue-800 font-semibold' : ''
-                        } ${isDropdownActive ? 'bg-gray-300' : 'hover:bg-gray-300'}`}
+                          isActive
+                            ? 'bg-blue-100 text-blue-800 font-semibold dark:bg-dark-hover dark:text-dark-surface'
+                            : ''
+                        } ${
+                          isDropdownActive ? 'bg-gray-300 dark:bg-black' : 'hover:bg-gray-300 dark:hover:bg-dark-hover'
+                        }`}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleApiClick(api.apiId, api.name);
@@ -251,18 +259,15 @@ const ApiDocsSidebar = () => {
                           />
                         </div>
                         {isDropdownActive && (
-                          <div
-                            ref={dropdownRef}
-                            className='absolute right-0 w-28 bg-white shadow-lg rounded border z-20'
-                          >
+                          <div ref={dropdownRef} className='absolute right-0 w-28 bg-white shadow-lg rounded-lg z-20'>
                             <button
-                              className='w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal'
+                              className='w-full rounded-t-lg text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal dark:bg-dark-background dark:hover:bg-dark-hover dark:text-dark-text'
                               onClick={(e) => handleCopyLink(e, api.apiId)}
                             >
                               Copy Link
                             </button>
                             <button
-                              className='w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal'
+                              className='w-full rounded-b-lg text-left px-4 py-2 hover:bg-gray-100 text-red-500 font-normal dark:bg-dark-background dark:hover:bg-dark-hover'
                               onClick={(e) => handleDelete(e, api.docId)}
                             >
                               Delete
