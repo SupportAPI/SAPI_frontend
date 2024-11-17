@@ -84,8 +84,6 @@ const ApiDocsDetail = () => {
     if (isConnected) {
       const subscriptionPath = `/ws/sub/workspaces/${workspaceId}/apis/${apiId}`;
       const subscription = subscribe(subscriptionPath, (data) => {
-        console.log(data);
-
         const handleSaveAction = () => {
           if (data.actionType === 'SAVE') {
             apiDocDetailRefetch();
@@ -141,15 +139,14 @@ const ApiDocsDetail = () => {
             break;
           case 'REQUEST_JSON':
             handleSaveAction();
-            apiHandler.handleRequestJsonData(data, setApiDocDetail);
+            apiHandler.handleRequestJsonData(data, apiDocDetail, setApiDocDetail, userId, apiDocDetailRefetch);
             break;
           case 'REQUEST_FORM_DATA':
             handleSaveAction();
-            apiHandler.handleRequestJsonData(data, setApiDocDetail);
+            apiHandler.handleRequestFormData(data, apiDocDetail, setApiDocDetail, userId, apiDocDetailRefetch);
             break;
           case 'RESPONSE':
-            handleSaveAction();
-            apiHandler.handleResponse(data, setApiDocDetail, apiDocDetailRefetch);
+            apiHandler.handleResponse(data, apiDocDetail, setApiDocDetail, userId, apiDocDetailRefetch);
             break;
           default:
             console.warn(`Unhandled message type: ${data.apiType}`);
@@ -173,7 +170,6 @@ const ApiDocsDetail = () => {
 
   return (
     <div className='flex h-[calc(100vh -104px)]'>
-      {/* 왼쪽 섹션 헤더 */}
       <LeftSection
         apiDocDetail={apiDocDetail}
         apiId={apiId}
@@ -183,7 +179,6 @@ const ApiDocsDetail = () => {
         handleOccupationState={handleOccupationState}
       />
 
-      {/* 오른쪽 섹션 */}
       <RightSection apiDocDetail={apiDocDetail} apiId={apiId} workspaceId={workspaceId} />
     </div>
   );

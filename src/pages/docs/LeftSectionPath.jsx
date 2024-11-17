@@ -11,8 +11,6 @@ const methodStyles = {
   PUT: 'text-orange-500',
   PATCH: 'text-purple-500',
   DELETE: 'text-red-500',
-  HEAD: 'text-gray-500',
-  OPTIONS: 'text-yellow-500',
 };
 
 const LeftSectionPath = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOccupationState }) => {
@@ -109,8 +107,8 @@ const LeftSectionPath = ({ apiDocDetail, apiId, workspaceId, occupationState, ha
   return (
     <>
       <div className='mb-4'>
-        <label className='block text-[18px] font-semibold mb-2'>API Path</label>
-        <div className='flex border rounded-sm items-center overflow-visible'>
+        <label className='flex items-center text-[16px] font-semibold h-8'>API Path</label>
+        <div className='flex border rounded-sm items-center overflow-visible h-10'>
           <div
             onMouseEnter={() => (methodStatus.isOccupiedByOthers ? setShowTooltip(true) : null)}
             onMouseLeave={() => setShowTooltip(false)}
@@ -120,7 +118,7 @@ const LeftSectionPath = ({ apiDocDetail, apiId, workspaceId, occupationState, ha
           >
             <button
               ref={methodRef}
-              className={`px-3 py-2 w-[150px] h-12 focus:outline-none rounded-sm transition duration-300  
+              className={`px-3 py-2 w-[150px] h-10 focus:outline-none rounded-sm transition duration-300  
                 ${methodStyles[method]}
                 ${methodStatus.isOccupiedByOthers ? `pointer-events-none` : ``}
               hover:bg-gray-50`}
@@ -159,9 +157,9 @@ const LeftSectionPath = ({ apiDocDetail, apiId, workspaceId, occupationState, ha
             {showMethodDropdown && (
               <div
                 ref={methodDropdownRef}
-                className='absolute left-0 top-[50px] bg-white border rounded-sm shadow-md z-10 w-full'
+                className='absolute left-0 top-[42px] bg-white border rounded-sm shadow-md z-10 w-full'
               >
-                {['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'].map((method) => (
+                {['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map((method) => (
                   <div
                     key={method}
                     className={`p-2 cursor-pointer ${methodStyles[method]} hover:bg-gray-100`}
@@ -188,7 +186,7 @@ const LeftSectionPath = ({ apiDocDetail, apiId, workspaceId, occupationState, ha
             )}
           </div>
 
-          <div className='w-[2px] bg-gray-200 h-6'></div>
+          <div className='w-[1px] mx-1 bg-gray-200 h-5'></div>
 
           <div
             onMouseEnter={() => (pathStatus.isOccupiedByOthers ? setShowTooltip(true) : null)}
@@ -200,7 +198,7 @@ const LeftSectionPath = ({ apiDocDetail, apiId, workspaceId, occupationState, ha
             <input
               type='text'
               ref={pathRef}
-              className={`px-3 py-2 w-full h-12 focus:outline-none transition duration-300 rounded-sm   
+              className={`px-3 py-2 w-full h-10 border-t border-b focus:outline-none transition duration-300 rounded-sm   
               ${pathStatus.isOccupiedByOthers ? `pointer-events-none` : ``}
             hover:bg-gray-50 `}
               style={{

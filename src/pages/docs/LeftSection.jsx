@@ -7,9 +7,11 @@ import LeftSectionCategory from './LeftSectionCategory';
 import LeftSectionName from './LeftSectionName';
 import LeftSectionPath from './LeftSectionPath';
 import LeftSectionDescription from './LeftSectionDescription';
+import { useConfirmWorkspace } from '../../api/queries/useApiDocsQueries';
 
 const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupationState, handleOccupationState }) => {
   const [activeLeftTab, setActiveLeftTab] = useState('parameters');
+  const { mutate: confirmWorkspace, isLoading: isSaving } = useConfirmWorkspace();
 
   const tabComponents = {
     parameters: Parameters,
@@ -17,12 +19,43 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
     response: Response,
   };
 
+  const handleSave = () => {
+    if (workspaceId && apiDocDetail.docId) {
+      confirmWorkspace({ workspaceId, docsId: apiDocDetail.docId });
+    }
+  };
+
   const ActiveTabComponent = tabComponents[activeLeftTab];
 
   return (
     <div className='relative flex-1 p-8 overflow-y-auto h-[calc(100vh-104px)] sidebar-scrollbar scrollbar-gutter-stable'>
-      <div className='flex items-baseline space-x-2 mb-8 justify-between h-10'>
-        <div className='inline-flex items-baseline relative'>
+      <div className='mb-4'>
+        <div className='flex relative justify-between'>
+          <label className='flex items-center text-[16px] font-semibold h-8'>Category & Name</label>
+          <div className='flex space-x-4'>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
+            >
+              <FaSave />
+              <span>Save</span>
+            </button>
+            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
+              <FaTrashAlt />
+              <span>Delete</span>
+            </button>
+            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
+              <FaDownload />
+              <span>Export</span>
+            </button>
+            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
+              <FaShareAlt />
+              <span>Share</span>
+            </button>
+          </div>
+        </div>
+        <div className='flex'>
           <LeftSectionCategory
             initialCategory={apiDocDetail.category}
             categoryList={categoryList}
@@ -31,7 +64,7 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
             occupationState={occupationState}
             handleOccupationState={handleOccupationState}
           />
-          &nbsp;&nbsp;&nbsp; <span className='text-2xl'>/</span> &nbsp;&nbsp;&nbsp;
+          &nbsp;&nbsp;&nbsp; <span className='text-2xl'> </span> &nbsp;&nbsp;&nbsp;
           <LeftSectionName
             initialName={apiDocDetail.name}
             apiId={apiId}
@@ -40,26 +73,8 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
             handleOccupationState={handleOccupationState}
           />
         </div>
-
-        <div className='flex space-x-4'>
-          <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-            <FaSave />
-            <span>Save</span>
-          </button>
-          <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-            <FaTrashAlt />
-            <span>Delete</span>
-          </button>
-          <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-            <FaDownload />
-            <span>Export</span>
-          </button>
-          <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-            <FaShareAlt />
-            <span>Share</span>
-          </button>
-        </div>
       </div>
+
       <LeftSectionPath
         apiDocDetail={apiDocDetail}
         apiId={apiId}
@@ -74,7 +89,6 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
         occupationState={occupationState}
         handleOccupationState={handleOccupationState}
       />
-
       <div className='border-b mb-4'>
         <nav className='flex space-x-4'>
           {['parameters', 'request', 'response'].map((tab) => (
@@ -89,7 +103,6 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
           ))}
         </nav>
       </div>
-
       <div>
         {ActiveTabComponent && (
           <ActiveTabComponent

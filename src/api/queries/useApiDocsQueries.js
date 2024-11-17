@@ -87,6 +87,26 @@ export const useDeleteApiDoc = () => {
   });
 };
 
+// API 확정
+export const confirmWorkspace = async ({ workspaceId, docsId }) => {
+  const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/docs/${docsId}/confirm`);
+  return response.data;
+};
+
+export const useConfirmWorkspace = () => {
+  const queryClient = useQueryClient();
+  return useMutation(({ workspaceId, docsId }) => confirmWorkspace({ workspaceId, docsId }), {
+    onSuccess: () => {
+      queryClient.invalidateQueries('apiDocs');
+      console.log('Workspace document confirmed successfully!');
+    },
+    onError: (error) => {
+      // 에러 처리
+      console.error('Error confirming workspace document:', error);
+    },
+  });
+};
+
 // API 문서 업데이트
 export const updateApiDoc = async (docId, updatedDoc) => {
   // 실제 API 요청을 사용하는 경우:
