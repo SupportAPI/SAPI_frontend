@@ -119,8 +119,8 @@ public class CommentService {
         comment.updateComment(modifiedMessage);
         CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
         messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/message", new CommentMessage(MessageType.UPDATE, commentResponseDto));
-        CommentResponseDto yourMessage = new CommentResponseDto(commentResponseDto.commentId(),commentResponseDto.writerNickname(),commentResponseDto.writerProfileImage(),commentResponseDto.comment(),commentResponseDto.createdDate(),false);
-        sendToAllExceptSender(principal.getName(),docId, new CommentMessage(MessageType.UPDATE, yourMessage));
+        CommentResponseDto yourMessage = new CommentResponseDto(commentResponseDto.commentId(), commentResponseDto.writerNickname(), commentResponseDto.writerProfileImage(), commentResponseDto.comment(), commentResponseDto.createdDate(), false);
+        sendToAllExceptSender(principal.getName(), docId, new CommentMessage(MessageType.UPDATE, yourMessage));
     }
 
     @Transactional
@@ -190,8 +190,8 @@ public class CommentService {
         CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
         System.out.println("/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/message");
         messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/message", new CommentMessage(MessageType.ADD, commentResponseDto));
-        CommentResponseDto yourMessage = new CommentResponseDto(commentResponseDto.commentId(),commentResponseDto.writerNickname(),commentResponseDto.writerProfileImage(),commentResponseDto.comment(),commentResponseDto.createdDate(),false);
-        sendToAllExceptSender(principal.getName(),docId, new CommentMessage(MessageType.ADD, yourMessage));
+        CommentResponseDto yourMessage = new CommentResponseDto(commentResponseDto.commentId(), commentResponseDto.writerNickname(), commentResponseDto.writerProfileImage(), commentResponseDto.comment(), commentResponseDto.createdDate(), false);
+        sendToAllExceptSender(principal.getName(), docId, new CommentMessage(MessageType.ADD, yourMessage));
     }
 
     public String makeCommentText(List<CommentPart> messages) {
@@ -218,7 +218,10 @@ public class CommentService {
             if (!user.getName().equals(senderUserName)) {
                 user.getSessions().forEach(session -> {
                     session.getSubscriptions().forEach(subscription -> {
-                        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments" + "/user/" + user.getName() + "/message", messageContent);
+                        String targetDestination = "/ws/sub/docs/" + docId + "/comments" + "/user/" + user.getName() + "/message";
+                        if (targetDestination.equals(subscription.getDestination())) {
+                            messagingTemplate.convertAndSend(targetDestination, messageContent);
+                        }
                     });
                 });
             }
@@ -229,9 +232,13 @@ public class CommentService {
         for (SimpUser user : simpUserRegistry.getUsers()) {
             user.getSessions().forEach(session -> {
                 session.getSubscriptions().forEach(subscription -> {
-                    messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments" + "/user/" + user.getName() + "/message", messageContent);
+                    String targetDestination = "/ws/sub/docs/" + docId + "/comments" + "/user/" + user.getName() + "/message";
+                    if (targetDestination.equals(subscription.getDestination())) {
+                        messagingTemplate.convertAndSend(targetDestination, messageContent);
+                    }
                 });
             });
         }
     }
+
 }
