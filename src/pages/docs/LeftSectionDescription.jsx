@@ -70,10 +70,10 @@ const LeftSectionDescription = ({ apiDocDetail, apiId, workspaceId, occupationSt
         className='relative'
       >
         <div className='mb-4'>
-          <label className='block font-semibold mb-2 text-[18px]'>Description</label>
+          <label className='flex items-center text-[16px] font-semibold h-8'>Description</label>
           <textarea
             ref={descriptionRef}
-            className={`border rounded-sm w-full px-3 py-2 h-24 focus:outline-none transition duration-300'
+            className={`border rounded-sm w-full px-3 py-2 h-20 focus:outline-none transition duration-300 text-[14px]'
               ${descriptionStatus.isOccupiedByOthers ? `pointer-events-none` : ``}
                 hover:bg-gray-50`}
             style={{

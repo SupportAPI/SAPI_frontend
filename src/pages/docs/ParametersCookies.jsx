@@ -78,12 +78,12 @@ const ParametersCookies = ({ apiDocDetail, apiId, workspaceId, occupationState, 
     });
   };
 
-  const handleRemoveQueryParameter = (cookie) => {
+  const handleRemoveQueryParameter = (cookieId) => {
     publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
       apiType: 'PARAMETERS_COOKIES',
       actionType: 'DELETE',
       message: {
-        id: cookie,
+        id: cookieId,
       },
     });
   };
@@ -149,7 +149,7 @@ const ParametersCookies = ({ apiDocDetail, apiId, workspaceId, occupationState, 
   }, [apiDocDetail.parameters?.cookies]);
 
   return (
-    <div className='pt-4'>
+    <div>
       <div className='mb-4'>
         <div className='flex justify-between items-center'>
           <h3 className='font-semibold text-[16px] h-8 flex items-center'>Cookies</h3>
@@ -166,7 +166,7 @@ const ParametersCookies = ({ apiDocDetail, apiId, workspaceId, occupationState, 
           <div className=''>
             {cookies.length > 0 ? (
               <div className=''>
-                <div className='flex h-10 text-[14px] border bg-[#f1f5f8]'>
+                <div className='flex h-10 text-[14px] rounded-sm border bg-[#f1f5f8]'>
                   <div className='flex-[0.4] h-10 p-2 text-center border-r'>Requirement</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Key</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Value</div>
@@ -179,7 +179,7 @@ const ParametersCookies = ({ apiDocDetail, apiId, workspaceId, occupationState, 
                     <div
                       ref={(el) => setCookieRef(cookie.id, el)}
                       key={index}
-                      className={`relative flex items-center h-10 text-[14px] border group hover:bg-gray-50 my-1 transition-shadow duration-300`}
+                      className={`relative flex items-center rounded-sm h-10 text-[14px] border group hover:bg-gray-50 my-1 transition-shadow duration-300`}
                       style={{
                         borderColor: cookieStatus.isOccupied ? cookieStatus.color : undefined,
                         boxShadow: cookieStatus.isOccupied ? `0 0 0 2px ${cookieStatus.color}` : undefined,
@@ -207,7 +207,7 @@ const ParametersCookies = ({ apiDocDetail, apiId, workspaceId, occupationState, 
                     >
                       <div className='flex-[0.4] h-10 border-r p-2 text-center relative'>
                         <div
-                          className={`flex justify-between items-center group-hover:bg-gray-50 ${
+                          className={`flex justify-between cursor-pointer items-center group-hover:bg-gray-50 ${
                             cookieStatus.isOccupiedByOthers && 'pointer-events-none'
                           }`}
                           onClick={() => {
@@ -277,7 +277,7 @@ const ParametersCookies = ({ apiDocDetail, apiId, workspaceId, occupationState, 
                         <input
                           type='text'
                           placeholder='Description'
-                          value={cookie.description || ''}
+                          value={cookie.description}
                           onChange={(e) => handleCookieChange(cookie.id, 'DESCRIPTION', e.target.value)}
                           className={`w-full border-none outline-none group-hover:bg-gray-50  ${
                             cookieStatus.isOccupiedByOthers && `pointer-events-none `
@@ -319,7 +319,7 @@ const ParametersCookies = ({ apiDocDetail, apiId, workspaceId, occupationState, 
               </div>
             ) : (
               <div>
-                <div className='flex h-10 text-[14px] border bg-[#f1f5f8]'>
+                <div className='flex h-10 text-[14px] rounded-sm border bg-[#f1f5f8]'>
                   <div className='flex-[0.4] h-10 p-2 text-center border-r'>Requirement</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Key</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Value</div>

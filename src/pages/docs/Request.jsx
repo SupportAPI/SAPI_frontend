@@ -86,7 +86,7 @@ const Request = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOccu
   }, [isDropdownOpen]);
 
   return (
-    <div className='pt-4'>
+    <div>
       <div className='mb-4'>
         <label className='text-[16px] font-semibold h-8 flex items-center'>Body Type</label>
         <div
@@ -99,7 +99,7 @@ const Request = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOccu
           <div
             ref={requestRef}
             tabIndex={0}
-            className={`w-[250px] text-[14px] flex items-center justify-between focus:outline-none transition duration-300 px-3 py-2 hover:bg-gray-50 relative h-10 border`}
+            className={`w-[250px] text-[14px] rounded-sm cursor-pointer flex items-center justify-between focus:outline-none transition duration-300 px-3 py-2 hover:bg-gray-50 relative h-10 border`}
             style={{
               borderColor: requestStatus.isOccupied ? requestStatus.color : undefined,
               boxShadow: requestStatus.isOccupied ? `0 0 0 2px ${requestStatus.color}` : undefined,

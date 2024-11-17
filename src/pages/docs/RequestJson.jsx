@@ -30,25 +30,25 @@ const RequestJson = ({ apiDocDetail, apiId, workspaceId, occupationState, handle
   }, 50);
 
   useEffect(() => {
-    if (apiDocDetail?.request?.bodyType) {
+    if (apiDocDetail.request?.bodyType) {
       setBodyType(apiDocDetail.request.bodyType || '');
     }
-    if (apiDocDetail?.request?.json) {
-      setJson({ id: 1, value: { id: 123, password: 'password' } });
+    if (apiDocDetail.request?.json) {
+      setJson(apiDocDetail.request?.json || {});
     }
-  }, [apiDocDetail?.request?.bodyType, apiDocDetail?.request?.json]);
+  }, [apiDocDetail.request?.bodyType, apiDocDetail.request?.json]);
 
   const handleEditorChange = (value) => {
-    try {
-      const parsedJson = JSON.parse(value);
-      setJson({ value: parsedJson });
+    setJson((prevJson) => ({
+      ...prevJson,
+      value,
+    }));
 
-      publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
-        apiType: 'REQUEST_JSON',
-        actionType: 'UPDATE',
-        message: { value: value },
-      });
-    } catch (e) {}
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'REQUEST_JSON',
+      actionType: 'UPDATE',
+      message: { value },
+    });
   };
 
   const handleEditorMount = (editor) => {
@@ -65,7 +65,7 @@ const RequestJson = ({ apiDocDetail, apiId, workspaceId, occupationState, handle
   };
 
   return (
-    <div className='pt-4 pb-8'>
+    <div className='pb-8'>
       <div className='mb-4'>
         <div className='flex items-center justify-between w-[calc(100%-150px)]'>
           <label className='text-[16px] font-semibold'>Json Data</label>
@@ -82,11 +82,21 @@ const RequestJson = ({ apiDocDetail, apiId, workspaceId, occupationState, handle
           onMouseLeave={() => setShowTooltip(false)}
           ref={targetRef}
           onMouseMove={handleMouseMove}
+          onFocus={() => {
+            console.log('focus');
+          }}
+          onBlur={() => {
+            publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+              apiType: 'REQUEST_JSON',
+              actionType: 'SAVE',
+              message: { id: String(json.id), componentId: String(jsonComponentId), value: String(json.value) },
+            });
+          }}
         >
           <Editor
             height='200px'
             language='json'
-            value={JSON.stringify(json?.value || {}, null, 2)}
+            value={typeof json.value === 'string' ? json.value : JSON.stringify(json.value || {}, null, 2)}
             onChange={handleEditorChange}
             onMount={handleEditorMount}
             options={{

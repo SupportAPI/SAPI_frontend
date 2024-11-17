@@ -88,7 +88,7 @@ const LeftSectionName = ({ initialName, apiId, workspaceId, occupationState, han
         <input
           type='text'
           ref={nameRef}
-          className={`truncate rounded-sm border w-auto max-w-[200px] text-[20px] px-3 py-2 h-12
+          className={`truncate rounded-sm border w-auto max-w-[200px] text-[14px] px-3 py-2 h-10
                 focus:outline-none transition duration-300
                 ${nameStatus.isOccupiedByOthers ? `pointer-events-none` : ``}
                 hover:bg-gray-50`}
