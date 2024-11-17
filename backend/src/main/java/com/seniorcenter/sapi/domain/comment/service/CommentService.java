@@ -186,9 +186,10 @@ public class CommentService {
     public void createAndSendComment(CommentMessage message, UUID docId, Principal principal) {
         Comment comment = createComment(message, docId, principal);
         CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
-        messagingTemplate.convertAndSendToUser(principal.getName(), "/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/messasge", new CommentMessage(MessageType.ADD, commentResponseDto));
+        System.out.println("/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/messasge");
+        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/messasge", new CommentMessage(MessageType.ADD, commentResponseDto));
         CommentResponseDto yourMessage = new CommentResponseDto(commentResponseDto.commentId(),commentResponseDto.writerNickname(),commentResponseDto.writerProfileImage(),commentResponseDto.comment(),commentResponseDto.createdDate(),false);
-        sendToAllExceptSender(principal.getName(),"/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/messasge", new CommentMessage(MessageType.ADD, yourMessage));
+        sendToAllExceptSender(principal.getName(),docId, new CommentMessage(MessageType.ADD, yourMessage));
     }
 
     public String makeCommentText(List<CommentPart> messages) {
@@ -210,12 +211,12 @@ public class CommentService {
         return resultText;
     }
 
-    public void sendToAllExceptSender(String senderUserName, String destination, Object messageContent) {
+    public void sendToAllExceptSender(String senderUserName, UUID docId, Object messageContent) {
         for (SimpUser user : simpUserRegistry.getUsers()) {
             if (!user.getName().equals(senderUserName)) {
                 user.getSessions().forEach(session -> {
                     session.getSubscriptions().forEach(subscription -> {
-                        messagingTemplate.convertAndSendToUser(user.getName(), destination, messageContent);
+                        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments" + "/user/" + user.getName() + "/messasge", messageContent);
                     });
                 });
             }

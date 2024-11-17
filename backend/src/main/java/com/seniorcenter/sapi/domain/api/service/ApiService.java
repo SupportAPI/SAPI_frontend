@@ -76,7 +76,7 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
             result = apiQueryParameterService.createApiQueryParameter(message, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
-            result = apiCookieService.createApiCookie(workspaceId);
+            result = apiCookieService.createApiCookie(apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
             result = apiHeaderService.createApiHeader(message, apiId);
         } else if (message.apiType().equals(ApiType.OCCUPATION)) {
