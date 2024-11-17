@@ -40,12 +40,6 @@ public class ApiBodyService {
         return new ApiIdResponseDto(body.getId());
     }
 
-    public void updateDBJson(ApiMessage message, UUID workspaceId, UUID apiId) {
-        SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
-
-
-    }
-
     public void updateDBFormData(ApiMessage message, UUID workspaceId, UUID apiId) {
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
 
@@ -54,21 +48,21 @@ public class ApiBodyService {
 
         ApiBody apiBody = apiBodyRepository.findById(Long.valueOf(data.id()))
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API_BODY));
-        apiBody.updateBodyKeyAndValueAndDescription(data.key(), data.value(), data.description());
+        apiBody.updateFormData(data.key(), data.value(), ParameterType.valueOf(data.type()), data.description(), data.required());
 
         String hashKey = workspaceId.toString();
         log.info("[FORM DATA DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
         redisUtil.deleteData(hashKey, data.componentId());
     }
 
-//    public ApiIdResponseDto removeApiBody(ApiMessage message, UUID apiId) {
-//        Api api = apiRepository.findById(apiId)
-//                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
-//
-//        //RemoveRequestDto removeRequestDto = keyValueUtils.remove(message);
-////        ApiBody body = apiBodyRepository.findById(removeRequestDto.id())
-////                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_HEADER));
-////        apiBodyRepository.delete(body);
-////        return new ApiIdResponseDto(body.getId());
-//    }
+    public ApiIdResponseDto removeApiBody(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
+        ApiBody body = apiBodyRepository.findById(Long.valueOf(data.id()))
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_HEADER));
+        apiBodyRepository.delete(body);
+        return new ApiIdResponseDto(body.getId());
+    }
 }

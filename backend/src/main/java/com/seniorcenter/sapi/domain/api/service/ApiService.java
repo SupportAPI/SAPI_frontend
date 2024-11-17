@@ -110,7 +110,7 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.OCCUPATION)) {
             result = occupationService.removeOccupaction(workspaceId, message);
         } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
-            result = apiBodyService.createApiBody(apiId);
+            result = apiBodyService.removeApiBody(message, apiId);
         } else if (message.apiType().equals(ApiType.RESPONSE)) {
             apiResponseService.removeApiResponse(message, apiId);
             result = message;
@@ -157,9 +157,11 @@ public class ApiService {
             updateRequestType(message, apiId);
             UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
             result = new ValueUserIdResponseDto(updateValueRequestDto.value(), user.getId());
-        } else if (message.apiType().equals(ApiType.RESPONSE_JSON)) {
+        } else if (message.apiType().equals(ApiType.REQUEST_JSON)) {
             UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
             result = new ValueUserIdResponseDto(updateValueRequestDto.value(), user.getId());
+        } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
+            result = message;
         } else if (message.apiType().equals(ApiType.RESPONSE)) {
             result = apiResponseService.updateApiResponse(message, apiId);
         }
@@ -183,10 +185,12 @@ public class ApiService {
             updateDescription(message, workspaceId, apiId);
         } else if (message.apiType().equals(ApiType.API_NAME)) {
             updateApiName(message, workspaceId, apiId);
-        } else if (message.apiType().equals(ApiType.RESPONSE_JSON)) {
+        } else if (message.apiType().equals(ApiType.REQUEST_JSON)) {
+            apiBodyService.updateDBFormData(message, workspaceId, apiId);
+        } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
             apiBodyService.updateDBFormData(message, workspaceId, apiId);
         }
-        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, message);
+            messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, message);
     }
 
     public void updateRequestType(ApiMessage message, UUID apiId) {

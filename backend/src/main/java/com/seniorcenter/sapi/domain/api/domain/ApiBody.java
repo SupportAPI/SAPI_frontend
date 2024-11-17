@@ -81,5 +81,13 @@ public class ApiBody extends BaseTimeEntity {
         this.bodyValue = bodyValue;
         this.description = description;
     }
+
+    public void updateFormData(String bodyKey, String bodyValue, ParameterType parameterType, String description, Boolean isRequired) {
+        this.bodyKey = bodyKey;
+        this.bodyValue = bodyValue;
+        this.parameterType = parameterType;
+        this.description = description;
+        this.isRequired = isRequired;
+    }
 }
 
