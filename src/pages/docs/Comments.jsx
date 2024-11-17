@@ -58,6 +58,7 @@ const Comments = ({ docsId, workspaceId }) => {
   // 초반 화면 렌더링 시 소켓 연결 + 최근 인덱스 불러오기
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
+    setMessages([]);
     indexMutation.mutate();
     findMyInfoMutation.mutate();
     const scrollContainer = scrollContainerRef.current;
@@ -68,7 +69,7 @@ const Comments = ({ docsId, workspaceId }) => {
       if (scrollContainer) scrollContainer.removeEventListener('scroll', handleScroll);
       document.removeEventListener('click', handleClickOutside);
     };
-  }, []);
+  }, [docsId]);
 
   // 최근 인덱스 호출 완료 -> 코멘트들 불러오기
   useEffect(() => {
@@ -147,7 +148,7 @@ const Comments = ({ docsId, workspaceId }) => {
   // 처음 메세지 불러오기
   const findInitMutation = useMutation(() => findComments(initIndex, 6, docsId), {
     onSuccess: (response) => {
-      setMessages((prevMessages) => [...prevMessages, ...response]);
+      setMessages(response);
       setIndex(Math.min(...response.map((message) => message.commentId)));
       console.log(response);
     },
