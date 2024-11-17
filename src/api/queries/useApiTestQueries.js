@@ -35,6 +35,8 @@ export const patchApiDetail = async (workspaceId, apiId, apiTestDetails) => {
 
 // 4. API TEST Request
 export const requestApiTestDetail = async (workspaceId, apiDetail, apiUrl) => {
+  console.log(apiDetail);
+
   // 기본 headers 객체
   const headers = {
     'Content-Type': 'application/json',
@@ -46,7 +48,7 @@ export const requestApiTestDetail = async (workspaceId, apiDetail, apiUrl) => {
   }
 
   // axios 요청
-  const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/request`, { apiDetail }, { headers });
+  const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/request`, apiDetail, { headers });
 
   return response.data.data;
 };

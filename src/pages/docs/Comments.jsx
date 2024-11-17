@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { BsSend } from 'react-icons/bs';
 import { FaEllipsisH } from 'react-icons/fa';
 import { useMutation } from 'react-query';
-import { useWebSocket, WebSocketProvider } from '../../contexts/WebSocketContext';
+import { useWebSocket, WebSocketProvider } from '../../contexts/WebSocketProvider';
 import { findComments, findIndex, findUsers } from '../../api/queries/useCommentsQueries';
 import { getToken } from '../../utils/cookies';
 import { fetchUserInfo } from '../../api/queries/useAPIUserQueries';
