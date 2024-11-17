@@ -87,7 +87,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		Workspace workspace = workSpaceRepository.findById(workspaceId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
 
-        log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestination("/workspaces/"+ workspace.getId() +"/docs"));
+        log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspace.getId() +"/docs"));
 		WorkspaceInfoResponseDto workspaceInfoResponseDto = new WorkspaceInfoResponseDto(workspace.getId(),
 			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
 			workspace.getIsCompleted(), webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspaceId +"/docs"));
@@ -102,7 +102,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		return memberships.stream()
 			.map(membership -> {
 				Workspace workspace = membership.getWorkspace();
-				log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestination("/workspaces/"+ workspace.getId() +"/docs"));
+				log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspace.getId() +"/docs"));
 				return new WorkspaceInfoResponseDto(
 					workspace.getId(),
 					workspace.getProjectName(),
