@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IoClose } from 'react-icons/io5';
 import { toast } from 'react-toastify';
 import { useCreateWorkspace } from '../../api/queries/useWorkspaceQueries';
@@ -78,10 +78,24 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-30 z-50 overflow-auto">
+    <div className='fixed inset-0 flex justify-center items-center bg-black bg-opacity-30 z-50 overflow-auto'>
       <div
-        className="flex flex-col bg-white w-full max-w-2xl h-auto max-h-[90vh] border rounded-2xl dark:bg-dark-background"
+        className='flex flex-col bg-white w-full max-w-2xl h-auto max-h-[90vh] border rounded-2xl dark:bg-dark-background'
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -94,46 +108,36 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
             }
           `}
         </style>
-  
+
         {/* 헤더 */}
-        <header className="flex justify-between items-center w-full text-gray-700 px-6 py-3 z-10 sticky top-0">
-          <h2 className="text-xl">Create Workspace</h2>
-          <button className="text-gray-500 hover:text-gray-700" onClick={onClose}>
-            <IoClose className="text-2xl" />
+        <header className='flex justify-between items-center w-full text-gray-700 px-6 py-3 z-10 sticky top-0'>
+          <h2 className='text-xl'>Create Workspace</h2>
+          <button className='text-gray-500 hover:text-gray-700' onClick={onClose}>
+            <IoClose className='text-2xl' />
           </button>
         </header>
-  
+
         {/* 본문 */}
-        <div className="flex flex-col w-full p-6 pt-0 space-y-2 overflow-y-auto">
+        <div className='flex flex-col w-full p-6 pt-0 space-y-2 overflow-y-auto'>
           {/* 이미지 업로드 */}
-          <div className="flex flex-col justify-center items-center relative space-y-0 mb-4">
-            <h3 className="text-base font-medium text-gray-600">Workspace Image</h3>
-            <div className="relative w-full max-w-[300px] aspect-[16/9] overflow-hidden border-2 border-gray-300 rounded-md shadow-sm">
-              <img
-                src={previewImage}
-                alt="Thumbnail Preview"
-                className="object-cover w-full h-full"
-              />
+          <div className='flex flex-col justify-center items-center relative space-y-0 mb-4'>
+            <h3 className='text-base font-medium text-gray-600'>Workspace Image</h3>
+            <div className='relative w-full max-w-[300px] aspect-[16/9] overflow-hidden border-2 border-gray-300 rounded-md shadow-sm'>
+              <img src={previewImage} alt='Thumbnail Preview' className='object-cover w-full h-full' />
               <button
-                onClick={() => document.getElementById("imageUpload").click()}
-                className="absolute bottom-2 right-2 bg-white border border-gray-300 text-gray-700 w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-gray-100"
+                onClick={() => document.getElementById('imageUpload').click()}
+                className='absolute bottom-2 right-2 bg-white border border-gray-300 text-gray-700 w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-gray-100'
               >
-                <FiUpload className="w-5 h-5" />
+                <FiUpload className='w-5 h-5' />
               </button>
             </div>
-            <input
-              id="imageUpload"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="hidden"
-            />
+            <input id='imageUpload' type='file' accept='image/*' onChange={handleImageChange} className='hidden' />
           </div>
-  
+
           {/* 워크스페이스 이름 입력 */}
           <TextInput
-            id="projectName"
-            label="Workspace Name"
+            id='projectName'
+            label='Workspace Name'
             value={projectName}
             clearable='true'
             onChange={(e) => {
@@ -143,11 +147,11 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
             required
             error={projectNameError}
           />
-  
+
           {/* 도메인 주소 입력 */}
           <TextInput
-            id="domain"
-            label="Server Domain"
+            id='domain'
+            label='Server Domain'
             value={domain}
             onChange={(e) => {
               setDomainName(e.target.value);
@@ -155,26 +159,26 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
             }}
             required
             error={domainError}
-            placeholder="k11b305.ssafy.p.io"
+            placeholder='k11b305.ssafy.p.io'
           />
-  
+
           {/* 설명 입력 */}
           <TextInput
-            id="description"
-            label="Description"
+            id='description'
+            label='Description'
             value={description}
             onChange={(e) => {
               setDescription(e.target.value);
               setDescriptionError(''); // 입력 시 에러 초기화
             }}
-            helpText="최대 255글자까지 입력 가능합니다."
+            helpText='최대 255글자까지 입력 가능합니다.'
             multiline={true}
             error={descriptionError}
           />
-  
+
           {/* 생성 버튼 */}
           <button
-            className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-400"
+            className='bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-400'
             onClick={createWorkSpaceAPI}
           >
             Create
@@ -182,7 +186,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
         </div>
       </div>
     </div>
-  );  
+  );
 };
 
 export default CreateWorkspace;
