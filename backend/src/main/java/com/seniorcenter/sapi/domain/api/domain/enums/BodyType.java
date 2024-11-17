@@ -9,7 +9,8 @@ public enum BodyType {
     NONE("NONE"),
     FORM_DATA("FORM_DATA"),
     JSON("JSON"),
-    RAW("RAW");
+    RAW("RAW"),
+    TEXT("TEXT"),;
 
     private String value;
 }

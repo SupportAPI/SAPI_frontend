@@ -62,4 +62,13 @@ public class ApiResponse extends BaseTimeEntity {
             .description(originResponse.getDescription())
             .build();
     }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateBodyTypeAndBodyData(String bodyType, String bodyData) {
+        this.bodyType = BodyType.valueOf(bodyType);
+        this.bodyData = bodyData;
+    }
 }

@@ -36,4 +36,29 @@ public class ApiResponseService {
         apiResponseRepository.save(apiResponse);
         return new IdCodeDto(String.valueOf(apiResponse.getId()), data.value());
     }
+
+    public void removeApiResponse(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
+        ApiResponse apiResponse = ApiResponse.createApiResponse(api, Integer.parseInt(data.value()));
+        apiResponseRepository.delete(apiResponse);
+    }
+
+    public SaveDataRequestDto updateApiResponse(ApiMessage message, UUID apiId) {
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
+        ApiResponse apiResponse = apiResponseRepository.findById(Long.valueOf(data.id()))
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API_RESPONSE));
+
+        if (data.key().equals("NAME")) {
+            apiResponse.updateName(data.value());
+        } else if (data.key().equals("DATA")) {
+            apiResponse.updateBodyTypeAndBodyData(data.type(), data.value());
+        }
+        return data;
+    }
 }

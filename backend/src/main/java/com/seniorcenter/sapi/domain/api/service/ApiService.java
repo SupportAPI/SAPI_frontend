@@ -111,6 +111,9 @@ public class ApiService {
             result = occupationService.removeOccupaction(workspaceId, message);
         } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
             result = apiBodyService.createApiBody(apiId);
+        } else if (message.apiType().equals(ApiType.RESPONSE)) {
+            apiResponseService.removeApiResponse(message, apiId);
+            result = message;
         }
 
         messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
@@ -157,6 +160,8 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.RESPONSE_JSON)) {
             UpdateValueRequestDto updateValueRequestDto = valueUtils.updateByValue(message);
             result = new ValueUserIdResponseDto(updateValueRequestDto.value(), user.getId());
+        } else if (message.apiType().equals(ApiType.RESPONSE)) {
+            result = apiResponseService.updateApiResponse(message, apiId);
         }
 
         messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
