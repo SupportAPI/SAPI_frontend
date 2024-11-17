@@ -104,7 +104,7 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.PARAMETERS_QUERY_PARAMETERS)) {
             result = apiQueryParameterService.removeApiQueryParameter(message, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_COOKIES)) {
-            result = apiCookieService.removeApiCookie(message, workspaceId);
+            result = apiCookieService.removeApiCookie(message, apiId);
         } else if (message.apiType().equals(ApiType.PARAMETERS_HEADERS)) {
             result = apiHeaderService.removeApiHeader(message, apiId);
         } else if (message.apiType().equals(ApiType.OCCUPATION)) {

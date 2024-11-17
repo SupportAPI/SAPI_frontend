@@ -68,7 +68,7 @@ public class ApiCookieService {
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
         ApiCookie apiCookie = apiCookieRepository.findById(Long.valueOf(data.id()))
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
-        apiCookie.updateCookieKeyAndValue(data.key(), data.value());
+        apiCookie.updateCookieKeyAndValueAndDescription(data.key(), data.value(), data.description());
 
         String hashKey = workspaceId.toString();
         log.info("[API COOKIE DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());

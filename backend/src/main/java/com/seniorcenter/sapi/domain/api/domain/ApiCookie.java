@@ -67,8 +67,9 @@ public class ApiCookie extends BaseTimeEntity {
         this.isChecked = isChecked;
     }
 
-    public void updateCookieKeyAndValue(String cookieKey, String cookieValue) {
+    public void updateCookieKeyAndValueAndDescription(String cookieKey, String cookieValue, String description) {
         this.cookieKey = cookieKey;
         this.cookieValue = cookieValue;
+        this.description = description;
     }
 }
