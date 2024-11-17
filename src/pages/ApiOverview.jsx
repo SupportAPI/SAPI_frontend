@@ -42,6 +42,7 @@ const ApiOverview = () => {
           id: 'all',
           name: 'API Overview',
           path: location.pathname,
+          type: 'dashboard',
         });
       }
     }

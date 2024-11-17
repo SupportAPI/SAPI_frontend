@@ -52,7 +52,12 @@ const ApiDocsDetail = () => {
       setOccupationState(occupationStateData);
 
       if (!openTabs.find((tab) => tab.id === apiId)) {
-        addTab({ id: apiId, name: apiDocDetailData.name, path: `/workspace/${workspaceId}/apidocs/${apiId}` });
+        addTab({
+          id: apiId,
+          name: apiDocDetailData.name,
+          path: `/workspace/${workspaceId}/apidocs/${apiId}`,
+          type: 'apidocs',
+        });
       }
 
       if (apiDocDetailData.category && !expandedCategories[apiDocDetailData.category])

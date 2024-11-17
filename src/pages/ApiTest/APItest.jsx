@@ -8,6 +8,7 @@ import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 import { IoCopyOutline, IoCopy } from 'react-icons/io5';
 import { RiDropdownList } from 'react-icons/ri';
 import { toast } from 'react-toastify';
+import { useTestStore } from '../../stores/useTestStore';
 
 const ApiTest = () => {
   const { workspaceId } = useParams();
@@ -15,6 +16,7 @@ const ApiTest = () => {
   const { addTab, openTabs } = useTabStore();
   const { data: dataTest = [], isLoading, error } = useFetchApiList(workspaceId);
   const navigate = useNavigate();
+  const { testUrl, setTestUrl } = useTestStore();
 
   const [selectedItems, setSelectedItems] = useState({});
   const [isAllSelected, setIsAllSelected] = useState(false);
@@ -29,6 +31,7 @@ const ApiTest = () => {
           id: 'api-test',
           name: 'API Test',
           path: location.pathname,
+          type: 'api-test',
         });
       }
     }
@@ -65,15 +68,14 @@ const ApiTest = () => {
       id: apiId,
       name: apiName,
       path,
+      type: 'api-test',
     });
     navigate(path);
   };
 
-  // 검색 필터 상태 관리
-  const [search, setSearch] = useState('');
   // Dropdown 상태 관리
   const [isShowEnvironment, setShowEnvironment] = useState(false); // 환경 선택 모달 오픈 값
-  const [stateEnvironment, setStateEnvironment] = useState('Local'); // 개발환경 선택 시 해당 값 사용
+  const [stateEnvironment, setStateEnvironment] = useState('Server'); // 개발환경 선택 시 해당 값 사용
 
   // Dropdown 열기/닫기 및 옵션 선택 함수
   const toggleEnvironmentDropdown = () => {
@@ -122,7 +124,7 @@ const ApiTest = () => {
   if (!dataTest || dataTest.length === 0) return <div className='p-4'>No data available.</div>;
 
   return (
-    <div className='px-8 py-8 overflow-x-auto overflow-y-auto max-w-[1200px]'>
+    <div className='px-8 py-8 overflow-x-auto overflow-y-auto max-w-[1200px] dark:bg-dark-background dark:text-dark-text'>
       <div className='flex justify-between items-baseline mb-4'>
         <h2 className='text-2xl font-bold'>API Test</h2>
       </div>
@@ -143,15 +145,15 @@ const ApiTest = () => {
         {/* 드롭다운 메뉴 */}
         {isShowEnvironment && (
           <div
-            className='absolute bg-white border-2 mt-1 rounded shadow-md z-10 text-center'
+            className='absolute bg-white border-2 mt-1 rounded shadow-md z-10 text-center dark:bg-dark-background'
             style={{ top: '100%', left: '0px', width: '120px' }}
           >
             <ul>
-              {['Local', 'Server'].map((option) => (
+              {['Server', 'Local'].map((option) => (
                 <li
                   key={option}
                   onClick={() => handleEnvironmentOptionClick(option)}
-                  className='px-4 py-2 cursor-pointer hover:bg-gray-200'
+                  className='px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-dark-hover'
                 >
                   {option}
                 </li>
@@ -161,11 +163,14 @@ const ApiTest = () => {
         )}
 
         <input
-          className='border-2 p-3 w-[500px] h-[40px] border-[#2D3648] rounded-lg mr-5'
+          disabled={stateEnvironment === 'Server'}
+          placeholder={stateEnvironment === 'Server' ? '서버 URL 입력 불가' : '로컬 호스트 URL을 입력하세요'}
+          className={`border-2 p-3 w-[500px] h-[40px] dark:bg-dark-background rounded-lg mr-5 ${
+            stateEnvironment === 'Server' ? 'bg-[#F0F5F8] cursor-not-allowed' : 'bg-white'
+          }`}
           type='text'
-          placeholder='Search'
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={stateEnvironment === 'Server' ? '' : testUrl}
+          onChange={(e) => setTestUrl(e.target.value)}
         />
         <button
           className='flex justify-center items-center p-3 w-[100px] h-[40px] bg-[#2D3648] rounded-lg text-white hover:bg-[#2D3648]/90'
@@ -178,7 +183,7 @@ const ApiTest = () => {
       <div className='overflow-x-auto mx-auto border border-gray-300 rounded-lg'>
         <table className='w-full min-w-[900px] table-fixed' style={{ borderSpacing: 0 }}>
           <thead>
-            <tr className='bg-gray-100 h-12'>
+            <tr className='bg-gray-100 dark:bg-dark-background h-12'>
               <th className='p-4 text-center font-medium w-[5%]'>
                 <input
                   type='checkbox'
@@ -206,7 +211,9 @@ const ApiTest = () => {
                   <React.Fragment key={api.apiId || index}>
                     <tr
                       className={`text-[14px] cursor-pointer ${
-                        isSelected ? 'bg-indigo-50 hover:bg-indigo-100' : 'hover:bg-gray-50'
+                        isSelected
+                          ? 'bg-indigo-50 hover:bg-indigo-100 dark:bg-dark-hover dark:hover:bg-dark-surface'
+                          : 'hover:bg-gray-50 dark:hover:bg-dark-hover'
                       }`}
                     >
                       <td className='p-4 text-center border'>
@@ -283,12 +290,12 @@ const ApiTest = () => {
                     </tr>
                     {isDetailVisible && (
                       <tr key={`${api.apiId}-details`}>
-                        <td colSpan='9' className='p-4 bg-gray-50'>
+                        <td colSpan='9' className='p-4 bg-gray-50 dark:bg-dark-background'>
                           <div className='flex justify-center items-center w-full gap-4'>
                             {/* Your Response */}
                             <div className='flex flex-col w-full max-w-[500px] space-y-2'>
                               <div className='font-bold text-xl text-left'>My Response</div>
-                              <div className='p-5 border border-black rounded-xl h-[500px] bg-white'>
+                              <div className='p-5 border border-black rounded-xl h-[500px] bg-white dark:bg-dark-surface'>
                                 Test를 진행해주세요.
                               </div>
                             </div>
@@ -296,7 +303,7 @@ const ApiTest = () => {
                             {/* Server Response */}
                             <div className='flex flex-col w-full max-w-[500px] space-y-2'>
                               <div className='font-bold text-xl text-left'>Mock Response</div>
-                              <div className='p-5 border border-black rounded-xl h-[500px] bg-white'>
+                              <div className='p-5 border border-black rounded-xl h-[500px] bg-white dark:bg-dark-surface'>
                                 Test를 진행해주세요.
                               </div>
                             </div>

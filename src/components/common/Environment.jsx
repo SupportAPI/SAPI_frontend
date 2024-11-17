@@ -43,18 +43,17 @@ const Environment = ({ workspaceId }) => {
   useEffect(() => {
     if (environmentData) {
       setEnvironment(environmentData.environments);
-      console.log(environmentData.environments);
+      console.log(environmentData);
     }
   }, [environmentData, setEnvironment]);
 
   return (
     <select
-      className='w-[300px] dark:bg-dark-background dark:text-dark-text light:bg-light-background light:text-light-text mr-3 font-semibold
-      border pl-4 truncate'
+      className='dark:bg-dark-background dark:text-dark-text'
       value={selectedCategoryId || ''}
       onChange={handleEnvironmentChange}
     >
-      <option value=''>Environment Variable</option>
+      <option value=''>Select Environment</option>
       {environmentList &&
         environmentList.map((env) => (
           <option key={env.id} value={env.id}>

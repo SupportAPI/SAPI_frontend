@@ -21,6 +21,7 @@ const DashboardSidebar = () => {
         id: selectedPath.id,
         name: selectedPath.name,
         path: selectedPath.path,
+        type: 'dashboard',
       });
 
       navigate(selectedPath.path);
@@ -28,7 +29,7 @@ const DashboardSidebar = () => {
   };
 
   const handleDashboardDoubleClick = (id) => {
-    confirmTab(id);
+    confirmTab(id, 'dashboard');
   };
 
   return (

@@ -7,6 +7,7 @@ import { findComments, findIndex, findUsers } from '../../api/queries/useComment
 import { getToken } from '../../utils/cookies';
 import { fetchUserInfo } from '../../api/queries/useAPIUserQueries';
 import useAuthStore from '../../stores/useAuthStore';
+import { throttle } from 'lodash';
 
 const Comments = ({ docsId, workspaceId }) => {
   // 드롭다운 불러오는 변수들
@@ -57,12 +58,18 @@ const Comments = ({ docsId, workspaceId }) => {
   // 초반 화면 렌더링 시 소켓 연결 + 최근 인덱스 불러오기
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
+    setMessages([]);
     indexMutation.mutate();
     findMyInfoMutation.mutate();
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+    }
     return () => {
+      if (scrollContainer) scrollContainer.removeEventListener('scroll', handleScroll);
       document.removeEventListener('click', handleClickOutside);
     };
-  }, []);
+  }, [docsId]);
 
   // 최근 인덱스 호출 완료 -> 코멘트들 불러오기
   useEffect(() => {
@@ -96,6 +103,7 @@ const Comments = ({ docsId, workspaceId }) => {
           case 'ADD':
             if (receivedMessage) {
               setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
+              console.log(receivedMessage);
             }
             break;
           case 'UPDATE':
@@ -138,19 +146,20 @@ const Comments = ({ docsId, workspaceId }) => {
   });
 
   // 처음 메세지 불러오기
-  const findInitMutation = useMutation(() => findComments(initIndex, 5, docsId), {
+  const findInitMutation = useMutation(() => findComments(initIndex, 6, docsId), {
     onSuccess: (response) => {
-      setMessages((prevMessages) => [...prevMessages, ...response]);
-      setIndex(Math.min(...response.map((message) => message.id)));
+      setMessages(response);
+      setIndex(Math.min(...response.map((message) => message.commentId)));
+      console.log(response);
     },
     onError: (error) => console.error('Find comments error:', error),
   });
 
   // 메세지 불러오기
-  const findMutation = useMutation(() => findComments(index, 5, docsId), {
+  const findMutation = useMutation(() => findComments(index - 1, 5, docsId), {
     onSuccess: (response) => {
       setMessages((prevMessages) => [...prevMessages, ...response]);
-      setIndex(Math.min(...response.map((message) => message.id)));
+      setIndex(Math.min(...response.map((message) => message.commentId)));
     },
     onError: (error) => console.error('Find comments error:', error),
   });
@@ -495,15 +504,17 @@ const Comments = ({ docsId, workspaceId }) => {
   };
 
   // 스크롤 감지 후 무한 스크롤 데이터 로딩
-  const handleScroll = () => {
+  const handleScroll = throttle(() => {
     const scrollContainer = scrollContainerRef.current;
     if (
       scrollContainer &&
       scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 1
     ) {
-      if (index > 1) findMutation.mutate();
+      if (index > 1) {
+        findMutation.mutate();
+      }
     }
-  };
+  }, 300); // 300ms 간격으로 호출
 
   // 무한 스크롤시 스크롤 감지
   useEffect(() => {
@@ -551,169 +562,188 @@ const Comments = ({ docsId, workspaceId }) => {
   };
 
   return (
-    <div
-      ref={scrollContainerRef}
-      className='mt-5 w-full h-[calc(100vh-255px)] bg-white flex flex-col justify-start pt-5 pb-24 overflow-y-auto box-border sidebar-scrollbar'
-    >
-      <div className='flex flex-col space-y-4 flex-grow'>
-        {messages.map((message) => (
-          <div key={message.commentId} className='flex flex-col'>
-            <div className={`flex ${message.isHost ? 'justify-end' : 'justify-start'}`}>
-              {!message.isHost && (
-                <img
-                  className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain'
-                  src={message?.writerProfileImage}
-                  alt='Profile'
-                />
-              )}
-              <div
-                className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#E9F2F5] ${
-                  message.isHost ? 'ml-auto text-right' : 'text-left'
-                }`}
-              >
-                <div className={`flex ${message.isHost ? 'justify-between' : 'justify-between'} items-center`}>
-                  {message.isHost ? (
-                    <>
-                      <FaEllipsisH
-                        className='mt-1 ml-2 cursor-pointer'
-                        onClick={(e) => handleMoreIconClick(e, message.commentId)}
-                      />
-                      <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
-                    </>
-                  ) : (
-                    <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
-                  )}
-                </div>
-                {editingMessageId === message.commentId ? (
-                  <div className='text-xl my-1 mx-2'>
-                    <textarea
-                      value={editContent}
-                      onInput={handleEditInput}
-                      onKeyDown={handleKeyDownSend}
-                      className='w-full p-1 rounded-md border border-gray-300 resize-none overflow-hidden'
-                      style={{ height: 'auto' }}
-                    />
-                    <button onClick={() => handleSaveEdit()} className='text-blue-500 font-bold mt-2 mr-3'>
-                      저장
-                    </button>
-                    <button onClick={() => handleCancelEdit()} className='text-blue-500 font-bold mt-2'>
-                      취소
-                    </button>
-                  </div>
-                ) : (
-                  <div className='text-lg my-1 mx-2' style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                    {message.comment.map((part, index) =>
-                      part.type === 'TEXT' ? (
-                        <span key={index} style={{ display: 'inline' }}>
-                          {part.value}
-                        </span>
-                      ) : (
-                        <span
-                          key={index}
-                          className='font-bold text-blue-500 cursor-pointer'
-                          style={{ display: 'inline' }}
-                          onClick={(e) =>
-                            showUserInfo(e, part.value.nickname, part.value.profileImage, part.value.userId)
-                          } // 래퍼 함수로 감싸기
-                        >
-                          @{part.value.nickname}
-                        </span>
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
-              {message.isHost && (
-                <img
-                  className='w-[40px] h-[40px] rounded-full mr-5 ml-3 object-contain'
-                  src={message?.writerProfileImage}
-                  alt='Profile'
-                />
-              )}
-            </div>
-            <div className={`flex ${message.isHost ? 'justify-end mr-[72px]' : 'justify-start ml-[72px]'}`}>
-              <span className='text-sm mx-1'>
-                {new Date(message.createdDate).toLocaleString('ko-KR', {
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
-            </div>
-          </div>
-        ))}
-        <div className='absolute bottom-10'>
-          <div className='flex flex-row w-full rounded-[10px] ml-6 bg-[#E9F2F5] p-3'>
-            <img
-              className='w-[40px] h-[40px] rounded-full mr-3 object-contain'
-              src={myInfo?.profileImage}
-              alt='Profile'
-            />
-            <textarea
-              ref={textareaRef}
-              className='text-xl pt-2 bg-transparent w-full flex-grow resize-none overflow-hidden'
-              rows='1'
-              placeholder='코멘트 입력'
-              onInput={handleInput}
-              onKeyDown={handleKeyDownSend}
-              value={sendContent}
-            ></textarea>
-            <BsSend onClick={handleSave} className='mt-1 text-4xl ml-1' />
-          </div>
+    <div className='relative w-full h-[calc(100vh-200px)] bg-white dark:bg-dark-background mt-3'>
+      {/* 입력 영역 (상단 고정) */}
+      <div className='absolute w-[360px] bg-[#E9F2F5] ml-5 mr-5 z-10 bottom-0 bg-transparent'>
+        <div className='flex flex-row w-full rounded-[10px] mx-6 bg-[#E9F2F5] p-4'>
+          <textarea
+            ref={textareaRef}
+            className='text-xl pt-2 bg-transparent w-full flex-grow resize-none overflow-hidden'
+            rows='1'
+            placeholder='코멘트 입력'
+            onInput={handleInput}
+            onKeyDown={handleKeyDownSend}
+            value={sendContent}
+          ></textarea>
+          <BsSend onClick={handleSave} className='mt-1 text-4xl ml-1' />
         </div>
       </div>
-      {showOptionsDropdown && (
-        <ul
-          style={{
-            top: `${optionsDropdownPosition.top}px`,
-            left: `${optionsDropdownPosition.left}px`,
-          }}
-          ref={setRef}
-          className='absolute bg-[#EDF7FF] border border-gray-300 w-20 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
-        >
-          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleEditClick}>
-            수정
-          </li>
-          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleDeleteClick}>
-            삭제
-          </li>
-        </ul>
-      )}
-      {showDeleteModal && (
-        <ul
-          style={{
-            top: `${optionsDropdownPosition.top}px`,
-            left: `${optionsDropdownPosition.left}px`,
-          }}
-          ref={deleteRef}
-          className='absolute bg-[#EDF7FF] border border-gray-300 w-60 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
-        >
-          <li className='p-2 text-center'>정말 삭제하시겠습니까?</li>
-          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={deleteComment}>
-            삭제
-          </li>
-          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleCancelDelete}>
-            취소
-          </li>
-        </ul>
-      )}
-      {showDropdown && userSuggestions.response && userSuggestions.response.length > 0 && (
-        <ul
-          style={{
-            position: 'absolute',
-            top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`,
-          }}
-          className='bg-[#EDF7FF] border border-gray-300 w-56 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
-        >
-          {userSuggestions.response.map((user) => (
-            <li
-              key={user.userId}
-              onClick={() => handleUserClick(user.nickname, user.userId)}
-              className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center'
-            >
+      {/* 스크롤 가능한 메시지 영역 */}
+      <div
+        ref={scrollContainerRef}
+        className='w-full h-full overflow-y-auto flex flex-col space-y-4 pt-3 sidebar-scrollbar pb-[100px]'
+      >
+        <div className='flex flex-col space-y-4 flex-grow'>
+          {messages.map((message) => (
+            <div key={message.commentId} className='flex flex-col'>
+              <div className={`flex ${message.isHost ? 'justify-end' : 'justify-start'}`}>
+                {!message.isHost && (
+                  <img
+                    className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain'
+                    src={message?.writerProfileImage}
+                    alt='Profile'
+                  />
+                )}
+                <div
+                  className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#E9F2F5] ${
+                    message.isHost ? 'ml-auto text-right' : 'text-left'
+                  }`}
+                >
+                  <div className={`flex ${message.isHost ? 'justify-between' : 'justify-between'} items-center`}>
+                    {message.isHost ? (
+                      <>
+                        <FaEllipsisH
+                          className='mt-1 ml-2 cursor-pointer'
+                          onClick={(e) => handleMoreIconClick(e, message.commentId)}
+                        />
+                        <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
+                      </>
+                    ) : (
+                      <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
+                    )}
+                  </div>
+                  {editingMessageId === message.commentId ? (
+                    <div className='text-xl my-1 mx-2'>
+                      <textarea
+                        value={editContent}
+                        onInput={handleEditInput}
+                        onKeyDown={handleKeyDownSend}
+                        className='w-full p-1 rounded-md border border-gray-300 resize-none overflow-hidden'
+                        style={{ height: 'auto' }}
+                      />
+                      <button onClick={() => handleSaveEdit()} className='text-blue-500 font-bold mt-2 mr-3'>
+                        저장
+                      </button>
+                      <button onClick={() => handleCancelEdit()} className='text-blue-500 font-bold mt-2'>
+                        취소
+                      </button>
+                    </div>
+                  ) : (
+                    <div className='text-lg my-1 mx-2' style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                      {message.comment.map((part, index) =>
+                        part.type === 'TEXT' ? (
+                          <span key={index} style={{ display: 'inline' }}>
+                            {part.value}
+                          </span>
+                        ) : (
+                          <span
+                            key={index}
+                            className='font-bold text-blue-500 cursor-pointer'
+                            style={{ display: 'inline' }}
+                            onClick={(e) =>
+                              showUserInfo(e, part.value.nickname, part.value.profileImage, part.value.userId)
+                            } // 래퍼 함수로 감싸기
+                          >
+                            @{part.value.nickname}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+                {message.isHost && (
+                  <img
+                    className='w-[40px] h-[40px] rounded-full mr-5 ml-3 object-contain'
+                    src={message?.writerProfileImage}
+                    alt='Profile'
+                  />
+                )}
+              </div>
+              <div className={`flex ${message.isHost ? 'justify-end mr-[72px]' : 'justify-start ml-[72px]'}`}>
+                <span className='text-sm mx-1'>
+                  {new Date(message.createdDate).toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        {showOptionsDropdown && (
+          <ul
+            style={{
+              top: `${optionsDropdownPosition.top}px`,
+              left: `${optionsDropdownPosition.left}px`,
+            }}
+            ref={setRef}
+            className='absolute bg-[#EDF7FF] border border-gray-300 w-20 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
+          >
+            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleEditClick}>
+              수정
+            </li>
+            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleDeleteClick}>
+              삭제
+            </li>
+          </ul>
+        )}
+        {showDeleteModal && (
+          <ul
+            style={{
+              top: `${optionsDropdownPosition.top}px`,
+              left: `${optionsDropdownPosition.left}px`,
+            }}
+            ref={deleteRef}
+            className='absolute bg-[#EDF7FF] border border-gray-300 w-60 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
+          >
+            <li className='p-2 text-center'>정말 삭제하시겠습니까?</li>
+            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={deleteComment}>
+              삭제
+            </li>
+            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleCancelDelete}>
+              취소
+            </li>
+          </ul>
+        )}
+        {showDropdown && userSuggestions.response && userSuggestions.response.length > 0 && (
+          <ul
+            style={{
+              position: 'absolute',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+            }}
+            className='bg-[#EDF7FF] border border-gray-300 w-56 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
+          >
+            {userSuggestions.response.map((user) => (
+              <li
+                key={user.userId}
+                onClick={() => handleUserClick(user.nickname, user.userId)}
+                className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center'
+              >
+                <img
+                  className='w-[50px] h-[50px] rounded-full mr-5 ml-3 object-contain'
+                  src={user.profileImage || ''}
+                  alt='Profile'
+                />
+                {user.nickname}
+              </li>
+            ))}
+          </ul>
+        )}
+        {showUser && user && (
+          <ul
+            style={{
+              position: 'absolute',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+            }}
+            className='bg-[#EDF7FF] border border-gray-300 w-36 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
+            ref={infoRef}
+          >
+            <li key={user.userId} className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center'>
               <img
                 className='w-[50px] h-[50px] rounded-full mr-5 ml-3 object-contain'
                 src={user.profileImage || ''}
@@ -721,29 +751,9 @@ const Comments = ({ docsId, workspaceId }) => {
               />
               {user.nickname}
             </li>
-          ))}
-        </ul>
-      )}
-      {showUser && user && (
-        <ul
-          style={{
-            position: 'absolute',
-            top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`,
-          }}
-          className='bg-[#EDF7FF] border border-gray-300 w-36 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
-          ref={infoRef}
-        >
-          <li key={user.userId} className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center'>
-            <img
-              className='w-[50px] h-[50px] rounded-full mr-5 ml-3 object-contain'
-              src={user.profileImage || ''}
-              alt='Profile'
-            />
-            {user.nickname}
-          </li>
-        </ul>
-      )}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };

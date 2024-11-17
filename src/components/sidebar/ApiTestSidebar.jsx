@@ -70,12 +70,13 @@ const ApiTestSidebar = () => {
       id: apiId,
       name: apiName,
       path,
+      type: 'api-test',
     });
     navigate(path);
   };
 
   const handleApiDoubleClick = (apiId) => {
-    confirmTab(apiId);
+    confirmTab(apiId, 'api-test');
   };
 
   const handleCategoryToggle = (category) => {
@@ -88,12 +89,13 @@ const ApiTestSidebar = () => {
       id: 'api-test',
       name: 'API Test',
       path,
+      type: 'api-test',
     });
     navigate(path);
   };
 
   const handleAllApiDoubleClick = () => {
-    confirmTab('api-test');
+    confirmTab('api-test', 'api-test');
   };
 
   const handleDropdownToggle = (apiId) => {
