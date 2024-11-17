@@ -118,9 +118,9 @@ public class CommentService {
         String modifiedMessage = makeCommentText(messages);
         comment.updateComment(modifiedMessage);
         CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
-        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/message", new CommentMessage(MessageType.ADD, commentResponseDto));
+        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/message", new CommentMessage(MessageType.UPDATE, commentResponseDto));
         CommentResponseDto yourMessage = new CommentResponseDto(commentResponseDto.commentId(),commentResponseDto.writerNickname(),commentResponseDto.writerProfileImage(),commentResponseDto.comment(),commentResponseDto.createdDate(),false);
-        sendToAllExceptSender(principal.getName(),docId, new CommentMessage(MessageType.ADD, yourMessage));
+        sendToAllExceptSender(principal.getName(),docId, new CommentMessage(MessageType.UPDATE, yourMessage));
     }
 
     @Transactional
