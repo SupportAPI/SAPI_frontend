@@ -3,7 +3,7 @@ import { BsSend } from 'react-icons/bs';
 import { FaEllipsisH } from 'react-icons/fa';
 import { useMutation } from 'react-query';
 import { useWebSocket, WebSocketProvider } from '../../contexts/WebSocketContext';
-import { findComments, findIndex, findUsers } from '../../api/queries/useCommentsQueries';
+import { findComments, findIndex, findInitComments, findUsers } from '../../api/queries/useCommentsQueries';
 import { getToken } from '../../utils/cookies';
 import { fetchUserInfo } from '../../api/queries/useAPIUserQueries';
 import useAuthStore from '../../stores/useAuthStore';
@@ -97,13 +97,13 @@ const Comments = ({ docsId, workspaceId }) => {
       const subScriptionPath = `/ws/sub/docs/${docsId}/comments/user/${userId}/message`;
 
       const subscription = subscribe(subScriptionPath, (parsedData) => {
+        console.log(parsedData);
         const { type, message: receivedMessage } = parsedData;
 
         switch (type) {
           case 'ADD':
             if (receivedMessage) {
               setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
-              console.log(receivedMessage);
             }
             break;
           case 'UPDATE':
@@ -115,7 +115,7 @@ const Comments = ({ docsId, workspaceId }) => {
             break;
           case 'DELETE':
             if (receivedMessage) {
-              setMessages((prevMessages) => prevMessages.filter((msg) => msg.commentId !== receivedMessage.commentId));
+              setMessages((prevMessages) => prevMessages.filter((msg) => msg.commentId !== receivedMessage));
             }
             break;
           default:
@@ -146,7 +146,7 @@ const Comments = ({ docsId, workspaceId }) => {
   });
 
   // 처음 메세지 불러오기
-  const findInitMutation = useMutation(() => findComments(initIndex, 6, docsId), {
+  const findInitMutation = useMutation(() => findInitComments(initIndex, 6, docsId), {
     onSuccess: (response) => {
       setMessages(response);
       setIndex(Math.min(...response.map((message) => message.commentId)));
@@ -156,7 +156,7 @@ const Comments = ({ docsId, workspaceId }) => {
   });
 
   // 메세지 불러오기
-  const findMutation = useMutation(() => findComments(index - 1, 5, docsId), {
+  const findMutation = useMutation(() => findComments(index, 5, docsId), {
     onSuccess: (response) => {
       setMessages((prevMessages) => [...prevMessages, ...response]);
       setIndex(Math.min(...response.map((message) => message.commentId)));
@@ -401,26 +401,14 @@ const Comments = ({ docsId, workspaceId }) => {
     e.stopPropagation();
     setSelectedMessageId(messageId); // 선택된 메시지 ID 설정
 
-    const iconRect = e.currentTarget.getBoundingClientRect();
-    const containerRect = scrollContainerRef.current.getBoundingClientRect();
+    const rect = setRef.current.getBoundingClientRect();
 
-    const calculatedTop = iconRect.top - containerRect.top + 75;
-    const calculatedLeft = iconRect.left - containerRect.left + 20;
+    // 드롭다운 위치 설정
+    setOptionsDropdownPosition({
+      top: rect.top + 10, // 현재 위치에서 10px 아래로 조정
+      left: rect.left,
+    });
 
-    const dropdownHeight = 15;
-    const dropdownWidth = 50;
-
-    let adjustedTop = calculatedTop;
-    let adjustedLeft = calculatedLeft;
-
-    if (adjustedTop + dropdownHeight > scrollContainerRef.current.clientHeight) {
-      adjustedTop = calculatedTop - dropdownHeight - e.currentTarget.offsetHeight - 5;
-    }
-    if (adjustedLeft + dropdownWidth > scrollContainerRef.current.clientWidth) {
-      adjustedLeft = scrollContainerRef.current.clientWidth - dropdownWidth - 10;
-    }
-
-    setOptionsDropdownPosition({ top: adjustedTop, left: adjustedLeft });
     setShowOptionsDropdown(!showOptionsDropdown);
   };
 
@@ -564,7 +552,7 @@ const Comments = ({ docsId, workspaceId }) => {
   return (
     <div className='relative w-full h-[calc(100vh-200px)] bg-white dark:bg-dark-background mt-3'>
       {/* 입력 영역 (상단 고정) */}
-      <div className='absolute w-[360px] bg-[#E9F2F5] ml-5 mr-5 z-10 bottom-0 bg-transparent'>
+      <div className='absolute w-50 bg-[#E9F2F5] ml-5 mr-5 z-10 bottom-0 bg-transparent'>
         <div className='flex flex-row w-full rounded-[10px] mx-6 bg-[#E9F2F5] p-4'>
           <textarea
             ref={textareaRef}
@@ -606,6 +594,27 @@ const Comments = ({ docsId, workspaceId }) => {
                           className='mt-1 ml-2 cursor-pointer'
                           onClick={(e) => handleMoreIconClick(e, message.commentId)}
                         />
+                        {showOptionsDropdown && message.commentId === selectedMessageId && (
+                          <ul
+                            ref={setRef}
+                            style={{
+                              top: `${optionsDropdownPosition.top + 10}px`, // 기존 위치에서 10px 아래로 조정
+                              left: `${optionsDropdownPosition.left}px`,
+                            }}
+                            className='absolute bg-[#EDF7FF] border border-gray-300 w-20 max-h-60 
+                          rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
+                          >
+                            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleEditClick}>
+                              수정
+                            </li>
+                            <li
+                              className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center'
+                              onClick={handleDeleteClick}
+                            >
+                              삭제
+                            </li>
+                          </ul>
+                        )}
                         <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
                       </>
                     ) : (
@@ -673,23 +682,6 @@ const Comments = ({ docsId, workspaceId }) => {
             </div>
           ))}
         </div>
-        {showOptionsDropdown && (
-          <ul
-            style={{
-              top: `${optionsDropdownPosition.top}px`,
-              left: `${optionsDropdownPosition.left}px`,
-            }}
-            ref={setRef}
-            className='absolute bg-[#EDF7FF] border border-gray-300 w-20 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
-          >
-            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleEditClick}>
-              수정
-            </li>
-            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleDeleteClick}>
-              삭제
-            </li>
-          </ul>
-        )}
         {showDeleteModal && (
           <ul
             style={{
