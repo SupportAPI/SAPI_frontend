@@ -111,8 +111,8 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
 
         {/* 헤더 */}
         <header className='flex justify-between items-center w-full text-gray-700 px-6 py-3 z-10 sticky top-0'>
-          <h2 className='text-xl'>Create Workspace</h2>
-          <button className='text-gray-500 hover:text-gray-700' onClick={onClose}>
+          <h2 className='text-xl dark:text-dark-text'>Create Workspace</h2>
+          <button className='text-gray-500 hover:text-gray-700 dark:text-dark-text' onClick={onClose}>
             <IoClose className='text-2xl' />
           </button>
         </header>
@@ -121,7 +121,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
         <div className='flex flex-col w-full p-6 pt-0 space-y-2 overflow-y-auto'>
           {/* 이미지 업로드 */}
           <div className='flex flex-col justify-center items-center relative space-y-0 mb-4'>
-            <h3 className='text-base font-medium text-gray-600'>Workspace Image</h3>
+            <h3 className='text-base font-medium text-gray-600 dark:text-dark-text'>Workspace Image</h3>
             <div className='relative w-full max-w-[300px] aspect-[16/9] overflow-hidden border-2 border-gray-300 rounded-md shadow-sm'>
               <img src={previewImage} alt='Thumbnail Preview' className='object-cover w-full h-full' />
               <button
