@@ -15,25 +15,25 @@ export const WebSocketProvider = ({ children }) => {
     if (!userId) return;
 
     const client = new Client({
-      // webSocketFactory: () => new SockJS(`http://192.168.31.219:8080/ws/ws-stomp?accessToken=${getToken()}`),
       webSocketFactory: () => new SockJS(`https://k11b305.p.ssafy.io/ws/ws-stomp?accessToken=${getToken()}`),
+      // webSocketFactory: () => new SockJS(`http://192.168.31.219:8080/ws/ws-stomp?accessToken=${getToken()}`),
       reconnectDelay: 5000,
       heartbeatIncoming: 5000,
       heartbeatOutgoing: 5000,
       onConnect: () => {
-        console.log('Connected to WebSocket');
-        setIsConnected(true); // 연결 완료 상태로 설정
+        // console.log('Connected to WebSocket');
+        setIsConnected(true);
       },
       onDisconnect: () => {
-        console.log('Disconnected from WebSocket');
-        setIsConnected(false); // 연결 해제 상태로 설정
+        // console.log('Disconnected from WebSocket');
+        setIsConnected(false);
       },
       onStompError: (frame) => {
-        console.error('Broker reported error: ' + frame.headers['message']);
-        console.error('Additional details: ' + frame.body);
+        // console.error('Broker reported error: ' + frame.headers['message']);
+        // console.error('Additional details: ' + frame.body);
       },
       debug: (str) => {
-        console.log(str);
+        // console.log(str);
       },
     });
 

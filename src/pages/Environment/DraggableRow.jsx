@@ -38,6 +38,8 @@ const DraggableRow = ({
     },
   });
 
+  const menu = ['Variable', 'Type', 'Value', 'Description'];
+
   const opacity = isDragging ? 0 : 1;
   const [isEditing, setIsEditing] = useState({
     variable: false,
@@ -68,6 +70,108 @@ const DraggableRow = ({
     handleEdit(field);
   };
 
+  const renderRow = (menuTitle) => {
+    switch (menuTitle) {
+      case 'Variable':
+        return (
+          <td
+            className={`p-3 h-[58px] bg-white transition-all duration-200 transform ${
+              clickedTd === 'variable' ? 'scale-105' : ''
+            }`}
+            style={
+              clickedTd === 'variable'
+                ? {
+                    boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.3)',
+                    borderRadius: '8px',
+                    border: '1px solid black',
+                    backgroundColor: 'white',
+                    width: 'calc(100% - 32px)',
+                    overflow: 'visible',
+                  }
+                : { borderRight: '1px solid #D9D9D9' }
+            }
+            onClick={() => {
+              handleTdClick('variable');
+              handleEdit('variable');
+            }}
+          >
+            {isEditing.variable ? (
+              <input
+                type='text'
+                value={environment.variable}
+                onChange={(e) => handleUpdate(environment.id, 'variable', e.target.value)}
+                onBlur={(e) => handleBlur(environment, 'variable')}
+                onKeyDown={(e) => handleKeyDown(e, environment, 'variable')}
+                className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
+                autoFocus
+              />
+            ) : (
+              <span>{environment.variable}</span>
+            )}
+          </td>
+        );
+      case 'Type':
+        return (
+          <td
+            className='p-3 h-[58px] border-r border-[#D9D9D9] flex items-center justify-center cursor-pointer'
+            onClick={(event) => handleType(event, environment.id)}
+            style={{ minWidth: '110px' }}
+          >
+            <span className='whitespace-nowrap overflow-hidden'>
+              {environment.type === 'SECRET' ? 'Secret' : 'Default'}
+            </span>
+            <FaAngleDown className='text-2xl ml-2' />
+          </td>
+        );
+      case 'Value':
+        return (
+          <td
+            className={`p-3 h-[58px] border-r border-[#D9D9D9] bg-white transition-all duration-200 transform ${
+              clickedTd === 'value' ? 'scale-105' : ''
+            }`}
+            onClick={() => handleTdClick('value')}
+          >
+            {isEditing.value ? (
+              <input
+                type='text'
+                value={environment.value}
+                onChange={(e) => handleUpdate(environment.id, 'value', e.target.value)}
+                onBlur={(e) => handleBlur(environment, 'value')}
+                onKeyDown={(e) => handleKeyDown(e, environment, 'value')}
+                className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
+                autoFocus
+              />
+            ) : (
+              <span>{environment.value}</span>
+            )}
+          </td>
+        );
+      case 'Description':
+        return (
+          <td
+            className={`p-3 h-[58px] border-r border-[#D9D9D9] bg-white transition-all duration-200 transform ${
+              clickedTd === 'description' ? 'scale-105' : ''
+            }`}
+            onClick={() => handleTdClick('description')}
+          >
+            {isEditing.description ? (
+              <input
+                type='text'
+                value={environment.description}
+                onChange={(e) => handleUpdate(environment.id, 'description', e.target.value)}
+                onBlur={(e) => handleBlur(environment, 'description')}
+                onKeyDown={(e) => handleKeyDown(e, environment, 'description')}
+                className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
+                autoFocus
+              />
+            ) : (
+              <span>{environment.description}</span>
+            )}
+          </td>
+        );
+    }
+  };
+
   return (
     <tr
       ref={(node) => dragRef(dropRef(node))}
@@ -77,7 +181,7 @@ const DraggableRow = ({
       <td className='p-3 h-[58px] flex items-center justify-center space-x-2 border-r border-[#D9D9D9] cursor-pointer hover:bg-gray-50'>
         <FaPlus
           className='text-lg invisible group-hover:visible hover:text-gray-800 hover:bg-gray-200 rounded'
-          onClick={() => handleAddRow(environment.id)}
+          onClick={() => handleAddRow(environment.orderIndex)}
         />
         <FaGripVertical className='text-lg invisible group-hover:visible cursor-move hover:bg-gray-300 rounded' />
         {environment.isChecked ? (
@@ -87,94 +191,7 @@ const DraggableRow = ({
         )}
       </td>
 
-      <td
-        className={`p-3 h-[58px] bg-white transition-all duration-200 transform ${
-          clickedTd === 'variable' ? 'scale-105' : ''
-        }`}
-        style={
-          clickedTd === 'variable'
-            ? {
-                boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.3)',
-                borderRadius: '8px',
-                border: '1px solid black',
-                backgroundColor: 'white',
-                width: 'calc(100% - 32px)',
-                overflow: 'visible',
-              }
-            : { borderRight: '1px solid #D9D9D9' }
-        }
-        onClick={() => {
-          handleTdClick('variable');
-          handleEdit('variable');
-        }}
-      >
-        {isEditing.variable ? (
-          <input
-            type='text'
-            value={environment.variable}
-            onChange={(e) => handleUpdate(environment.id, 'variable', e.target.value)}
-            onBlur={(e) => handleBlur(environment, 'variable')}
-            onKeyDown={(e) => handleKeyDown(e, environment, 'variable')}
-            className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
-            autoFocus
-          />
-        ) : (
-          <span>{environment.variable}</span>
-        )}
-      </td>
-
-      <td
-        className='p-3 h-[58px] border-r border-[#D9D9D9] flex items-center justify-center cursor-pointer'
-        onClick={(event) => handleType(event, environment.id)}
-        style={{ minWidth: '110px' }}
-      >
-        <span className='whitespace-nowrap overflow-hidden'>
-          {environment.type === 'SECRET' ? 'Secret' : 'Default'}
-        </span>
-        <FaAngleDown className='text-2xl ml-2' />
-      </td>
-
-      <td
-        className={`p-3 h-[58px] border-r border-[#D9D9D9] bg-white transition-all duration-200 transform ${
-          clickedTd === 'value' ? 'scale-105' : ''
-        }`}
-        onClick={() => handleTdClick('value')}
-      >
-        {isEditing.value ? (
-          <input
-            type='text'
-            value={environment.value}
-            onChange={(e) => handleUpdate(environment.id, 'value', e.target.value)}
-            onBlur={(e) => handleBlur(environment, 'value')}
-            onKeyDown={(e) => handleKeyDown(e, environment, 'value')}
-            className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
-            autoFocus
-          />
-        ) : (
-          <span>{environment.value}</span>
-        )}
-      </td>
-
-      <td
-        className={`p-3 h-[58px] border-r border-[#D9D9D9] bg-white transition-all duration-200 transform ${
-          clickedTd === 'description' ? 'scale-105' : ''
-        }`}
-        onClick={() => handleTdClick('description')}
-      >
-        {isEditing.description ? (
-          <input
-            type='text'
-            value={environment.description}
-            onChange={(e) => handleUpdate(environment.id, 'description', e.target.value)}
-            onBlur={(e) => handleBlur(environment, 'description')}
-            onKeyDown={(e) => handleKeyDown(e, environment, 'description')}
-            className='w-full py-1 bg-transparent focus:outline-none focus:border-none border-none'
-            autoFocus
-          />
-        ) : (
-          <span>{environment.description}</span>
-        )}
-      </td>
+      {menu.map((menuTitle, index) => renderRow(menuTitle))}
 
       <td className='p-3 h-[58px] flex items-center justify-center space-x-2 border-r border-[#D9D9D9]'>
         <FaTrashAlt

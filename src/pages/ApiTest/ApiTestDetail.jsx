@@ -201,8 +201,6 @@ const ApiTestDetail = () => {
 
   useEffect(() => {
     if (!renderApi && renderInfo) {
-      console.log('들어옴?');
-      console.log(apiDetail);
       setActiveTabContent('Parameters');
       setRenderApi(true);
       setRenderInfo(false);
@@ -273,7 +271,12 @@ const ApiTestDetail = () => {
       const category = apiData.category;
       if (category && !expandedCategories[category]) expandCategory(category);
       if (!openTabs.find((tab) => tab.id === apiId)) {
-        addTab({ id: apiId, name: apiData.name, path: `/workspace/${workspaceId}/api-test/${apiId}` });
+        addTab({
+          id: apiId,
+          name: apiData.name,
+          path: `/workspace/${workspaceId}/api-test/${apiId}`,
+          type: 'api-test',
+        });
       }
     }
   }, [apiData, apiId, expandCategory, addTab, setMenu, expandedCategories, openTabs, location.pathname, workspaceId]);

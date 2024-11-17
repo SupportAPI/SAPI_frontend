@@ -6,14 +6,19 @@ import { useNavbarStore } from '../stores/useNavbarStore';
 import { useSidebarStore } from '../stores/useSidebarStore';
 import { useTabStore } from '../stores/useTabStore';
 import apiHandler from '../handlers/apiMessagehandler';
-import { useWebSocket } from '../contexts/WebSocketContext';
+import { useWebSocket } from '../contexts/WebSocketProvider';
 import { useOccupationState } from '../api/queries/useWorkspaceQueries';
 import LeftSection from './docs/LeftSection';
 import RightSection from './docs/RightSection';
+import useAuthStore from '../stores/useAuthStore';
 
 const ApiDocsDetail = () => {
   const { workspaceId, apiId } = useParams();
-  const { data: apiDocDetailData, isLoading: isApiDocDetailLoading, refetch } = useApiDocDetail(workspaceId, apiId);
+  const {
+    data: apiDocDetailData,
+    isLoading: isApiDocDetailLoading,
+    refetch: apiDocDetailRefetch,
+  } = useApiDocDetail(workspaceId, apiId);
   const {
     data: categoryListData,
     isLoading: isCategoryListLoading,
@@ -29,6 +34,7 @@ const ApiDocsDetail = () => {
   const { expandedCategories, expandCategory } = useSidebarStore();
   const { addTab, openTabs } = useTabStore();
   const { subscribe, publish, isConnected } = useWebSocket();
+  const userId = useAuthStore((state) => state.userId);
 
   const [apiDocDetail, setApiDocDetail] = useFieldStates({});
   const [categoryList, setCategoryList] = useState([]);
@@ -52,7 +58,12 @@ const ApiDocsDetail = () => {
       setOccupationState(occupationStateData);
 
       if (!openTabs.find((tab) => tab.id === apiId)) {
-        addTab({ id: apiId, name: apiDocDetailData.name, path: `/workspace/${workspaceId}/apidocs/${apiId}` });
+        addTab({
+          id: apiId,
+          name: apiDocDetailData.name,
+          path: `/workspace/${workspaceId}/apidocs/${apiId}`,
+          type: 'apidocs',
+        });
       }
 
       if (apiDocDetailData.category && !expandedCategories[apiDocDetailData.category])
@@ -73,50 +84,89 @@ const ApiDocsDetail = () => {
     if (isConnected) {
       const subscriptionPath = `/ws/sub/workspaces/${workspaceId}/apis/${apiId}`;
       const subscription = subscribe(subscriptionPath, (data) => {
+        console.log(data);
+
+        const handleSaveAction = () => {
+          if (data.actionType === 'SAVE') {
+            apiDocDetailRefetch();
+            occupationStateRefetch();
+          }
+        };
+
         switch (data.apiType) {
-          case 'PARAMETERS_QUERY_PARAMETERS':
-            console.log(data);
-            console.log(data);
-            console.log(data);
-            apiHandler.handleQueryParameterData(data, setApiDocDetail, refetch);
-            break;
           case 'CATEGORY':
-            apiHandler.handleCategoryData(data, setApiDocDetail);
-            categoryListRefetch();
+            handleSaveAction();
+            apiHandler.handleCategoryData(data, setApiDocDetail, categoryListRefetch);
             break;
           case 'OCCUPATION':
+            handleSaveAction();
             occupationStateRefetch();
             break;
           case 'API_NAME':
-            apiHandler.handleApiNameHandler(data, setApiDocDetail);
+            apiHandler.handleApiNameHandler(data, setApiDocDetail, userId);
+            handleSaveAction();
             break;
           case 'API_METHOD':
+            handleSaveAction();
             apiHandler.handleApiMethodHandler(data, setApiDocDetail);
             break;
           case 'API_PATH':
-            apiHandler.handlePathHandler(data, setApiDocDetail);
+            apiHandler.handlePathHandler(data, setApiDocDetail, userId);
+            handleSaveAction();
             break;
           case 'API_DESCRIPTION':
-            apiHandler.handleDescriptionHandler(data, setApiDocDetail);
+            apiHandler.handleDescriptionHandler(data, setApiDocDetail, userId);
+            handleSaveAction();
             break;
           case 'PARAMETERS_AUTH_TYPE':
+            handleSaveAction();
             apiHandler.handleAuthTypeHandler(data, setApiDocDetail);
+            apiDocDetailRefetch();
             break;
-
+          case 'PARAMETERS_HEADERS':
+            apiHandler.handleHeadersHandler(data, apiDocDetail, setApiDocDetail, userId, apiDocDetailRefetch);
+            handleSaveAction();
+            break;
+          case 'PARAMETERS_QUERY_PARAMETERS':
+            handleSaveAction();
+            apiHandler.handleQueryParameterData(data, apiDocDetail, setApiDocDetail, userId, apiDocDetailRefetch);
+            break;
+          case 'PARAMETERS_COOKIES':
+            handleSaveAction();
+            apiHandler.handleCookieData(data, apiDocDetail, setApiDocDetail, userId, apiDocDetailRefetch);
+            break;
+          case 'REQUEST_TYPE':
+            handleSaveAction();
+            apiHandler.handleRequestTypeData(data, setApiDocDetail);
+            break;
+          case 'REQUEST_JSON':
+            handleSaveAction();
+            apiHandler.handleRequestJsonData(data, setApiDocDetail);
+            break;
+          case 'REQUEST_FORM_DATA':
+            handleSaveAction();
+            apiHandler.handleRequestJsonData(data, setApiDocDetail);
+            break;
+          case 'RESPONSE':
+            handleSaveAction();
+            apiHandler.handleResponse(data, setApiDocDetail, apiDocDetailRefetch);
+            break;
           default:
             console.warn(`Unhandled message type: ${data.apiType}`);
         }
       });
+
       return () => subscription.unsubscribe();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, workspaceId, apiId, subscribe, apiDocDetail, categoryList]);
 
-  const handleOccupationState = (componentId, actionType) => {
+  const handleOccupationState = (apiType, actionType, data) => {
     publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
-      apiType: 'OCCUPATION',
+      apiType,
       actionType,
       message: {
-        id: componentId,
+        ...data,
       },
     });
   };

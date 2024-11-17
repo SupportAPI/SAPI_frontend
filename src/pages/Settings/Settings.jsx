@@ -1,6 +1,7 @@
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import UserComponent from './SettingUser';
 import SettingThemee from './SettingTheme';
+import SettingWorkspace from './SettingWorkspace';
 import SettingMember from './SettingMember';
 import SettingInvitation from './SettingInvitation';
 import { useNavigate } from 'react-router-dom';
@@ -48,10 +49,10 @@ const Settings = forwardRef(({ onClose }, ref) => {
           <div className='w-[250px] border-r p-6 rounded-b-2xl'>
             {/* Account 항목 */}
             <div className='flex flex-col'>
-              <p className='text-2xl font-medium ml-2 mb-3'>Account</p>
-              <div className='flex flex-col w-full h-72 m-auto'>
+              <p className='text-2xl font-medium ml-2 mb-1'>Account</p>
+              <div className='flex flex-col w-full h-60 m-auto'>
                 <button
-                  className={`w-[100%] h-20 mb-1 ${
+                  className={`w-[100%] h-16 mb-1 ${
                     activeComponent === 'User'
                       ? 'bg-blue-100 dark:bg-gray-600 font-bold'
                       : 'hover:bg-blue-100 dark:hover:bg-gray-700'
@@ -61,7 +62,7 @@ const Settings = forwardRef(({ onClose }, ref) => {
                   User
                 </button>
                 <button
-                  className={`w-[100%] h-20 mb-1 ${
+                  className={`w-[100%] h-16 mb-1 ${
                     activeComponent === 'Theme'
                       ? 'bg-blue-100 dark:bg-gray-600 font-bold'
                       : 'hover:bg-blue-100 dark:hover:bg-gray-700'
@@ -71,7 +72,7 @@ const Settings = forwardRef(({ onClose }, ref) => {
                   Theme
                 </button>
                 <button
-                  className={`w-[100%] h-20 ${
+                  className={`w-[100%] h-16 ${
                     activeComponent === 'Invitation'
                       ? 'bg-blue-100 dark:bg-gray-600 font-bold'
                       : 'hover:bg-blue-100 dark:hover:bg-gray-700'
@@ -85,10 +86,20 @@ const Settings = forwardRef(({ onClose }, ref) => {
 
             {/* WorkSpace 항목 */}
             <div className='flex flex-col'>
-              <p className='text-2xl font-medium ml-2 mb-3'>WorkSpace</p>
+              <p className='text-2xl font-medium ml-2 mb-1'>WorkSpace</p>
               <div className='flex flex-col w-full m-auto'>
                 <button
-                  className={`w-[100%] mb-1 h-20 ${
+                  className={`w-[100%] mb-1 h-16 ${
+                    activeComponent === 'Workspace'
+                      ? 'bg-blue-100 dark:bg-gray-600 font-bold'
+                      : 'hover:bg-blue-100 dark:hover:bg-gray-700'
+                  } border-none rounded-xl`}
+                  onClick={() => handleComponentChange(<SettingWorkspace />, 'Workspace')}
+                >
+                  Workspace
+                </button>
+                <button
+                  className={`w-[100%] mb-1 h-16 ${
                     activeComponent === 'Member'
                       ? 'bg-blue-100 dark:bg-gray-600 font-bold'
                       : 'hover:bg-blue-100 dark:hover:bg-gray-700'
@@ -99,7 +110,7 @@ const Settings = forwardRef(({ onClose }, ref) => {
                 </button>
                 {/* Exit 누르면 네이게이션해서 WorkSpace 화면으로 이동할 것 */}
                 <button
-                  className='w-[100%] h-20 hover:bg-blue-100 dark:hover:bg-gray-600 border-none rounded-xl text-red-500'
+                  className='w-[100%] h-16 hover:bg-blue-100 dark:hover:bg-gray-600 border-none rounded-xl text-red-500'
                   onClick={() => navigate('/workspaces')}
                 >
                   Exit

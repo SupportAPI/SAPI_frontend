@@ -60,7 +60,9 @@ const Layout = ({ children }) => {
             <TabBar />
             <Environment workspaceId={workspaceId} />
           </div>
-          <div className='flex-1'>{children}</div>
+          <div className='flex-1 overflow-y-scroll sidebar-scrollbar dark:bg-dark-background dark:text-dark-text '>
+            {children}
+          </div>
         </div>
       </div>
     </div>

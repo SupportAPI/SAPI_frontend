@@ -7,7 +7,7 @@ import { useTabStore } from '../../stores/useTabStore';
 import { useApiDocs } from '../../api/queries/useApiDocsQueries';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useWebSocket } from '../../contexts/WebSocketContext';
+import { useWebSocket } from '../../contexts/WebSocketProvider';
 
 const ApiDocsSidebar = () => {
   const { data = [], error, refetch } = useApiDocs();
@@ -39,12 +39,13 @@ const ApiDocsSidebar = () => {
       id: apiId,
       name: apiName,
       path,
+      type: 'apidocs',
     });
     navigate(path);
   };
 
   const handleApiDoubleClick = (apiId) => {
-    confirmTab(apiId);
+    confirmTab(apiId, 'apidocs');
   };
 
   const handleCategoryToggle = (category) => {
@@ -56,7 +57,7 @@ const ApiDocsSidebar = () => {
   };
 
   const handleAllApiDoubleClick = () => {
-    confirmTab('all');
+    confirmTab('all', 'apidocs');
   };
 
   const handleDropdownToggle = (apiId) => {
