@@ -17,9 +17,18 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Query("SELECT c FROM Comment c " +
             "WHERE c.specification.id = :docId " +
-            "AND (c.createdDate <= (SELECT target.createdDate FROM Comment target WHERE target.id = :targetId)) " +
+            "AND (c.createdDate < (SELECT target.createdDate FROM Comment target WHERE target.id = :targetId)) " +
             "ORDER BY c.createdDate DESC")
     List<Comment> findPreviousCommentsBySpecificationIdAndTargetId(
+            @Param("docId") UUID docId,
+            @Param("targetId") Long targetId,
+            Pageable pageable);
+
+    @Query("SELECT c FROM Comment c " +
+            "WHERE c.specification.id = :docId " +
+            "AND (c.createdDate <= (SELECT target.createdDate FROM Comment target WHERE target.id = :targetId)) " +
+            "ORDER BY c.createdDate DESC")
+    List<Comment> findFirstPreviousCommentsBySpecificationIdAndTargetId(
             @Param("docId") UUID docId,
             @Param("targetId") Long targetId,
             Pageable pageable);

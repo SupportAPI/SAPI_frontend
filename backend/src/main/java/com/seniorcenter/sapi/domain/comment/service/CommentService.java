@@ -91,6 +91,17 @@ public class CommentService {
         return commentResponseDtos;
     }
 
+    public List<CommentResponseDto> getInitComments(UUID docId, Long targetCommentId, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+        List<Comment> comments = commentRepository.findFirstPreviousCommentsBySpecificationIdAndTargetId(docId, targetCommentId, pageable);
+        List<CommentResponseDto> commentResponseDtos = new ArrayList<>();
+        for (Comment comment : comments) {
+            CommentResponseDto commentResponseDto = translateToCommentResponseDto(comment);
+            commentResponseDtos.add(commentResponseDto);
+        }
+        return commentResponseDtos;
+    }
+
     public Long getCommentId(UUID docId) {
         Comment comment = commentRepository.findFirstBySpecificationIdOrderByCreatedDateDesc(docId);
         if (comment == null) return -1L;
