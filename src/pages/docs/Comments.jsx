@@ -87,7 +87,7 @@ const Comments = ({ docsId, workspaceId }) => {
   // 소켓 연결 함수
   useEffect(() => {
     if (isConnected) {
-      const subScriptionPath = `/ws/sub/docs/${docsId}/comments`;
+      const subScriptionPath = `/ws/sub/docs/${docsId}/comments/user/${userId}/message`;
 
       const subscription = subscribe(subScriptionPath, (parsedData) => {
         const { type, message: receivedMessage } = parsedData;
