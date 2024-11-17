@@ -186,7 +186,7 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.API_NAME)) {
             updateApiName(message, workspaceId, apiId);
         } else if (message.apiType().equals(ApiType.REQUEST_JSON)) {
-            apiBodyService.updateDBFormData(message, workspaceId, apiId);
+            apiBodyService.updateDBJson(message, workspaceId, apiId);
         } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
             apiBodyService.updateDBFormData(message, workspaceId, apiId);
         }

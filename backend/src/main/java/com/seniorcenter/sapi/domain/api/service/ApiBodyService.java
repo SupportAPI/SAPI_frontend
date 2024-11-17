@@ -40,6 +40,21 @@ public class ApiBodyService {
         return new ApiIdResponseDto(body.getId());
     }
 
+    public void updateDBJson(ApiMessage message, UUID workspaceId, UUID apiId) {
+        SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
+
+        Api api = apiRepository.findById(apiId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        ApiBody apiBody = apiBodyRepository.findById(Long.valueOf(data.id()))
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API_BODY));
+        apiBody.updateBodyValue(data.value());
+
+        String hashKey = workspaceId.toString();
+        log.info("[JSON DATA DB_UPDATE] hashkey = {}, componentId = {}", hashKey, data.componentId());
+        redisUtil.deleteData(hashKey, data.componentId());
+    }
+
     public void updateDBFormData(ApiMessage message, UUID workspaceId, UUID apiId) {
         SaveDataRequestDto data = keyValueUtils.translateToSaveDataRequestDto(message);
 
