@@ -1,6 +1,5 @@
 // Category 핸들러
 const handleCategoryData = async (data, setApiDocDetail, categoryListRefetch) => {
-  console.log(data);
   if (data.actionType === 'ADD' || data.actionType === 'UPDATE' || data.actionType === 'DELETE') {
     await setApiDocDetail(['category', 'categoryId'], data.message.id);
     await setApiDocDetail(['category', 'name'], data.message.value);
@@ -156,7 +155,7 @@ const handleCookieData = (data, apiDocDetail, setApiDocDetail, userId, apiDocDet
 };
 
 // Request
-// Cookies 핸들러
+// BodyType 핸들러
 const handleRequestTypeData = (data, setApiDocDetail) => {
   if (data.actionType === 'UPDATE') {
     setApiDocDetail(['request', 'bodyType'], data.message.value);
@@ -166,8 +165,6 @@ const handleRequestTypeData = (data, setApiDocDetail) => {
 // Json 핸들러
 const handleRequestJsonData = (data, apiDocDetail, setApiDocDetail, userId) => {
   if (data.actionType === 'UPDATE') {
-    console.log(data);
-    console.log(JSON.parse(data.message));
     // const targetCookieIndex = apiDocDetail.parameters.cookies.findIndex(
     //   (cookie) => String(cookie.id) === String(data.message.id)
     // );
@@ -189,11 +186,40 @@ const handleRequestJsonData = (data, apiDocDetail, setApiDocDetail, userId) => {
   }
 };
 
-// RESPONSE
-// Response 핸들러
-const handleResponse = (data, setApiDocDetail, apiDocDetailRefetch) => {
+// Json 핸들러
+const handleRequestFormData = (data, apiDocDetail, setApiDocDetail, userId, apiDocDetailRefetch) => {
+  console.log(data);
   if (data.actionType === 'ADD' || data.actionType === 'DELETE') {
     apiDocDetailRefetch();
+  }
+};
+
+// RESPONSE
+// Response 핸들러
+const handleResponse = (data, apiDocDetail, setApiDocDetail, userId, apiDocDetailRefetch) => {
+  if (data.actionType === 'ADD' || data.actionType === 'DELETE') {
+    apiDocDetailRefetch();
+  } else if (data.actionType === 'UPDATE') {
+    console.log(data);
+    const targetResponseIndex = apiDocDetail.response.findIndex(
+      (response) => String(response.id) === String(data.message.id)
+    );
+
+    const updatedApiDocDetail = { ...apiDocDetail };
+    const updatedResponse = [...updatedApiDocDetail.response];
+    const targetResponse = { ...updatedResponse[targetResponseIndex] };
+    if (data.message.key === 'NAME') {
+      targetResponse.name = data.message.value;
+    } else if (data.message.key === 'DATA') {
+      targetResponse.bodyType = data.message.type;
+    } else if (data.message.type === 'DESCRIPTION') {
+      targetResponse.description = data.message.value;
+    } else if (data.message.type === 'REQUIRED') {
+      targetResponse.isRequired = data.message.value;
+    }
+    updatedResponse[targetResponseIndex] = targetResponse;
+    updatedApiDocDetail.response = updatedResponse;
+    setApiDocDetail(updatedApiDocDetail);
   }
 };
 
@@ -209,6 +235,7 @@ export default {
   handleQueryParameterData,
   handleCookieData,
   handleRequestTypeData,
+  handleRequestFormData,
   handleRequestJsonData,
   handleResponse,
 };

@@ -75,10 +75,10 @@ const ResponseAdd = ({ apiDocDetail, apiId, workspaceId, occupationState, handle
   }, []);
 
   return (
-    <div className='pt-4'>
-      <div className='mb-4'>
-        <div className='flex justify-between'>
-          <label className='flex items-center text-[16px] font-semibold h-8 mb-1'>Response</label>
+    <div>
+      <div>
+        <div className='flex'>
+          <label className='flex items-center text-[16px] font-semibold h-8 mb-1 mr-4'>Response</label>
           <div
             onMouseEnter={() => (responseStatus.isOccupiedByOthers ? setShowTooltip(true) : null)}
             onMouseLeave={() => setShowTooltip(false)}

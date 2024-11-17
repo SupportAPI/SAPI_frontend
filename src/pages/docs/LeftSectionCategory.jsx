@@ -197,7 +197,7 @@ const LeftSectionCategory = ({
         <input
           type='text'
           ref={categoryRef}
-          className={`truncate rounded-sm border w-auto max-w-[200px] text-[20px] px-3 py-2 h-12
+          className={`truncate rounded-sm border w-auto max-w-[200px] text-[14px] px-3 py-2 h-10
             focus:outline-none transition duration-300
             ${categoryStatus.isOccupiedByOthers ? `pointer-events-none` : ``}
             hover:bg-gray-50`}
@@ -253,7 +253,7 @@ const LeftSectionCategory = ({
       {showCategoryDropdown && (
         <div
           ref={categoryDropdownRef}
-          className='absolute bg-white border border-gray-300 rounded-md shadow-lg overflow-y-auto top-[50px] p-0  max-h-[300px] sidebar-scrollbar z-50 w-[200px]'
+          className='absolute bg-white border border-gray-300 rounded-sm overflow-y-auto top-[42px] p-0  max-h-[300px] sidebar-scrollbar z-50 w-[200px]'
         >
           {newCategory && !filteredCategoryList.some((cat) => cat.name === newCategory) && (
             <div
@@ -279,7 +279,7 @@ const LeftSectionCategory = ({
               <span className='truncate block w-full hover:bg-gray-200 rounded-md px-2'>{cat.name}</span>
               {cat.name !== '미설정' && (
                 <button
-                  className='text-gray-400 ml-2 hover:bg-gray-200 focus:outline-none rounded-md p-1'
+                  className='text-gray-400 hover:bg-gray-200 focus:outline-none rounded-md p-1'
                   onMouseDown={(e) => {
                     e.preventDefault();
                     e.stopPropagation();

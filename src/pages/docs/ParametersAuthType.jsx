@@ -134,7 +134,7 @@ const ParametersAuthType = ({ apiDocDetail, apiId, workspaceId, occupationState,
   }, []);
 
   return (
-    <div className='pt-4'>
+    <div>
       <div className='mb-4'>
         <label className='flex items-center text-[16px] font-semibold h-8'>Auth Type</label>
         <div
@@ -146,7 +146,7 @@ const ParametersAuthType = ({ apiDocDetail, apiId, workspaceId, occupationState,
         >
           <div
             ref={authTypeRef}
-            className={`w-[250px] text-[14px] flex items-center justify-between focus:outline-none transition duration-300 px-3 py-2 hover:bg-gray-50 relative h-10 border`}
+            className={`w-[250px] text-[14px] cursor-pointer rounded-sm flex items-center justify-between focus:outline-none transition duration-300 px-3 py-2 hover:bg-gray-50 relative h-10 border`}
             style={{
               borderColor: authTypeStatus.isOccupied ? authTypeStatus.color : undefined,
               boxShadow: authTypeStatus.isOccupied ? `0 0 0 2px ${authTypeStatus.color}` : undefined,

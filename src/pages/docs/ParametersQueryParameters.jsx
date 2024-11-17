@@ -155,7 +155,7 @@ const ParametersQueryParameters = ({ apiDocDetail, apiId, workspaceId, occupatio
   }, [apiDocDetail.parameters?.queryParameters]);
 
   return (
-    <div className='pt-4'>
+    <div>
       <div className='mb-4'>
         <div className='flex justify-between items-center'>
           <h3 className='font-semibold text-[16px] h-8 flex items-center'>Query Parameters</h3>
@@ -172,7 +172,7 @@ const ParametersQueryParameters = ({ apiDocDetail, apiId, workspaceId, occupatio
           <div className=''>
             {queryParameters.length > 0 ? (
               <div className=''>
-                <div className='flex h-10 text-[14px] border bg-[#f1f5f8]'>
+                <div className='flex h-10 text-[14px] rounded-sm border bg-[#f1f5f8]'>
                   <div className='flex-[0.4] h-10 p-2 text-center border-r'>Requirement</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Key</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Value</div>
@@ -185,7 +185,7 @@ const ParametersQueryParameters = ({ apiDocDetail, apiId, workspaceId, occupatio
                     <div
                       ref={(el) => setQueryParameterRef(queryParameter.id, el)}
                       key={index}
-                      className={`relative flex items-center h-10 text-[14px] border group hover:bg-gray-50 my-1 transition-shadow duration-300`}
+                      className={`relative flex rounded-sm items-center h-10 text-[14px] border group hover:bg-gray-50 my-1 transition-shadow duration-300`}
                       style={{
                         borderColor: queryParameterStatus.isOccupied ? queryParameterStatus.color : undefined,
                         boxShadow: queryParameterStatus.isOccupied
@@ -215,7 +215,7 @@ const ParametersQueryParameters = ({ apiDocDetail, apiId, workspaceId, occupatio
                     >
                       <div className='flex-[0.4] h-10 border-r p-2 text-center relative'>
                         <div
-                          className={`flex justify-between items-center group-hover:bg-gray-50 ${
+                          className={`flex justify-between cursor-pointer items-center group-hover:bg-gray-50 ${
                             queryParameterStatus.isOccupiedByOthers && 'pointer-events-none'
                           }`}
                           onClick={() => {
@@ -327,7 +327,7 @@ const ParametersQueryParameters = ({ apiDocDetail, apiId, workspaceId, occupatio
               </div>
             ) : (
               <div>
-                <div className='flex h-10 text-[14px] border bg-[#f1f5f8]'>
+                <div className='flex h-10 text-[14px] rounded-sm border bg-[#f1f5f8]'>
                   <div className='flex-[0.4] h-10 p-2 text-center border-r'>Requirement</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Key</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Value</div>

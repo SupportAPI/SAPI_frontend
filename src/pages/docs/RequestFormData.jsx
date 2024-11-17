@@ -9,7 +9,6 @@ import { FiChevronDown, FiMinusCircle } from 'react-icons/fi';
 const options = ['Required', 'Optional'];
 
 const RequestFormData = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOccupationState }) => {
-  const [bodyType, setRequestType] = useState();
   const [formDatas, setFormDatas] = useState({});
   const [currentFormDataId, setCurrentFormDataId] = useState(() => {
     return localStorage.getItem('currentFormDataId') || undefined;
@@ -162,7 +161,7 @@ const RequestFormData = ({ apiDocDetail, apiId, workspaceId, occupationState, ha
   }, [apiDocDetail.request?.formData]);
 
   return (
-    <div className='pt-4'>
+    <div>
       <div className='mb-4'>
         <div className='flex justify-between items-center'>
           <h3 className='font-semibold text-[16px] h-8 flex items-center'>Form Data</h3>
@@ -179,7 +178,7 @@ const RequestFormData = ({ apiDocDetail, apiId, workspaceId, occupationState, ha
           <div className=''>
             {formDatas.length > 0 ? (
               <div className=''>
-                <div className='flex h-10 text-[14px] border bg-[#f1f5f8]'>
+                <div className='flex h-10 text-[14px] rounded-sm border bg-[#f1f5f8]'>
                   <div className='flex-[0.4] h-10 p-2 text-center border-r'>Requirement</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Key</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Value</div>
@@ -192,7 +191,7 @@ const RequestFormData = ({ apiDocDetail, apiId, workspaceId, occupationState, ha
                     <div
                       ref={(el) => setFormDataRef(formData.id, el)}
                       key={index}
-                      className={`relative flex items-center h-10 text-[14px] border group hover:bg-gray-50 my-1 transition-shadow duration-300`}
+                      className={`relative flex items-center cursor-pointer rounded-sm h-10 text-[14px] border group hover:bg-gray-50 my-1 transition-shadow duration-300`}
                       style={{
                         borderColor: formDataStatus.isOccupied ? formDataStatus.color : undefined,
                         boxShadow: formDataStatus.isOccupied ? `0 0 0 2px ${formDataStatus.color}` : undefined,
@@ -218,9 +217,9 @@ const RequestFormData = ({ apiDocDetail, apiId, workspaceId, occupationState, ha
                         handleOnBlur(formData);
                       }}
                     >
-                      <div className='flex-[0.4] h-10 border-r p-2 text-center relative'>
+                      <div className='flex-[0.4] items-center h-10 border-r p-2 text-center relative'>
                         <div
-                          className={`flex justify-between items-center group-hover:bg-gray-50 ${
+                          className={`flex justify-between cursor-pointer items-center group-hover:bg-gray-50 ${
                             formDataStatus.isOccupiedByOthers && 'pointer-events-none'
                           }`}
                           onClick={() => {
@@ -374,7 +373,7 @@ const RequestFormData = ({ apiDocDetail, apiId, workspaceId, occupationState, ha
               </div>
             ) : (
               <div>
-                <div className='flex h-10 text-[14px] border bg-[#f1f5f8]'>
+                <div className='flex h-10 text-[14px] rounded-sm border bg-[#f1f5f8]'>
                   <div className='flex-[0.4] h-10 p-2 text-center border-r'>Requirement</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Key</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Value</div>

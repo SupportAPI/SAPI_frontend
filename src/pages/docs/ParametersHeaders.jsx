@@ -51,12 +51,11 @@ const ParametersHeaders = ({ apiDocDetail, apiId, workspaceId, occupationState, 
     const updatedHeaders = headers.map((header) =>
       header.id === currentHeader.id ? { ...header, isRequired: option === 'Required' } : header
     );
-    console.log(updatedHeaders);
     setHeaders(updatedHeaders);
     if (option === 'Required') {
       handleHeaderChange(currentHeader.id, 'REQUIRED', true);
     } else if (option === 'Optional') {
-      handleHeaderChange(currentHeader.id, 'REQUIRED', false);
+      handleHeaderChange(currentHeade2r.id, 'REQUIRED', false);
     }
     setIsDropdownOpen(false);
   };
@@ -173,7 +172,7 @@ const ParametersHeaders = ({ apiDocDetail, apiId, workspaceId, occupationState, 
   }, [isDropdownOpen]);
 
   return (
-    <div className='pt-4'>
+    <div>
       <div className='mb-4'>
         <div className='flex justify-between items-center'>
           <h3 className='font-semibold text-[16px] h-8 flex items-center'>Headers</h3>
@@ -190,7 +189,7 @@ const ParametersHeaders = ({ apiDocDetail, apiId, workspaceId, occupationState, 
           <div className=''>
             {headers.length > 0 ? (
               <div className=''>
-                <div className='flex h-10 text-[14px] border bg-[#f1f5f8]'>
+                <div className='flex h-10 rounded-sm text-[14px] border bg-[#f1f5f8]'>
                   <div className='flex-[0.4] h-10 p-2 text-center border-r'>Requirement</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Key</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Value</div>
@@ -204,7 +203,7 @@ const ParametersHeaders = ({ apiDocDetail, apiId, workspaceId, occupationState, 
                     <div
                       ref={(el) => setHeaderRef(header.id, el)}
                       key={index}
-                      className={`relative flex items-center h-10 text-[14px] border group hover:bg-gray-50 my-1 transition-shadow duration-300`}
+                      className={`relative flex rounded-sm items-center h-10 text-[14px] border group hover:bg-gray-50 my-1 transition-shadow duration-300`}
                       style={{
                         borderColor: headerStatus.isOccupied ? headerStatus.color : undefined,
                         boxShadow: headerStatus.isOccupied ? `0 0 0 2px ${headerStatus.color}` : undefined,
@@ -236,7 +235,7 @@ const ParametersHeaders = ({ apiDocDetail, apiId, workspaceId, occupationState, 
                         }`}
                       >
                         <div
-                          className={`flex justify-between items-center group-hover:bg-gray-50 ${
+                          className={`flex justify-between cursor-pointer items-center group-hover:bg-gray-50 ${
                             headerStatus.isOccupiedByOthers && 'pointer-events-none'
                           } ${isAuthorizationHeader && 'pointer-events-none bg-gray-50'}`}
                           onClick={() => {
@@ -356,7 +355,7 @@ const ParametersHeaders = ({ apiDocDetail, apiId, workspaceId, occupationState, 
               </div>
             ) : (
               <div>
-                <div className='flex h-10 text-[14px] border bg-[#f1f5f8]'>
+                <div className='flex h-10 text-[14px] border rounded-sm bg-[#f1f5f8]'>
                   <div className='flex-[0.4] h-10 p-2 text-center border-r'>Requirement</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Key</div>
                   <div className='flex-1 p-2 h-10 text-center border-r'>Value</div>
