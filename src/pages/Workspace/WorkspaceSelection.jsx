@@ -96,6 +96,37 @@ const WorkspaceSelection = () => {
     removeAllTabs();
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        handleCloseModal();
+        setIsModalOpen(false);
+        setIsOpenCreateWorkspace(false);
+        setIsOpenInviteUser(false);
+        setIsOpenSetting(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isOpenCreateWorkspace || isOpenInviteUser || isOpenSetting || isModalOpen) {
+      document.body.style.overflow = 'hidden'; // 스크롤 차단
+    } else {
+      document.body.style.overflow = ''; // 원래 상태로 복구
+    }
+
+    // 컴포넌트 언마운트 시 스타일 초기화
+    return () => {
+      document.body.style.overflow = '';
+    };
+  });
+
   const handleWorkspaceSelect = (workspaceId) => {
     navigate(`/workspace/${workspaceId}`);
   };
@@ -147,9 +178,13 @@ const WorkspaceSelection = () => {
     setStep(2);
     queryClient.invalidateQueries('workspaces');
   };
-  const handleSettingsClick = () => {
+  const handleSettingsClick = (value) => {
     queryClient.invalidateQueries('workspaces');
-    setIsOpenSetting(!isOpenSetting);
+    if (value === '1') {
+      setIsOpenSetting(true);
+    } else {
+      setIsOpenSetting(false);
+    }
   };
 
   // table 목록 view 상태 관리
@@ -208,7 +243,15 @@ const WorkspaceSelection = () => {
 
   return (
     <div className='outer-wrapper bg-[#f0f5f8]/50 dark:bg-dark-background dark:text-dark-text h-full w-full min-h-screen min-w-screen'>
-      <Header onSettingsClick={handleSettingsClick} />
+      <Header
+        onSettingsClick={(value) => {
+          if (value === '1') {
+            handleSettingsClick('1');
+          } else {
+            handleSettingsClick('2');
+          }
+        }}
+      />
       <div className='inner-content overflow-y-auto overflow-x-auto h-full w-full'>
         {/* 헤더 위치 */}
 
@@ -239,7 +282,7 @@ const WorkspaceSelection = () => {
                 <InviteUser workspaceId={newworkspaceid} onClose={() => handleCloseModal()}></InviteUser>
               )}
               {/* Setting 모달 */}
-              {isOpenSetting && <Settings onClose={() => handleSettingsClick()} />}
+              {isOpenSetting && <Settings onClose={() => handleSettingsClick(2)} />}
               {isModalOpen && (
                 <CheckModal
                   modalTitle='워크스페이스 삭제 확인'
