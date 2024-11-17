@@ -65,6 +65,7 @@ public class ApiService {
     private final KeyValueUtils keyValueUtils;
     private final RedisUtil redisUtil;
     private final ApiBodyService apiBodyService;
+    private final ApiResponseService apiResponseService;
 
     @Transactional
     public void createApi(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
@@ -83,6 +84,8 @@ public class ApiService {
             result = occupationService.createOccupaction(workspaceId, message, user);
         } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
             result = apiBodyService.createApiBody(apiId);
+        } else if (message.apiType().equals(ApiType.RESPONSE)) {
+            result = apiResponseService.createApiResponse(message, apiId);
         }
 
         messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, new ApiMessage(message.apiType(), message.actionType(), result));
