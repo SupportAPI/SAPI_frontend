@@ -1,164 +1,177 @@
-import { useEffect, useState } from 'react';
-import { FaPlus } from 'react-icons/fa';
-import Editor from '@monaco-editor/react';
+import { useEffect, useRef, useState } from 'react';
+import { useWebSocket } from '../../contexts/WebSocketProvider';
+import { useOccupationStatus } from '../../hooks/useOccupationStatus';
+import useAuthStore from '../../stores/useAuthStore';
+import { throttle } from 'lodash';
+import { FiChevronDown } from 'react-icons/fi';
+import RequestJson from './RequestJson';
+import RequestFormData from './RequestFormData';
 
-const Request = ({ requestChange = () => {}, initialValues, history = false }) => {
-  const [bodyType, setRequestType] = useState(initialValues?.bodyType || 'none');
-  const [json, setJsonData] = useState(initialValues?.json?.jsonDataValue || '{}');
-  const [formData, setFormData] = useState(initialValues?.formData || []);
+const options = [
+  { value: 'NONE', label: 'none' },
+  { value: 'JSON', label: 'json' },
+  { value: 'FORM_DATA', label: 'form-data' },
+];
 
-  const handleRequestTypeChange = (type) => {
-    setRequestType(type);
+const Request = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOccupationState }) => {
+  const [bodyType, setBodyType] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { publish } = useWebSocket();
+  const userId = useAuthStore((state) => state.userId);
+  const checkOccupation = useOccupationStatus(occupationState, userId);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+
+  const requestComponentId = `${apiId}-request`;
+  const requestStatus = checkOccupation(requestComponentId);
+  const requestRef = useRef(null);
+  const targetRef = useRef(null);
+
+  const tabComponents = {
+    json: RequestJson,
+    'form-data': RequestFormData,
+  };
+
+  const ActiveTabComponent = tabComponents[bodyType];
+
+  const handleMouseMove = throttle((event) => {
+    if (targetRef.current) {
+      const targetRect = targetRef.current.getBoundingClientRect();
+      const relativeX = event.clientX - targetRect.left;
+      const relativeY = event.clientY - targetRect.top;
+
+      setTooltipPosition({
+        top: relativeY,
+        left: relativeX,
+      });
+    }
+  }, 50);
+
+  const handleAuthTypeChange = (type) => {
+    setBodyType(type.label);
+    console.log(type);
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'REQUEST_TYPE',
+      actionType: 'UPDATE',
+      message: { value: type.value },
+    });
+
+    setIsDropdownOpen(false);
+    requestRef.current?.blur();
   };
 
   useEffect(() => {
-    requestChange({
-      bodyType: bodyType,
-      json: {
-        jsonDataId: initialValues?.json?.jsonDataId || '',
-        jsonDataKey: initialValues?.json?.jsonDataKey || 'json',
-        jsonDataValue: json,
-        jsonDataType: initialValues?.json?.jsonDataType || 'JSON',
-        jsonDataDescription: initialValues?.json?.jsonDataDescription || null,
-      },
-      formData: formData.map((data) => ({
-        formDataId: data.formDataId || '',
-        formDataKey: data.formDataKey || '',
-        formDataValue: data.formDataValue || '',
-        formDataType: data.formDataType || 'TEXT',
-        formDataDescription: data.formDataDescription || null,
-      })),
-    });
-  }, [bodyType, json, formData]);
-
-  const handleAddFormData = () => {
-    setFormData([
-      ...formData,
-      { formDataId: '', formDataKey: '', formDataValue: '', formDataType: 'TEXT', formDataDescription: '' },
-    ]);
-  };
-
-  const handleFormDataChange = (index, field, value) => {
-    const updatedFormData = [...formData];
-    updatedFormData[index][field] = value;
-    setFormData(updatedFormData);
-  };
-
-  const handleRemoveFormData = (index) => {
-    setFormData(formData.filter((_, i) => i !== index));
-  };
-
-  const handleFormatJson = () => {
-    try {
-      const parsed = JSON.parse(json);
-      setJsonData(JSON.stringify(parsed, null, 2));
-    } catch (error) {
-      alert('유효한 JSON 형식이 아닙니다.');
+    if (apiDocDetail.request?.bodyType) {
+      const selectedOption = options.find((option) => option.value === apiDocDetail.request.bodyType);
+      setBodyType(selectedOption ? selectedOption.label : '');
     }
-  };
+  }, [apiDocDetail.request?.bodyType]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (requestRef.current && !requestRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   return (
     <div className='pt-4'>
-      <label className='block text-[18px] font-semibold h-8'>Request</label>
-      <select
-        disabled={history}
-        value={bodyType}
-        onChange={(e) => handleRequestTypeChange(e.target.value)}
-        className='border rounded px-2 py-1 w-full h-10'
-      >
-        <option value='NONE'>None</option>
-        <option value='JSON'>JSON</option>
-        <option value='FORM-DATA'>Form-Data</option>
-      </select>
-
-      {/* JSON 입력 (JSON 선택 시만 표시) */}
-      {bodyType === 'JSON' && (
-        <div className='mb-4'>
-          <label className='block text-[16px] font-semibold mb-2'>JSON Data</label>
-          <div style={{ pointerEvents: history ? 'none' : 'auto' }}>
-            <Editor
-              height='200px'
-              language='json'
-              value={json}
-              onChange={(value) => setJsonData(value || '{}')}
-              options={{
-                automaticLayout: true,
-                autoClosingBrackets: 'always',
-                formatOnType: true,
-                overviewRulerLanes: 0,
-                hideCursorInOverviewRuler: true,
-                cursorStyle: history ? 'line' : 'block', // history가 true일 때 커서 스타일을 제거
-                readOnly: history,
-                lineNumbers: history ? 'off' : 'on',
-                renderLineHighlight: history ? 'none' : 'all',
-                selectionHighlight: !history,
-                contextmenu: !history,
-                minimap: {
-                  enabled: false,
-                  renderCharacters: false,
-                  showSlider: 'mouseover',
-                  decorations: false,
-                },
-              }}
-            />
+      <div className='mb-4'>
+        <label className='text-[16px] font-semibold h-8 flex items-center'>Body Type</label>
+        <div
+          onMouseEnter={() => (requestStatus.isOccupiedByOthers ? setShowTooltip(true) : null)}
+          onMouseLeave={() => setShowTooltip(false)}
+          ref={targetRef}
+          onMouseMove={handleMouseMove}
+          className='relative w-[250px]'
+        >
+          <div
+            ref={requestRef}
+            tabIndex={0}
+            className={`w-[250px] text-[14px] flex items-center justify-between focus:outline-none transition duration-300 px-3 py-2 hover:bg-gray-50 relative h-10 border`}
+            style={{
+              borderColor: requestStatus.isOccupied ? requestStatus.color : undefined,
+              boxShadow: requestStatus.isOccupied ? `0 0 0 2px ${requestStatus.color}` : undefined,
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (requestStatus.isOccupiedByOthers) {
+                return;
+              }
+              setIsDropdownOpen((prev) => !prev);
+              if (!isDropdownOpen) {
+                handleOccupationState('OCCUPATION', 'ADD', { componentId: requestComponentId });
+              } else {
+                handleOccupationState('OCCUPATION', 'DELETE', { componentId: requestComponentId });
+              }
+            }}
+            onBlur={(e) => {
+              if (requestStatus.isOccupiedByOthers) {
+                e.preventDefault();
+                return;
+              }
+              handleOccupationState('OCCUPATION', 'DELETE', { componentId: requestComponentId });
+            }}
+          >
+            {bodyType}
+            <FiChevronDown className='ml-2' color='black' />
           </div>
-
-          {history ? null : (
-            <button className='mt-2 bg-blue-500 text-white px-4 py-2 rounded' onClick={handleFormatJson}>
-              JSON 정렬
-            </button>
+          {requestStatus.isOccupiedByOthers && showTooltip && (
+            <div
+              className={`absolute w-[100px] bg-white shadow-md rounded-lg p-2 z-[9000] `}
+              style={{
+                top: tooltipPosition.top,
+                left: tooltipPosition.left + 10,
+              }}
+            >
+              <div className='flex items-center space-x-2'>
+                <img src={requestStatus.profileImage} alt={requestStatus.nickname} className='w-6 h-6 rounded-full' />
+                <div className='mx-0 text-sm font-medium'>{requestStatus.nickname}</div>
+              </div>
+            </div>
           )}
         </div>
-      )}
 
-      {/* Form-Data 입력 (Form-Data 선택 시만 표시) */}
-      {bodyType === 'FORM-DATA' && (
-        <div className='mb-4'>
-          <label className='block text-[16px] font-semibold mb-2'>Form-Data</label>
-          <div className='space-y-2'>
-            {formData.map((field, index) => (
-              <div key={index} className='flex space-x-2'>
-                <input
-                  type='text'
-                  className='border rounded p-2 flex-1'
-                  placeholder='Key'
-                  disabled={history}
-                  value={field.formDataKey}
-                  onChange={(e) => handleFormDataChange(index, 'formDataKey', e.target.value)}
-                />
-                <input
-                  type='text'
-                  className='border rounded p-2 flex-1'
-                  disabled={history}
-                  placeholder='Value'
-                  value={field.formDataValue}
-                  onChange={(e) => handleFormDataChange(index, 'formDataValue', e.target.value)}
-                />
-                <select
-                  className='border rounded p-2 flex-1'
-                  disabled={history}
-                  value={field.formDataType}
-                  onChange={(e) => handleFormDataChange(index, 'formDataType', e.target.value)}
-                >
-                  <option value='TEXT'>Text</option>
-                  <option value='FILE'>File</option>
-                </select>
-                {history ? null : (
-                  <button onClick={() => handleRemoveFormData(index)} className='text-red-500 font-bold'>
-                    🗑️
-                  </button>
-                )}
+        {isDropdownOpen && (
+          <div
+            className='absolute border w-[250px] text-[14px] bg-white mt-0.5 z-10'
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {options.map((option) => (
+              <div
+                key={option.value}
+                className='px-3 py-2 cursor-pointer hover:bg-gray-50'
+                onClick={() => handleAuthTypeChange(option)}
+              >
+                {option.label}
               </div>
             ))}
-            {history ? null : (
-              <button className='mt-2 flex items-center text-blue-600 hover:text-blue-800' onClick={handleAddFormData}>
-                <FaPlus />
-                <span className='ml-1'>Add</span>
-              </button>
-            )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      <div>
+        {ActiveTabComponent && (
+          <ActiveTabComponent
+            apiDocDetail={apiDocDetail}
+            apiId={apiId}
+            workspaceId={workspaceId}
+            occupationState={occupationState}
+            handleOccupationState={handleOccupationState}
+          />
+        )}
+      </div>
     </div>
   );
 };

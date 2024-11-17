@@ -4,8 +4,8 @@ import { useDetailApiDocs } from '../api/queries/useApiDocsQueries';
 import { useNavbarStore } from '../stores/useNavbarStore';
 import { useTabStore } from '../stores/useTabStore';
 import { FaCheck, FaTimes, FaTrashAlt, FaPlus, FaShareAlt, FaDownload } from 'react-icons/fa';
-import { useWebSocket } from '../contexts/WebSocketContext';
 import { toast } from 'react-toastify';
+import { useWebSocket } from '../contexts/WebSocketProvider';
 
 const ApiOverview = () => {
   const { workspaceId } = useParams();
