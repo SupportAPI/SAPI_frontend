@@ -4,6 +4,7 @@ import { ResizableBox } from 'react-resizable';
 import { FaSave } from 'react-icons/fa';
 import 'react-resizable/css/styles.css';
 import ApiTestParameters from './ApiTestParameters';
+import ApiTestResponse from './APItestResponse';
 import ApiTestBody from './APitestBody';
 import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useSidebarStore } from '../../stores/useSidebarStore';
@@ -15,7 +16,6 @@ import { useFetchApiDetail, patchApiDetail, useRequestApiTestDetail } from '../.
 import { toast } from 'react-toastify';
 import { useMutation } from 'react-query';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
-import ApiTestResponse from './APItestResponse';
 
 const ApiTestDetail = () => {
   const { workspaceId, apiId } = useParams();
