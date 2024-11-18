@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FaDownload, FaSave, FaShareAlt, FaTrashAlt } from 'react-icons/fa';
 import Parameters from './Parameters';
 import Response from './Response';
@@ -11,7 +11,8 @@ import { useConfirmWorkspace, useExportDocument } from '../../api/queries/useApi
 
 const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupationState, handleOccupationState }) => {
   const [activeLeftTab, setActiveLeftTab] = useState('parameters');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // 드롭다운 상태 관리
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const { mutate: confirmWorkspace, isLoading: isSaving } = useConfirmWorkspace();
   const { mutate: handleExport, isLoading: isExportLoading } = useExportDocument();
 
@@ -21,6 +22,19 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
     response: Response,
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleSave = () => {
     if (workspaceId && apiDocDetail.docId) {
       confirmWorkspace({ workspaceId, docsId: apiDocDetail.docId });
@@ -28,7 +42,7 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
   };
 
   const handleExportClick = (ext) => {
-    setIsDropdownOpen(false); // 드롭다운 닫기
+    setIsDropdownOpen(false);
     handleExport({ workspaceId, docsId: apiDocDetail.docId, ext });
   };
 
@@ -52,7 +66,7 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
               <FaTrashAlt />
               <span>Delete</span>
             </button>
-            <div className='relative inline-block text-left'>
+            <div className='relative inline-block text-left' ref={dropdownRef}>
               <button
                 className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
                 onClick={() => setIsDropdownOpen((prev) => !prev)}

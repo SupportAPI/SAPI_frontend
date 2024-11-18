@@ -9,6 +9,7 @@ import { FiMinusSquare } from 'react-icons/fi';
 import { Editor } from '@monaco-editor/react';
 
 const Response = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOccupationState }) => {
+  const [type, setType] = useState('');
   const [responseList, setResponseList] = useState([]);
   const [selectedResponse, setSelectedResponse] = useState({});
   const [currentResponseId, setCurrentResponseId] = useState(() => {
@@ -44,14 +45,6 @@ const Response = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOcc
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedResponse?.id]);
-
-  const handleEditorChange = (value) => {
-    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
-      apiType: 'RESPONSE',
-      actionType: 'UPDATE',
-      message: { id: selectedResponse.id, key: 'DATA', type: 'JSON', value: value },
-    });
-  };
 
   const handleEditorMount = (editor) => {
     editor.getAction('editor.action.formatDocument').run();
@@ -99,6 +92,11 @@ const Response = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOcc
 
     setResponseList(updatedResponseList);
 
+    setSelectedResponse((prev) => ({
+      ...prev,
+      name: e.target.value,
+    }));
+
     publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
       apiType: 'RESPONSE',
       actionType: 'UPDATE',
@@ -112,14 +110,6 @@ const Response = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOcc
       setResponseList(sortedResponses);
     }
   }, [apiDocDetail?.response]);
-
-  useEffect(() => {
-    console.log(apiDocDetail);
-    if (apiDocDetail?.response) {
-      const sortedResponses = [...apiDocDetail.response].sort((a, b) => a.code - b.code);
-      setResponseList(sortedResponses);
-    }
-  }, []);
 
   useEffect(() => {
     if (responseList.length > 0) {
@@ -141,9 +131,9 @@ const Response = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOcc
       handleOccupationState('OCCUPATION', 'DELETE', {
         componentId: responseComponentId + currentResponseId,
       });
-      handleOccupationState('RESPONSE', 'SAVE', {
-        componentId: responseComponentId + currentResponseId,
-      });
+      // handleOccupationState('RESPONSE', 'SAVE', {
+      //   componentId: responseComponentId + currentResponseId,
+      // });
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
@@ -161,6 +151,11 @@ const Response = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOcc
   };
 
   const handleBodyTypeChange = (e) => {
+    setSelectedResponse((prev) => ({
+      ...prev,
+      bodyType: e.target.value,
+    }));
+
     publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
       apiType: 'RESPONSE',
       actionType: 'UPDATE',
@@ -170,6 +165,20 @@ const Response = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOcc
         type: e.target.value,
         value: String(selectedResponse.bodyData),
       },
+    });
+  };
+
+  const handleEditorChange = (value) => {
+    // setSelectedResponse((prev) => ({
+    //   ...prev,
+    //   bodyData: value,
+    // }));
+    console.log(selectedResponse.bodyType);
+
+    publish(`/ws/pub/workspaces/${workspaceId}/apis/${apiId}`, {
+      apiType: 'RESPONSE',
+      actionType: 'UPDATE',
+      message: { id: selectedResponse.id, key: 'DATA', type: selectedResponse.bodyType, value: value },
     });
   };
 
@@ -289,7 +298,7 @@ const Response = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOcc
                       type='radio'
                       name='bodyType'
                       value='JSON'
-                      checked={selectedResponse?.bodyType == 'JSON'}
+                      checked={selectedResponse.bodyType == 'JSON'}
                       onChange={handleBodyTypeChange}
                     />
                     JSON
@@ -299,7 +308,7 @@ const Response = ({ apiDocDetail, apiId, workspaceId, occupationState, handleOcc
                       type='radio'
                       name='bodyType'
                       value='TEXT'
-                      checked={selectedResponse?.bodyType == 'TEXT'}
+                      checked={selectedResponse.bodyType == 'TEXT'}
                       onChange={handleBodyTypeChange}
                     />
                     TEXT
