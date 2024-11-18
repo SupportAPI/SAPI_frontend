@@ -79,7 +79,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
 		return new WorkspaceInfoResponseDto(workspace.getId(),
 			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
-			workspace.getIsCompleted(), 0);
+			workspace.getIsCompleted(), 0, 1);
 	}
 
 	@Override
@@ -87,10 +87,14 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		Workspace workspace = workSpaceRepository.findById(workspaceId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
 
+		// 총 멤버 수 가져오기
+		Integer totalMemberCount = membershipRepository.countAcceptedMembersByWorkspaceId(workspace.getId());
+
         log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspace.getId() +"/docs"));
 		WorkspaceInfoResponseDto workspaceInfoResponseDto = new WorkspaceInfoResponseDto(workspace.getId(),
 			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
-			workspace.getIsCompleted(), webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspaceId +"/docs"));
+			workspace.getIsCompleted(), webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspaceId +"/docs"),
+			totalMemberCount);
 		return workspaceInfoResponseDto;
 	}
 
@@ -103,6 +107,10 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 			.map(membership -> {
 				Workspace workspace = membership.getWorkspace();
 				log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspace.getId() +"/docs"));
+
+				// 총 멤버 수 가져오기
+				Integer totalMemberCount = membershipRepository.countAcceptedMembersByWorkspaceId(workspace.getId());
+
 				return new WorkspaceInfoResponseDto(
 					workspace.getId(),
 					workspace.getProjectName(),
@@ -110,7 +118,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 					workspace.getMainImage(),
 					workspace.getDomain(),
 					workspace.getIsCompleted(),
-					webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspace.getId() +"/docs")
+					webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspace.getId() +"/docs"),
+					totalMemberCount
 				);
 			})
 			.collect(Collectors.toList());

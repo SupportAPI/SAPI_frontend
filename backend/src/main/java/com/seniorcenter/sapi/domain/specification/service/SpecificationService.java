@@ -174,10 +174,11 @@ public class SpecificationService {
 
     @Transactional
     public SpecificationResponseDto confirmSpecificationApiId(UUID specificationId) {
+        User user = userUtils.getUserFromSecurityContext();
         Specification specification = specificationRepository.findById(specificationId)
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
         Api originApi = apiRepository.findTopBySpecificationIdOrderByCreatedDateDesc(specificationId).orElseThrow();
-        specification.updateConfirmedApiId(originApi.getId());
+        specification.updateConfirmedApiId(originApi.getId(), user.getId());
 
         List<ApiPathVariable> pathVariables = new ArrayList<>();
         Pattern pattern = Pattern.compile("\\{([^}]+)\\}");
@@ -235,8 +236,8 @@ public class SpecificationService {
 
         List<User> usersInWorkspace = userRepository
             .findAcceptedUsersByWorkspaceId(specification.getWorkspace().getId());
-        for (User user : usersInWorkspace) {
-            sseUtils.send(user, originApi.getId(), specification.getWorkspace().getId(), NotificationType.API_CONFIRM);
+        for (User users : usersInWorkspace) {
+            sseUtils.send(users, originApi.getId(), specification.getWorkspace().getId(), NotificationType.API_CONFIRM);
         }
 
         return new SpecificationResponseDto(originApi, specification);

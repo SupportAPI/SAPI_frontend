@@ -27,6 +27,7 @@ import com.seniorcenter.sapi.domain.occupation.service.OccupationService;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
 import com.seniorcenter.sapi.domain.user.domain.User;
+import com.seniorcenter.sapi.domain.user.domain.repository.UserRepository;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
 import com.seniorcenter.sapi.global.error.exception.MainException;
 import com.seniorcenter.sapi.global.utils.RedisUtil;
@@ -66,6 +67,7 @@ public class ApiService {
     private final RedisUtil redisUtil;
     private final ApiBodyService apiBodyService;
     private final ApiResponseService apiResponseService;
+    private final UserRepository userRepository;
 
     @Transactional
     public void createApi(ApiMessage message, UUID workspaceId, UUID apiId, Principal principal) {
@@ -437,6 +439,17 @@ public class ApiService {
         String managerNickname = (api.getSpecification().getManager() != null) ? api.getSpecification().getManager().getNickname() : "";
         String managerProfileImage = (api.getSpecification().getManager() != null) ? api.getSpecification().getManager().getProfileImage() : "";
 
+        // 확정자 정보 조회
+        Long confirmUserId = api.getSpecification().getConfirmUserId();
+        String confirmUserNickname = " ";
+        String confirmUserEmail = " ";
+        if (confirmUserId != null) {
+            User confirmUser = userRepository.findById(confirmUserId)
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
+            confirmUserNickname = confirmUser.getNickname();
+            confirmUserEmail = confirmUser.getEmail();
+        }
+
         // ApiDetailResponseDto 생성 및 반환
         return new ApiDetailResponseDto(
                 api.getSpecification().getId().toString(),
@@ -449,6 +462,8 @@ public class ApiService {
                 managerEmail,
                 managerNickname,
                 managerProfileImage,
+                confirmUserNickname,
+                confirmUserEmail,
                 parameters,
                 request,
                 responseList,

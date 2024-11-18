@@ -9,6 +9,7 @@ public record WorkspaceInfoResponseDto(
 	String mainImage,
 	String domain,
 	Boolean isCompleted,
-	Integer connectedUserCount
+	Integer connectedUserCount,
+	Integer totalMemberCount
 ) {
 }
