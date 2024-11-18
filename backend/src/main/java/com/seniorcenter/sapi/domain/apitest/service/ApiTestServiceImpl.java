@@ -280,9 +280,9 @@ public class ApiTestServiceImpl implements ApiTestService {
             throw new MainException(CustomException.SPECIFICATION_CHANGED);
         }
 
-        String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
+        String testType = headers.containsKey("sapi-local-domain") ? "LOCAL" : "SERVER";
 
-        String domain = testType.equals("Local")
+        String domain = testType.equalsIgnoreCase("LOCAL")
             ? headers.get("sapi-local-domain")
             : workspaceRepository.findById(workspaceId)
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
@@ -389,9 +389,9 @@ public class ApiTestServiceImpl implements ApiTestService {
         Api api = apiRepository.findById(specification.getConfirmedApiId())
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
 
-        String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
+        String testType = headers.containsKey("sapi-local-domain") ? "LOCAL" : "SERVER";
 
-        String domain = testType.equals("Local")
+        String domain = testType.equalsIgnoreCase("LOCAL")
             ? headers.get("sapi-local-domain")
             : workspaceRepository.findById(workspaceId)
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
