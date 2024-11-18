@@ -355,7 +355,8 @@ const SettingMember = () => {
                         className='border-b truncate min-w-[120px] max-w-[120px] pr-3'
                         onMouseLeave={() => setPermissionId(null)}
                       >
-                        <button
+                        {/* 멤버 항목 일단 없앴음 */}
+                        {/* <button
                           className='w-[150px] p-3 border rounded-lg flex justify-around items-center'
                           onClick={(e) => {
                             e.stopPropagation();
@@ -365,7 +366,7 @@ const SettingMember = () => {
                           }}
                         >
                           {user.role} {PermissionId ? <MdArrowDropUp /> : <MdArrowDropDown />}
-                        </button>
+                        </button> */}
                         {PermissionId === index && (
                           <div
                             ref={permissionRef}
@@ -520,11 +521,11 @@ const SettingMember = () => {
                               top: modalPosition.top,
                               left: modalPosition.left,
                             }}
-                            className='bg-white rounded-lg shadow-lg z-10 w-40'
+                            className='bg-white rounded-lg shadow-lg z-10 w-[100px]'
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
-                              className='w-full rounded-b-lg text-left px-4 py-2 hover:bg-red-100 text-red-500 dark:bg-dark-background dark:hover:bg-gray-600'
+                              className='w-full rounded-lg text-left p-2 hover:bg-red-100 text-red-500 dark:bg-dark-background dark:hover:bg-gray-600 text-center'
                               onClick={() => DeleteUser(user.userId)}
                             >
                               내보내기

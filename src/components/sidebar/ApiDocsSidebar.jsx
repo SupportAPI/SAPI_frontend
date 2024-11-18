@@ -7,7 +7,7 @@ import { useTabStore } from '../../stores/useTabStore';
 import { useApiDocs } from '../../api/queries/useApiDocsQueries';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useWebSocket } from '../../contexts/WebSocketContext';
+import { useWebSocket } from '../../contexts/WebSocketProvider';
 
 const ApiDocsSidebar = () => {
   const { data = [], error, refetch } = useApiDocs();

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { BsSend } from 'react-icons/bs';
 import { FaEllipsisH } from 'react-icons/fa';
 import { useMutation } from 'react-query';
-import { useWebSocket, WebSocketProvider } from '../../contexts/WebSocketContext';
+import { useWebSocket, WebSocketProvider } from '../../contexts/WebSocketProvider';
 import { findComments, findIndex, findInitComments, findUsers } from '../../api/queries/useCommentsQueries';
 import { getToken } from '../../utils/cookies';
 import { fetchUserInfo } from '../../api/queries/useAPIUserQueries';
@@ -400,15 +400,6 @@ const Comments = ({ docsId, workspaceId }) => {
   const handleMoreIconClick = (e, messageId) => {
     e.stopPropagation();
     setSelectedMessageId(messageId); // 선택된 메시지 ID 설정
-
-    const rect = setRef.current.getBoundingClientRect();
-
-    // 드롭다운 위치 설정
-    setOptionsDropdownPosition({
-      top: rect.top + 10, // 현재 위치에서 10px 아래로 조정
-      left: rect.left,
-    });
-
     setShowOptionsDropdown(!showOptionsDropdown);
   };
 
@@ -464,6 +455,7 @@ const Comments = ({ docsId, workspaceId }) => {
   // 2. 수정 취소 시 상태 초기화
   const handleCancelEdit = () => {
     setEditingMessageId(null);
+    setSelectedMessageId(null);
     setEditContent('');
   };
 
@@ -478,6 +470,7 @@ const Comments = ({ docsId, workspaceId }) => {
   // 2. 삭제 취소
   const handleCancelDelete = () => {
     setShowDeleteModal(false);
+    setSelectedMessageId(null);
   };
 
   // 3. 삭제 클릭 시
@@ -489,6 +482,7 @@ const Comments = ({ docsId, workspaceId }) => {
       message: deleteTargetId.commentId,
     });
     setShowDeleteModal(false);
+    setSelectedMessageId(null);
   };
 
   // 스크롤 감지 후 무한 스크롤 데이터 로딩
@@ -615,6 +609,27 @@ const Comments = ({ docsId, workspaceId }) => {
                             </li>
                           </ul>
                         )}
+                        {showDeleteModal && message.commentId === selectedMessageId && (
+                          <ul
+                            style={{
+                              top: `${optionsDropdownPosition.top + 15}px`,
+                              left: `${optionsDropdownPosition.left}px`,
+                            }}
+                            ref={deleteRef}
+                            className='absolute bg-[#EDF7FF] border border-gray-300 w-60 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
+                          >
+                            <li className='p-2 text-center'>정말 삭제하시겠습니까?</li>
+                            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={deleteComment}>
+                              삭제
+                            </li>
+                            <li
+                              className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center'
+                              onClick={handleCancelDelete}
+                            >
+                              취소
+                            </li>
+                          </ul>
+                        )}
                         <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
                       </>
                     ) : (
@@ -682,24 +697,6 @@ const Comments = ({ docsId, workspaceId }) => {
             </div>
           ))}
         </div>
-        {showDeleteModal && (
-          <ul
-            style={{
-              top: `${optionsDropdownPosition.top}px`,
-              left: `${optionsDropdownPosition.left}px`,
-            }}
-            ref={deleteRef}
-            className='absolute bg-[#EDF7FF] border border-gray-300 w-60 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
-          >
-            <li className='p-2 text-center'>정말 삭제하시겠습니까?</li>
-            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={deleteComment}>
-              삭제
-            </li>
-            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleCancelDelete}>
-              취소
-            </li>
-          </ul>
-        )}
         {showDropdown && userSuggestions.response && userSuggestions.response.length > 0 && (
           <ul
             style={{
@@ -729,7 +726,7 @@ const Comments = ({ docsId, workspaceId }) => {
           <ul
             style={{
               position: 'absolute',
-              top: `${dropdownPosition.top}px`,
+              top: `${dropdownPosition.top - 20}px`,
               left: `${dropdownPosition.left}px`,
             }}
             className='bg-[#EDF7FF] border border-gray-300 w-36 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
