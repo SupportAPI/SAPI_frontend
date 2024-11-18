@@ -31,7 +31,7 @@ const EnvironmentSidebar = () => {
     data: envData = null,
     error: envError,
     isLoading: envLoading,
-    refetch: envAddRefetch,
+    mutate: addEnvironmentMutation,
   } = useAddEnvironment(workspaceId, newEnvironment.name);
 
   const { mutate: editEnvironmentName } = useEditEnvironmentName(workspaceId);
@@ -43,8 +43,6 @@ const EnvironmentSidebar = () => {
     error: isListError,
     refetch: listRefetch,
   } = useFetchEnvironmentList(workspaceId);
-
-  console.log(environmentList);
 
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
@@ -79,6 +77,7 @@ const EnvironmentSidebar = () => {
         id: selectedPath.id,
         name: selectedPath.name,
         path: selectedPath.path,
+        type: 'Environment',
       });
 
       navigate(selectedPath.path);
@@ -86,7 +85,7 @@ const EnvironmentSidebar = () => {
   };
 
   const handleDashboardDoubleClick = (id) => {
-    confirmTab(id);
+    confirmTab(id, 'Environment');
   };
 
   const handleNameChange = (e) => {
@@ -94,20 +93,16 @@ const EnvironmentSidebar = () => {
   };
 
   const addEnvironment = () => {
-    envAddRefetch(workspaceId, newEnvironment.name);
+    addEnvironmentMutation({ name: newEnvironment.name }); // mutate 사용
   };
 
   const handleCategoryOption = (e, categoryId) => {
     e.stopPropagation();
-    console.log('ㅋㅋ');
     setSelectedCategoryId((prev) => (prev === categoryId ? null : categoryId)); // 현재 id 토글
   };
 
-  console.log(selectedCategoryId);
-
   const handleClickOutside = (event) => {
     if (setRef.current && !setRef.current.contains(event.target)) {
-      console.log('ㅋㅋ');
       setSelectedCategoryId(null);
     }
     if (deleteRef.current && !deleteRef.current.contains(event.target)) {
@@ -125,12 +120,9 @@ const EnvironmentSidebar = () => {
   const handleSaveEdit = (categoryId) => {
     const updatedPaths = paths.map((path) => (path.id === categoryId ? { ...path, name: editName } : path));
     setPaths(updatedPaths);
-
-    // 여기서 수동으로 editEnvironmentName 실행
     editEnvironmentName({ categoryId, name: editName });
-
     setIsEditing(null); // 편집 모드 종료
-    setEditName(''); // 임시 이름 초기화
+    setEditName('');
   };
 
   const handleBlurSave = (categoryId) => {
@@ -148,6 +140,13 @@ const EnvironmentSidebar = () => {
     e.stopPropagation();
     deleteEnvironment(selectedCategoryId);
     setShowDeleteModal(false);
+  };
+
+  const handleKeyDown = (e, categoryId) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSaveEdit(categoryId);
+    }
   };
 
   useEffect(() => {
@@ -171,15 +170,15 @@ const EnvironmentSidebar = () => {
     >
       <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 dark:bg-dark-background z-10'>
         <div className='flex items-center'>
-          <FaPlus className='text-gray-600 dark:text-dark-text cursor-pointer mr-2' onClick={handleAddEnvironment} />
           <div className='flex items-center flex-1 bg-white dark:bg-dark-background rounded border relative'>
             <FaSearch className='text-gray-400 dark:text-dark-text ml-2' />
             <input type='text' placeholder='Search' className='p-2 flex-1 bg-transparent outline-none' />
           </div>
+          <FaPlus className='text-gray-600 dark:text-dark-text cursor-pointer ml-2' onClick={handleAddEnvironment} />
         </div>
       </div>
       <div className='flex-1 overflow-y-auto sidebar-scrollbar'>
-        <div className='cursor-pointer text-[#475467] '>
+        <div className='cursor-pointer text-[#475467] dark:text-dark-text'>
           <ul>
             {paths.map((p) => {
               const isActive = location.pathname === p.path;
@@ -187,7 +186,7 @@ const EnvironmentSidebar = () => {
                 <li
                   key={p.id}
                   className={`cursor-pointer w-full relative ${
-                    isActive ? 'bg-blue-100 text-blue-800 hover:bg-gray-300 font-semibold' : 'hover:bg-gray-300'
+                    isActive ? 'bg-blue-100 text-blue-800 font-semibold dark:bg-dark-hover dark:text-dark-surface' : ''
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -204,33 +203,35 @@ const EnvironmentSidebar = () => {
                         onChange={(e) => setEditName(e.target.value)}
                         onBlur={() => handleBlurSave(p.id)} // 포커스 해제 시 저장
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault(); // Enter 키가 새 줄을 추가하지 않도록 방지
-                            handleSaveEdit(p.id);
-                          }
+                          handleKeyDown(e, p.id);
                         }}
-                        className='bg-white dark:bg-dark-background border-b outline-none'
+                        className='bg-white dark:bg-dark-background dark:text-dark-text border-b outline-none'
                       />
                     ) : (
-                      <span>{p.name}</span>
+                      <span className='dark:text-dark-text'>{p.name}</span>
                     )}
-                    <BsThreeDots
-                      className={`text-gray-500 hover:text-gray-700 cursor-pointer opacity-0 group-hover:opacity-100`}
-                      onClick={(e) => {
-                        handleCategoryOption(e, p.id);
-                      }}
-                    />
+                    {p.name !== 'Local' && (
+                      <BsThreeDots
+                        className={`text-gray-500 hover:text-gray-700 cursor-pointer opacity-0 group-hover:opacity-100`}
+                        onClick={(e) => {
+                          handleCategoryOption(e, p.id);
+                        }}
+                      />
+                    )}
                   </div>
                   {selectedCategoryId === p.id && (
-                    <div ref={setRef} className='absolute right-0 w-28 bg-white shadow-lg rounded border z-20'>
+                    <div
+                      ref={setRef}
+                      className='absolute right-0 w-28 bg-white text-gray-500 dark:bg-dark-background dark:text-dark-text shadow-lg rounded-lg border z-20'
+                    >
                       <button
-                        className='w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal'
+                        className='w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover font-normal rounded-t-lg'
                         onClick={(e) => handleEdit(e, p.id, p.name)}
                       >
                         Edit
                       </button>
                       <button
-                        className='w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal'
+                        className='w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-dark-hover font-normal rounded-b-lg'
                         onClick={(e) => handleDelete(e, p.id)}
                       >
                         Delete
@@ -256,19 +257,19 @@ const EnvironmentSidebar = () => {
           )}
           {showDeleteModal && (
             <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
-              <div ref={deleteRef} className='bg-white p-6 rounded-lg shadow-lg w-80'>
+              <div ref={deleteRef} className='bg-white p-6 rounded-lg shadow-lg w-80 dark:bg-dark-background'>
                 <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
                 <p className='mb-6'>선택한 API 문서를 삭제하시겠습니까?</p>
                 <div className='flex justify-end space-x-4'>
                   <button
                     onClick={() => setShowDeleteModal(false)}
-                    className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'
+                    className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 dark:text-black'
                   >
                     취소
                   </button>
                   <button
                     onClick={(e) => handleConfirmDelete(e)}
-                    className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
+                    className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 dark:text-dark-text'
                   >
                     삭제
                   </button>

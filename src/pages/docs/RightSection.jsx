@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { FiCode, FiFileText, FiMessageSquare, FiX } from 'react-icons/fi';
+import { FiCode, FiFileText, FiMessageSquare, FiInfo, FiX } from 'react-icons/fi';
 import Summary from './Summary';
 import CodeSnippet from './CodeSnippet';
 import Comments from './Comments';
+import Info from './Info';
 
 const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
   const [activeRightTab, setActiveRightTab] = useState(null);
-
-  console.log('rightTab', apiDocDetail);
 
   const methodStyles = {
     GET: 'text-blue-500',
@@ -26,7 +25,9 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
   return (
     <>
       <div
-        className={`transition-width duration-300 p-8 mr-[50px] relative overflow-y-auto ${
+        className={`transition-width duration-300 p-8 mr-[50px] relative ${
+          activeRightTab === 'comment' ? '' : 'overflow-y-auto'
+        } dark:bg-dark-background dark:text-dark-text ${
           activeRightTab ? 'w-[500px] min-w-[500px] max-w-[500px]' : 'w-[350px] min-w-[350px] max-w-[350px]'
         } ${activeRightTab ? 'border-l' : ''} sidebar-scrollbar h-[775px] pb-5`}
       >
@@ -50,7 +51,7 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
             response={apiDocDetail?.response}
           />
         )}
-        {activeRightTab === 'comment' && <Comments />}
+        {activeRightTab === 'comment' && <Comments docsId={apiDocDetail.docId} workspaceId={workspaceId} />}
         {activeRightTab === 'code' && (
           <CodeSnippet
             path={apiDocDetail?.path}
@@ -59,9 +60,12 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
             request={apiDocDetail.request}
           />
         )}
+        {activeRightTab === 'info' && (
+          <Info createdData={apiDocDetail?.createdDate} lastModifiedDate={apiDocDetail?.lastModifyDate} />
+        )}
       </div>
 
-      <div className='absolute right-0 top-[104px] h-[calc(100vh-104px)] w-[50px] flex flex-col items-center pt-4 bg-white shadow-lg'>
+      <div className='absolute border-l right-0 top-[104px] h-[calc(100vh-104px)] w-[50px] flex flex-col items-center pt-4 bg-white shadow-lg dark:bg-dark-background dark:text-dark-text'>
         <FiMessageSquare
           className={`cursor-pointer mb-4 ${activeRightTab === 'comment' ? 'text-blue-500' : 'text-gray-500'}`}
           size={24}
@@ -76,6 +80,11 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
           className={`cursor-pointer mb-4 ${activeRightTab === 'summary' ? 'text-blue-500' : 'text-gray-500'}`}
           size={24}
           onClick={() => toggleRightTab('summary')}
+        />
+        <FiInfo
+          className={`cursor-pointer mb-4 ${activeRightTab === 'info' ? 'text-blue-500' : 'text-gray-500'}`}
+          size={24}
+          onClick={() => toggleRightTab('info')}
         />
       </div>
     </>

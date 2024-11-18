@@ -1,14 +1,20 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // React Router의 useNavigate 사용
 import useAuth from '../hooks/useAuth';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { loginUser } = useAuth();
+  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅
 
   const handleLogin = (e) => {
     e.preventDefault();
     loginUser.mutate({ email, password });
+  };
+
+  const goToSignUp = () => {
+    navigate('/signup'); // 회원가입 페이지로 이동
   };
 
   return (
@@ -47,6 +53,12 @@ const Login = () => {
             {loginUser.error.message || 'Login failed. Please try again.'}
           </p>
         )}
+        {/* 회원가입 버튼 */}
+        <div className='mt-6 text-center'>
+          <button onClick={goToSignUp} className='text-gray-700 hover:text-gray-800'>
+            SignUp
+          </button>
+        </div>
       </div>
     </div>
   );

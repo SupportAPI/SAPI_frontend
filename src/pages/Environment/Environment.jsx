@@ -11,7 +11,7 @@ import {
   useDeleteEnvironmentVariable,
 } from '../../api/queries/useEnvironmentQueries';
 import DraggableRow from './DraggableRow';
-import DropdownMenu from './DropdownMeny';
+import DropdownMenu from './DropdownMenu';
 
 const Environment = () => {
   const { environmentId } = useParams();
@@ -32,8 +32,8 @@ const Environment = () => {
   } = environmentId ? useFetchEnvironment(environmentId) : {};
 
   useEffect(() => {
-    if (Array.isArray(environmentData)) {
-      const processData = environmentData.map((item) => ({
+    if (Array.isArray(environmentData?.environments)) {
+      const processData = environmentData.environments.map((item) => ({
         ...item,
         isChecked: false,
       }));
@@ -154,9 +154,13 @@ const Environment = () => {
   };
 
   const handleAddRow = async (currentIndex) => {
+    console.log(currentIndex);
+
     if (currentIndex === -1) {
       currentIndex = lastIndex;
     }
+
+    console.log(currentIndex);
 
     const newRow = {
       variable: '',
@@ -222,13 +226,15 @@ const Environment = () => {
     });
   };
 
+  console.log(data);
+
   const lastIndex = data.length > 0 ? data.length - 1 : 1;
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div className='p-8 overflow-y-scroll max-h-[680px]'>
         <div className='flex justify-between items-center mb-4'>
-          <h2 className='text-2xl font-bold'>Environment - {}</h2>
+          <h2 className='text-2xl font-bold'>Environment - {environmentData?.categoryName}</h2>
           <div className='flex space-x-4'>
             <button
               className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'

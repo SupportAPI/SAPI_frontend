@@ -1,23 +1,11 @@
-import axios from 'axios';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { getToken } from '../../utils/cookies';
-
-const base_URL = 'https://k11b305.p.ssafy.io'; // 본 /서버
-// const base_URL = 'http://192.168.31.66:8080'; // 세현 서버
+import { useQuery, useQueryClient, useMutation } from 'react-query';
+import axiosInstance from '../axiosInstance';
 
 // 1. Api List 호출 (전체)
 export const fetchApiList = async (workspaceId) => {
-  const accessToken = getToken();
-
-  const response = await axios.get(`${base_URL}/api/workspaces/${workspaceId}/api-tests`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
+  const response = await axiosInstance.get(`/api/workspaces/${workspaceId}/api-tests`);
   return response.data.data;
 };
-
 // React Query 훅: 워크스페이스 목록을 가져오는 쿼리 훅
 export const useFetchApiList = (workspaceId) => {
   return useQuery(['workspaceId', workspaceId], () => fetchApiList(workspaceId));
@@ -25,17 +13,9 @@ export const useFetchApiList = (workspaceId) => {
 
 // 2. API Detail 호출 (개별)
 export const fetchApiDetail = async (workspaceId, apiId) => {
-  const accessToken = getToken();
-
-  const response = await axios.get(`${base_URL}/api/workspaces/${workspaceId}/api-tests/${apiId}`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
+  const response = await axiosInstance.get(`/api/workspaces/${workspaceId}/api-tests/${apiId}`);
   return response.data.data;
 };
-
 // React Query 훅: 워크스페이스 목록을 가져오는 쿼리 훅
 export const useFetchApiDetail = (workspaceId, apiId) => {
   return useQuery(['apiDetail', workspaceId, apiId], () => fetchApiDetail(workspaceId, apiId), {
@@ -45,56 +25,60 @@ export const useFetchApiDetail = (workspaceId, apiId) => {
 
 // 3. API Detail 수정 (개별)
 export const patchApiDetail = async (workspaceId, apiId, apiTestDetails) => {
-  const accessToken = getToken();
-
-  const response = await axios.patch(`${base_URL}/api/workspaces/${workspaceId}/api-tests/${apiId}`, apiTestDetails, {
+  const response = await axiosInstance.patch(`/api/workspaces/${workspaceId}/api-tests/${apiId}`, apiTestDetails, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
     },
   });
   return response.data.data;
 };
 
 // 4. API TEST Request
-export const requestApiTest = async (workspaceId, apiDetail, path = '') => {
-  const accessToken = getToken();
+export const requestApiTestDetail = async (workspaceId, apiDetail, apiUrl) => {
+  console.log(apiDetail);
 
-  // <--- 파라미터 --->
-  // 1. pathvariable
-  const pathVariables =
-    apiDetail.pathVariables && apiDetail.pathVariables.length > 0
-      ? `/${apiDetail.pathVariables.map((param) => param.value).join('/')}`
-      : '';
-  // 2. queryParameter
-  const queryParams = apiDetail.queryParameters
-    ? apiDetail.queryParameters.reduce((acc, param) => {
-        if (param.isChecked && param.key && param.value) {
-          // isChecked가 true인 항목만 추가
-          acc[param.key] = param.value;
-        }
-        return acc;
-      }, {})
-    : {};
-  // 3. headers
-  const dynamicHeaders = apiDetail.headers
-    ? apiDetail.headers.reduce((acc, header) => {
-        if (header.isChecked && header.key && header.value) {
-          acc[header.key] = header.value; // isChecked가 true인 항목만 추가
-        }
-        return acc;
-      }, {})
-    : {};
+  // 기본 headers 객체
   const headers = {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${accessToken}`,
-    'sapi-method': apiDetail.method,
-    ...additionalHeaders, // 추가적인 헤더 병합
   };
 
-  const response = await axios.post(`${base_URL}/api/workspaces/${workspaceId}/test${path}${pathVariables}`, {
-    headers,
-    params: queryParams, // 동적으로 만든 queryParams 추가
+  // apiUrl이 null이 아니면 "sapi-local-host" 헤더 추가
+  if (apiUrl !== null) {
+    headers['sapi-local-host'] = apiUrl;
+  }
+
+  // axios 요청
+  const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/request`, apiDetail, { headers });
+
+  return response.data.data;
+};
+
+export const useRequestApiTestDetail = (setTestResult) => {
+  const queryClient = useQueryClient();
+  return useMutation(({ workspaceId, apiDetail, apiUrl }) => requestApiTestDetail(workspaceId, apiDetail, apiUrl), {
+    onSuccess: (data) => {
+      setTestResult(data);
+    },
+  });
+};
+
+// 5. API TEST FILE 업로드
+export const requestApiTestFileUpload = async (workspaceId, fileData) => {
+  console.log('파일', fileData);
+  const formRequestData = new FormData();
+  formRequestData.append('file', fileData); // 파일 객체로 추가
+  const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/file`, formRequestData, {
+    headers: {},
+  });
+  return response.data.data;
+};
+
+// 6. API TEST FILE 삭제
+export const requestApiTestFileRemove = async (workspaceId, fileId) => {
+  const response = await axiosInstance.delete(`/api/workspaces/${workspaceId}/file/${fileId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
   return response.data.data;
 };

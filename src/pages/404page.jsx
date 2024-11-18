@@ -4,10 +4,10 @@ const Page404 = () => {
   const navigate = useNavigate();
 
   return (
-    <div className='w-screen h-screen relative'>
+    <div className='w-full h-full relative'>
       {/* 배경 사진이 적용될 가로 전용 컨테이너 */}
       <div
-        className='w-screen h-screen bg-cover bg-center flex items-center justify-center'
+        className='w-screen h-screen bg-cover bg-center flex items-center justify-center object-cover'
         style={{
           backgroundImage: `url('/src/assets/error/404page.JPG')`,
           backgroundRepeat: 'no-repeat',
@@ -15,7 +15,7 @@ const Page404 = () => {
         }}
       >
         <div
-          className='absolute flex flex-col items-start'
+          className='absolute flex flex-col items-start w-[800px] p-10'
           style={{
             top: '45%',
             left: '10%',

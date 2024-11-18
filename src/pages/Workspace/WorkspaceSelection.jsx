@@ -96,6 +96,37 @@ const WorkspaceSelection = () => {
     removeAllTabs();
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        handleCloseModal();
+        setIsModalOpen(false);
+        setIsOpenCreateWorkspace(false);
+        setIsOpenInviteUser(false);
+        setIsOpenSetting(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isOpenCreateWorkspace || isOpenInviteUser || isOpenSetting || isModalOpen) {
+      document.body.style.overflow = 'hidden'; // 스크롤 차단
+    } else {
+      document.body.style.overflow = ''; // 원래 상태로 복구
+    }
+
+    // 컴포넌트 언마운트 시 스타일 초기화
+    return () => {
+      document.body.style.overflow = '';
+    };
+  });
+
   const handleWorkspaceSelect = (workspaceId) => {
     navigate(`/workspace/${workspaceId}`);
   };
@@ -147,48 +178,52 @@ const WorkspaceSelection = () => {
     setStep(2);
     queryClient.invalidateQueries('workspaces');
   };
-  const handleSettingsClick = () => {
+  const handleSettingsClick = (value) => {
     queryClient.invalidateQueries('workspaces');
-    setIsOpenSetting(!isOpenSetting);
+    if (value === '1') {
+      setIsOpenSetting(true);
+    } else {
+      setIsOpenSetting(false);
+    }
   };
 
   // table 목록 view 상태 관리
   const [isP_TableVisible, setP_IsTableVisible] = useState(true);
   const [isD_TableVisible, setD_IsTableVisible] = useState(true);
 
-  // table Sort 관리
-  const [isSortPOrder, setIsSortPOrder] = useState({ column: '', direction: 'asc' });
-  const [isSortDOrder, setIsSortDOrder] = useState({ column: '', direction: 'asc' });
+  // // table Sort 관리
+  // const [isSortPOrder, setIsSortPOrder] = useState({ column: '', direction: 'asc' });
+  // const [isSortDOrder, setIsSortDOrder] = useState({ column: '', direction: 'asc' });
 
-  // Prograss 정렬 함수
-  const sortPTable = (column) => {
-    setPrograssTable(workspaces);
-    const direction = isSortPOrder.direction === 'asc' ? 'desc' : 'asc';
-    const sortedData = [...prograssTable].sort((a, b) => {
-      if (direction === 'asc') {
-        return a[column] > b[column] ? 1 : -1;
-      } else {
-        return a[column] < b[column] ? 1 : -1;
-      }
-    });
-    setPrograssTable(sortedData);
-    setIsSortPOrder({ column, direction });
-  };
+  // // Prograss 정렬 함수
+  // const sortPTable = (column) => {
+  //   setPrograssTable(workspaces);
+  //   const direction = isSortPOrder.direction === 'asc' ? 'desc' : 'asc';
+  //   const sortedData = [...prograssTable].sort((a, b) => {
+  //     if (direction === 'asc') {
+  //       return a[column] > b[column] ? 1 : -1;
+  //     } else {
+  //       return a[column] < b[column] ? 1 : -1;
+  //     }
+  //   });
+  //   setPrograssTable(sortedData);
+  //   setIsSortPOrder({ column, direction });
+  // };
 
-  // Done 정렬 함수
-  const sortDTable = (column) => {
-    setDoneTable(workspaces);
-    const direction = isSortDOrder.direction === 'asc' ? 'desc' : 'asc';
-    const sortedData = [...doneTable].sort((a, b) => {
-      if (direction === 'asc') {
-        return a[column] > b[column] ? 1 : -1;
-      } else {
-        return a[column] < b[column] ? 1 : -1;
-      }
-    });
-    setDoneTable(sortedData);
-    setIsSortDOrder({ column, direction });
-  };
+  // // Done 정렬 함수
+  // const sortDTable = (column) => {
+  //   setDoneTable(workspaces);
+  //   const direction = isSortDOrder.direction === 'asc' ? 'desc' : 'asc';
+  //   const sortedData = [...doneTable].sort((a, b) => {
+  //     if (direction === 'asc') {
+  //       return a[column] > b[column] ? 1 : -1;
+  //     } else {
+  //       return a[column] < b[column] ? 1 : -1;
+  //     }
+  //   });
+  //   setDoneTable(sortedData);
+  //   setIsSortDOrder({ column, direction });
+  // };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteWorkspaceId, setdeleteWorkspaceId] = useState('');
@@ -208,7 +243,15 @@ const WorkspaceSelection = () => {
 
   return (
     <div className='outer-wrapper bg-[#f0f5f8]/50 dark:bg-dark-background dark:text-dark-text h-full w-full min-h-screen min-w-screen'>
-      <Header onSettingsClick={handleSettingsClick} />
+      <Header
+        onSettingsClick={(value) => {
+          if (value === '1') {
+            handleSettingsClick('1');
+          } else {
+            handleSettingsClick('2');
+          }
+        }}
+      />
       <div className='inner-content overflow-y-auto overflow-x-auto h-full w-full'>
         {/* 헤더 위치 */}
 
@@ -239,7 +282,7 @@ const WorkspaceSelection = () => {
                 <InviteUser workspaceId={newworkspaceid} onClose={() => handleCloseModal()}></InviteUser>
               )}
               {/* Setting 모달 */}
-              {isOpenSetting && <Settings onClose={() => handleSettingsClick()} />}
+              {isOpenSetting && <Settings onClose={() => handleSettingsClick(2)} />}
               {isModalOpen && (
                 <CheckModal
                   modalTitle='워크스페이스 삭제 확인'
@@ -315,15 +358,15 @@ const WorkspaceSelection = () => {
                               onClick={() => handleWorkspaceSelect(item.id)}
                               onMouseLeave={() => setDevelopAuthId(null)}
                             >
-                              <td className='p-2 w-[23%]'>
+                              <td className='p-2 w-[23%] truncate'>
                                 <div className='flex items-center ml-3'>
                                   <img
                                     src={item.mainImage}
                                     alt='icon'
-                                    className='border w-[60px] h-[50px] rounded-lg object-contain'
+                                    className='border min-w-[60px] max-w-[60px] min-h-[50px] max-h-[50px] rounded-lg object-contain'
                                   />
                                   <div className='flex flex-col ml-3'>
-                                    <div className='text-left text-xl'>{item.projectName}</div>
+                                    <div className='text-left max-w-[150px]'>{item.projectName}</div>
                                   </div>
                                 </div>
                               </td>
@@ -494,10 +537,10 @@ const WorkspaceSelection = () => {
                                   <img
                                     src={item.mainImage}
                                     alt='icon'
-                                    className='border w-[60px] h-[50px] rounded-lg object-contain'
+                                    className='border min-w-[60px] max-w-[60px] min-h-[50px] max-h-[50px] rounded-lg object-contain'
                                   />
                                   <div className='flex flex-col ml-3'>
-                                    <div className='text-left text-xl'>{item.projectName}</div>
+                                    <div className='text-left'>{item.projectName}</div>
                                   </div>
                                 </div>
                               </td>

@@ -70,12 +70,13 @@ const ApiTestSidebar = () => {
       id: apiId,
       name: apiName,
       path,
+      type: 'api-test',
     });
     navigate(path);
   };
 
   const handleApiDoubleClick = (apiId) => {
-    confirmTab(apiId);
+    confirmTab(apiId, 'api-test');
   };
 
   const handleCategoryToggle = (category) => {
@@ -88,12 +89,13 @@ const ApiTestSidebar = () => {
       id: 'api-test',
       name: 'API Test',
       path,
+      type: 'api-test',
     });
     navigate(path);
   };
 
   const handleAllApiDoubleClick = () => {
-    confirmTab('api-test');
+    confirmTab('api-test', 'api-test');
   };
 
   const handleDropdownToggle = (apiId) => {
@@ -189,11 +191,11 @@ const ApiTestSidebar = () => {
               {expandedCategories[categoryData.category] && (
                 <ul>
                   {categoryData.apis.map((api) => {
-                    const isActive = location.pathname === `/workspace/${workspaceId}/api-test/${api.id}`;
-                    const isDropdownActive = activeDropdown === api.id;
+                    const isActive = location.pathname === `/workspace/${workspaceId}/api-test/${api.apiId}`;
+                    const isDropdownActive = activeDropdown === api.apiId;
                     return (
                       <li
-                        key={api.id}
+                        key={api.apiId}
                         className={`cursor-pointer w-full relative group ${
                           isActive
                             ? 'bg-blue-100 text-blue-800 font-semibold dark:bg-dark-hover dark:text-dark-surface'
@@ -203,9 +205,9 @@ const ApiTestSidebar = () => {
                         }`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleApiClick(api.id, api.name);
+                          handleApiClick(api.apiId, api.name);
                         }}
-                        onDoubleClick={() => handleApiDoubleClick(api.id)}
+                        onDoubleClick={() => handleApiDoubleClick(api.apiId)}
                       >
                         <div className='pl-12 pr-4 py-2 flex justify-between items-center'>
                           {api.name}
@@ -215,7 +217,7 @@ const ApiTestSidebar = () => {
                             }`}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDropdownToggle(api.id);
+                              handleDropdownToggle(api.apiId);
                             }}
                           />
                         </div>
@@ -223,7 +225,7 @@ const ApiTestSidebar = () => {
                           <div ref={dropdownRef} className='absolute right-0 w-28 bg-white shadow-lg rounded-lg z-20'>
                             <button
                               className='w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 text-gray-500 font-normal dark:bg-dark-background dark:hover:bg-dark-hover dark:text-dark-text'
-                              onClick={(e) => handleCopyLink(e, api.id)}
+                              onClick={(e) => handleCopyLink(e, api.apiId)}
                             >
                               Copy Link
                             </button>

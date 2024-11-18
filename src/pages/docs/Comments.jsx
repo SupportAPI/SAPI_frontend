@@ -1,13 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { BsSend } from 'react-icons/bs';
 import { FaEllipsisH } from 'react-icons/fa';
-import { Stomp } from '@stomp/stompjs';
 import { useMutation } from 'react-query';
-import SockJS from 'sockjs-client';
-import { findComments, findIndex, findUsers } from '../../api/queries/useCommentsQueries';
+import { useWebSocket, WebSocketProvider } from '../../contexts/WebSocketProvider';
+import { findComments, findIndex, findInitComments, findUsers } from '../../api/queries/useCommentsQueries';
 import { getToken } from '../../utils/cookies';
 import { fetchUserInfo } from '../../api/queries/useAPIUserQueries';
 import useAuthStore from '../../stores/useAuthStore';
+import { throttle } from 'lodash';
 
 const Comments = ({ docsId, workspaceId }) => {
   // 드롭다운 불러오는 변수들
@@ -36,7 +36,7 @@ const Comments = ({ docsId, workspaceId }) => {
   const setRef = useRef(null);
   const deleteRef = useRef(null);
   const infoRef = useRef(null);
-  const stompClientRef = useRef(null); // stompClient를 useRef로 선언
+  const userSuggestionRef = useRef(null);
 
   const [initIndex, setInitIndex] = useState(-1);
   const [index, setIndex] = useState(-1);
@@ -50,108 +50,118 @@ const Comments = ({ docsId, workspaceId }) => {
   const [internalMessage, setInternalMessage] = useState(''); // 내부 저장 메시지 형식: [닉네임:아이디]
   const [taggedUsers, setTaggedUsers] = useState([]); // 태그된 유저 리스트
 
-  const accessToken = getToken();
   const { userId } = useAuthStore();
+
+  // 소켓 관련 변수들
+  const { subscribe, publish, isConnected } = useWebSocket();
 
   // 초반 화면 렌더링 시 소켓 연결 + 최근 인덱스 불러오기
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
-    connect();
+    setMessages([]);
     indexMutation.mutate();
     findMyInfoMutation.mutate();
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+    }
     return () => {
-      stompClientRef.current.disconnect();
+      if (scrollContainer) scrollContainer.removeEventListener('scroll', handleScroll);
       document.removeEventListener('click', handleClickOutside);
     };
-  }, []);
+  }, [docsId]);
+
+  useEffect(() => {
+    document.removeEventListener('click', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+  }, [docsId, showUser, showDeleteModal, showOptionsDropdown, showDropdown]);
 
   // 최근 인덱스 호출 완료 -> 코멘트들 불러오기
   useEffect(() => {
-    if (initIndex !== -1) findInitMutation.mutate();
+    if (initIndex !== -1) {
+      findInitMutation.mutate();
+    }
   }, [initIndex]);
 
   // 드롭다운 바깥 선택 시 꺼지는 함수
-  const handleClickOutside = (event) => {
-    if (setRef.current && !setRef.current.contains(event.target)) {
-      setShowOptionsDropdown(false);
-    }
-    if (deleteRef.current && !deleteRef.current.contains(event.target)) {
-      setShowDeleteModal(false);
-    }
-    if (infoRef.current && !infoRef.current.contains(event.target)) {
-      setShowUser(false);
-    }
-  };
+  const handleClickOutside = useCallback(
+    (event) => {
+      if (setRef.current && !setRef.current.contains(event.target)) {
+        setShowOptionsDropdown(false);
+      }
+      if (deleteRef.current && !deleteRef.current.contains(event.target)) {
+        setShowDeleteModal(false);
+      }
+      if (infoRef.current && !infoRef.current.contains(event.target)) {
+        setShowUser(false);
+      }
+      if (userSuggestionRef.current && !userSuggestionRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    },
+    [setRef, deleteRef, infoRef, userSuggestionRef] // 필요한 경우 의존성 추가
+  );
 
   // 소켓 연결 함수
-  const connect = () => {
-    // accessToken을 URL에 포함
-    const socket = new SockJS(`https://k11b305.p.ssafy.io/ws/ws-stomp?accessToken=${accessToken}`);
-    stompClientRef.current = Stomp.over(socket); // stompClientRef에 STOMP client를 저장
+  useEffect(() => {
+    if (isConnected) {
+      const subScriptionPath = `/ws/sub/docs/${docsId}/comments/user/${userId}/message`;
 
-    stompClientRef.current.connect(
-      {},
-      (frame) => {
-        console.log('Connected:', JSON.stringify(frame.headers));
+      const subscription = subscribe(subScriptionPath, (parsedData) => {
+        console.log(parsedData);
+        const { type, message: receivedMessage } = parsedData;
 
-        // 구독 시작
-        stompClientRef.current.subscribe(`/ws/sub/docs/${docsId}/comments`, (message) => {
-          const parsedData = JSON.parse(message.body); // message.body 파싱 한 번만 실행
-          const { type, message: receivedMessage } = parsedData;
-
-          console.log('Received data:', parsedData);
-          console.log('Message type:', type);
-
-          if (type === 'ADD') {
-            console.log('ADD 성공');
+        switch (type) {
+          case 'ADD':
             if (receivedMessage) {
               setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
             }
-          } else if (type === 'UPDATE') {
+            break;
+          case 'UPDATE':
             if (receivedMessage) {
               setMessages((prevMessages) =>
                 prevMessages.map((msg) => (msg.commentId === receivedMessage.commentId ? receivedMessage : msg))
               );
             }
-          } else if (type === 'DELETE') {
-            if (receivedMessage && receivedMessage) {
+            break;
+          case 'DELETE':
+            if (receivedMessage) {
               setMessages((prevMessages) => prevMessages.filter((msg) => msg.commentId !== receivedMessage));
             }
-          }
-        });
-      },
-      (error) => {
-        console.error('Connection error:', error);
-      }
-    );
+            break;
+          default:
+            console.warn(`Unhandled message type: ${type}`);
+        }
+      });
 
-    // 디버그 메시지 출력 설정
-    stompClientRef.current.debug = (str) => {
-      console.log(str);
-    };
-
-    // STOMP 오류 핸들링
-    stompClientRef.current.onStompError = (frame) => {
-      console.error('STOMP error:', frame);
-    };
-  };
+      // 컴포넌트 언마운트 시에만 해제되도록 설정
+      return () => {
+        if (subscription) {
+          subscription.unsubscribe();
+        }
+      };
+    }
+  }, [isConnected, docsId]); // workspaceId와 subscribe는 필요하지 않으므로 의존성 배열에서 제거
 
   // 리액트 쿼리 호출 함수들
 
   // 채팅 최근 인덱스
   const indexMutation = useMutation(() => findIndex(docsId), {
     onSuccess: (response) => {
-      if (response !== undefined) setInitIndex(response);
+      if (response !== undefined) {
+        setInitIndex(response);
+      }
     },
 
     onError: (error) => console.error('Index fetch error:', error),
   });
 
   // 처음 메세지 불러오기
-  const findInitMutation = useMutation(() => findComments(initIndex, 5, docsId), {
+  const findInitMutation = useMutation(() => findInitComments(initIndex, 6, docsId), {
     onSuccess: (response) => {
-      setMessages((prevMessages) => [...prevMessages, ...response]);
-      setIndex(Math.min(...response.map((message) => message.id)));
+      setMessages(response);
+      setIndex(Math.min(...response.map((message) => message.commentId)));
+      console.log(response);
     },
     onError: (error) => console.error('Find comments error:', error),
   });
@@ -160,17 +170,14 @@ const Comments = ({ docsId, workspaceId }) => {
   const findMutation = useMutation(() => findComments(index, 5, docsId), {
     onSuccess: (response) => {
       setMessages((prevMessages) => [...prevMessages, ...response]);
-      setIndex(Math.min(...response.map((message) => message.id)));
+      setIndex(Math.min(...response.map((message) => message.commentId)));
     },
     onError: (error) => console.error('Find comments error:', error),
   });
 
-  console.log(messages);
-
   // 유저 태그 시 유저 정보 불러오기
   const findUserMutation = useMutation(({ searchQuery, startIndex, endIndex }) => findUsers(workspaceId, searchQuery), {
     onSuccess: (response, variables) => {
-      console.log('Received searchQuery:', variables.searchQuery); // variables.searchQuery로 접근
       setUserSuggestions({
         startIndex: variables.startIndex,
         endIndex: variables.endIndex,
@@ -262,8 +269,6 @@ const Comments = ({ docsId, workspaceId }) => {
         endIndex = spaceIndex;
       }
 
-      console.log('추출된 태그 검색어:', searchQuery);
-
       if (searchQuery) {
         findUserMutation.mutate({
           searchQuery: searchQuery,
@@ -274,9 +279,10 @@ const Comments = ({ docsId, workspaceId }) => {
         const { top, left } = textarea.getBoundingClientRect();
         const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
         setDropdownPosition({
-          top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
+          top: top - containerTop + scrollContainerRef.current.scrollTop - 80,
           left: left - containerLeft + scrollContainerRef.current.scrollLeft,
         });
+
         setShowDropdown(true);
       } else {
         setShowDropdown(false);
@@ -306,14 +312,11 @@ const Comments = ({ docsId, workspaceId }) => {
 
   // 3. 메시지 전송 함수
   const handleSave = () => {
-    if (stompClientRef.current && stompClientRef.current.connected && sendContent) {
+    if (isConnected && sendContent) {
       const parsedMessage = parseMessage(sendContent);
-      stompClientRef.current.publish({
-        destination: `/ws/pub/docs/${docsId}/comments`,
-        body: JSON.stringify({
-          type: 'ADD',
-          message: parsedMessage,
-        }),
+      publish(`/ws/pub/docs/${docsId}/comments`, {
+        type: 'ADD',
+        message: parsedMessage,
       });
       setSendContent('');
       setInternalMessage('');
@@ -346,8 +349,6 @@ const Comments = ({ docsId, workspaceId }) => {
         searchQuery = content.slice(closestAtIndex + 1, spaceIndex);
         endIndex = spaceIndex;
       }
-
-      console.log('추출된 태그 검색어:', searchQuery);
 
       if (searchQuery) {
         findUserMutation.mutate({
@@ -391,19 +392,14 @@ const Comments = ({ docsId, workspaceId }) => {
 
   // 3. 수정 전송 함수
   const handleSaveEdit = () => {
-    if (stompClientRef.current && stompClientRef.current.connected && editContent) {
-      console.log('수정2', editContent);
+    if (isConnected && editContent) {
       const parsedMessage = parseEditMessage(editContent);
-      console.log(parsedMessage);
-      stompClientRef.current.publish({
-        destination: `/ws/pub/docs/${docsId}/comments`,
-        body: JSON.stringify({
-          type: 'UPDATE',
-          message: {
-            commentId: editingMessageId,
-            message: parsedMessage,
-          },
-        }),
+      publish(`/ws/pub/docs/${docsId}/comments`, {
+        type: 'UPDATE',
+        message: {
+          commentId: editingMessageId,
+          message: parsedMessage,
+        },
       });
       setEditContent('');
       setTaggedUsers([]);
@@ -412,31 +408,17 @@ const Comments = ({ docsId, workspaceId }) => {
     }
   };
 
+  // 4. 수정 창 포커싱 잃었을 때 호출하는 함수
+  const handleBlurWithTimeout = () => {
+    setTimeout(() => {
+      handleSaveEdit(); // 저장 호출
+    }, 100); // 짧은 지연 시간 설정
+  };
+
   // 더보기 아이콘 (수정/삭제) 클릭
   const handleMoreIconClick = (e, messageId) => {
     e.stopPropagation();
     setSelectedMessageId(messageId); // 선택된 메시지 ID 설정
-
-    const iconRect = e.currentTarget.getBoundingClientRect();
-    const containerRect = scrollContainerRef.current.getBoundingClientRect();
-
-    const calculatedTop = iconRect.top - containerRect.top + 75;
-    const calculatedLeft = iconRect.left - containerRect.left + 20;
-
-    const dropdownHeight = 15;
-    const dropdownWidth = 50;
-
-    let adjustedTop = calculatedTop;
-    let adjustedLeft = calculatedLeft;
-
-    if (adjustedTop + dropdownHeight > scrollContainerRef.current.clientHeight) {
-      adjustedTop = calculatedTop - dropdownHeight - e.currentTarget.offsetHeight - 5;
-    }
-    if (adjustedLeft + dropdownWidth > scrollContainerRef.current.clientWidth) {
-      adjustedLeft = scrollContainerRef.current.clientWidth - dropdownWidth - 10;
-    }
-
-    setOptionsDropdownPosition({ top: adjustedTop, left: adjustedLeft });
     setShowOptionsDropdown(!showOptionsDropdown);
   };
 
@@ -469,7 +451,6 @@ const Comments = ({ docsId, workspaceId }) => {
   // 1. 수정 버튼 -> 수정 시작 시 호출되는 함수
   const handleEditClick = () => {
     const messageToEdit = messages.find((msg) => msg.commentId === selectedMessageId);
-    console.log(messageToEdit);
     if (messageToEdit) {
       setEditingMessageId(selectedMessageId);
 
@@ -493,6 +474,7 @@ const Comments = ({ docsId, workspaceId }) => {
   // 2. 수정 취소 시 상태 초기화
   const handleCancelEdit = () => {
     setEditingMessageId(null);
+    setSelectedMessageId(null);
     setEditContent('');
   };
 
@@ -507,32 +489,33 @@ const Comments = ({ docsId, workspaceId }) => {
   // 2. 삭제 취소
   const handleCancelDelete = () => {
     setShowDeleteModal(false);
+    setSelectedMessageId(null);
   };
 
   // 3. 삭제 클릭 시
   const deleteComment = (e) => {
     e.stopPropagation();
     const deleteTargetId = messages.find((msg) => msg.commentId === selectedMessageId);
-    stompClientRef.current.publish({
-      destination: `/ws/pub/docs/${docsId}/comments`,
-      body: JSON.stringify({
-        type: 'DELETE',
-        message: deleteTargetId.commentId,
-      }),
+    publish(`/ws/pub/docs/${docsId}/comments`, {
+      type: 'DELETE',
+      message: deleteTargetId.commentId,
     });
     setShowDeleteModal(false);
+    setSelectedMessageId(null);
   };
 
   // 스크롤 감지 후 무한 스크롤 데이터 로딩
-  const handleScroll = () => {
+  const handleScroll = throttle(() => {
     const scrollContainer = scrollContainerRef.current;
     if (
       scrollContainer &&
       scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 1
     ) {
-      if (index > 1) findMutation.mutate();
+      if (index > 1) {
+        findMutation.mutate();
+      }
     }
-  };
+  }, 300); // 300ms 간격으로 호출
 
   // 무한 스크롤시 스크롤 감지
   useEffect(() => {
@@ -545,236 +528,236 @@ const Comments = ({ docsId, workspaceId }) => {
     };
   }, [handleScroll]);
 
-  // 태그된 유저 정보 확인
   const showUserInfo = (e, nickname, profileImage, userId) => {
     e.stopPropagation(); // 이벤트 전파 중단
 
-    // `e`와 `e.target`이 존재하는지 확인
-    if (!e || !e.target) {
+    if (!e || !e.target || !scrollContainerRef.current) {
       console.error('이벤트 또는 이벤트 타겟이 정의되지 않았습니다.');
       return;
     }
 
-    console.log('정보 뜰 준비 완!');
-
     const targetElement = e.target;
 
-    // `targetElement`가 `span`인지 확인하고 `scrollContainerRef.current`가 존재하는지 확인
-    if (targetElement.tagName === 'SPAN' && scrollContainerRef.current) {
-      const { top, left } = targetElement.getBoundingClientRect();
-      const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
+    // `targetElement`의 위치를 가져와 드롭다운 위치 계산
+    const { top, left } = targetElement.getBoundingClientRect();
+    const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
 
-      setUser({
-        userId: userId,
-        nickname: nickname,
-        profileImage: profileImage,
-      });
+    setUser({
+      userId,
+      nickname,
+      profileImage,
+    });
 
-      // 부모 컨테이너 기준으로 상대 위치를 계산
-      setDropdownPosition({
-        top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
-        left: left - containerLeft + scrollContainerRef.current.scrollLeft,
-      });
-      setShowUser(true);
-    } else {
-      console.error('targetElement가 span이 아니거나 scrollContainerRef가 초기화되지 않았습니다.');
-    }
+    setDropdownPosition({
+      top: top - containerTop - 85, // 30px 상단 여백 추가
+      left: left - containerLeft - 60,
+    });
+
+    setShowUser(true); // 드롭다운 표시
   };
 
   return (
-    <div
-      ref={scrollContainerRef}
-      className='mt-5 w-full h-[calc(100vh-255px)] bg-white flex flex-col justify-start pt-5 pb-24 overflow-y-auto box-border sidebar-scrollbar'
-    >
-      <div className='flex flex-col space-y-4 flex-grow'>
-        {messages.map((message) => (
-          <div key={message.commentId} className='flex flex-col'>
-            <div className={`flex ${message.isHost ? 'justify-end' : 'justify-start'}`}>
-              {!message.isHost && (
-                <img
-                  className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain'
-                  src={message?.writerProfileImage}
-                  alt='Profile'
-                />
-              )}
-              <div
-                className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#E9F2F5] ${
-                  message.isHost ? 'ml-auto text-right' : 'text-left'
-                }`}
-              >
-                <div className={`flex ${message.isHost ? 'justify-between' : 'justify-between'} items-center`}>
-                  {message.isHost ? (
-                    <>
-                      <FaEllipsisH
-                        className='mt-1 ml-2 cursor-pointer'
-                        onClick={(e) => handleMoreIconClick(e, message.commentId)}
-                      />
-                      <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
-                    </>
-                  ) : (
-                    <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
-                  )}
-                </div>
-                {editingMessageId === message.commentId ? (
-                  <div className='text-xl my-1 mx-2'>
-                    <textarea
-                      value={editContent}
-                      onInput={handleEditInput}
-                      onKeyDown={handleKeyDownSend}
-                      className='w-full p-1 rounded-md border border-gray-300 resize-none overflow-hidden'
-                      style={{ height: 'auto' }}
-                    />
-                    <button onClick={() => handleSaveEdit()} className='text-blue-500 font-bold mt-2 mr-3'>
-                      저장
-                    </button>
-                    <button onClick={() => handleCancelEdit()} className='text-blue-500 font-bold mt-2'>
-                      취소
-                    </button>
-                  </div>
-                ) : (
-                  <div className='text-lg my-1 mx-2' style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                    {message.comment.map((part, index) =>
-                      part.type === 'TEXT' ? (
-                        <span key={index} style={{ display: 'inline' }}>
-                          {part.value}
-                        </span>
-                      ) : (
-                        <span
-                          key={index}
-                          className='font-bold text-blue-500 cursor-pointer'
-                          style={{ display: 'inline' }}
-                          onClick={(e) =>
-                            showUserInfo(e, part.value.nickname, part.value.profileImage, part.value.userId)
-                          } // 래퍼 함수로 감싸기
-                        >
-                          @{part.value.nickname}
-                        </span>
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
-              {message.isHost && (
-                <img
-                  className='w-[40px] h-[40px] rounded-full mr-5 ml-3 object-contain'
-                  src={message?.writerProfileImage}
-                  alt='Profile'
-                />
-              )}
-            </div>
-            <div className={`flex ${message.isHost ? 'justify-end mr-[72px]' : 'justify-start ml-[72px]'}`}>
-              <span className='text-sm mx-1'>
-                {new Date(message.createdDate).toLocaleString('ko-KR', {
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
-            </div>
-          </div>
-        ))}
-        <div className='absolute bottom-10'>
-          <div className='flex flex-row w-full rounded-[10px] ml-6 bg-[#E9F2F5] p-3'>
-            <img
-              className='w-[40px] h-[40px] rounded-full mr-3 object-contain'
-              src={myInfo?.profileImage}
-              alt='Profile'
-            />
-            <textarea
-              ref={textareaRef}
-              className='text-xl pt-2 bg-transparent w-full flex-grow resize-none overflow-hidden'
-              rows='1'
-              placeholder='코멘트 입력'
-              onInput={handleInput}
-              onKeyDown={handleKeyDownSend}
-              value={sendContent}
-            ></textarea>
-            <BsSend onClick={handleSave} className='mt-1 text-4xl ml-1' />
-          </div>
+    <div className='relative w-full h-[calc(100vh-200px)] bg-white dark:bg-dark-background mt-3'>
+      {/* 입력 영역 (상단 고정) */}
+      <div className='absolute w-50 bg-[#E9F2F5] ml-5 mr-5 z-10 bottom-0 bg-transparent'>
+        <div className='flex flex-row w-full rounded-[10px] mx-6 bg-[#E9F2F5] p-4'>
+          <textarea
+            ref={textareaRef}
+            className='text-xl pt-2 bg-transparent w-full flex-grow resize-none overflow-hidden'
+            rows='1'
+            placeholder='코멘트 입력'
+            onInput={handleInput}
+            onKeyDown={handleKeyDownSend}
+            value={sendContent}
+          ></textarea>
+          <BsSend onClick={handleSave} className='mt-1 text-4xl ml-1' />
         </div>
       </div>
-      {showOptionsDropdown && (
-        <ul
-          style={{
-            top: `${optionsDropdownPosition.top}px`,
-            left: `${optionsDropdownPosition.left}px`,
-          }}
-          ref={setRef}
-          className='absolute bg-[#EDF7FF] border border-gray-300 w-20 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
-        >
-          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleEditClick}>
-            수정
-          </li>
-          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleDeleteClick}>
-            삭제
-          </li>
-        </ul>
-      )}
-      {showDeleteModal && (
-        <ul
-          style={{
-            top: `${optionsDropdownPosition.top}px`,
-            left: `${optionsDropdownPosition.left}px`,
-          }}
-          ref={deleteRef}
-          className='absolute bg-[#EDF7FF] border border-gray-300 w-60 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
-        >
-          <li className='p-2 text-center'>정말 삭제하시겠습니까?</li>
-          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={deleteComment}>
-            삭제
-          </li>
-          <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleCancelDelete}>
-            취소
-          </li>
-        </ul>
-      )}
-      {showDropdown && userSuggestions.response && userSuggestions.response.length > 0 && (
-        <ul
-          style={{
-            position: 'absolute',
-            top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`,
-          }}
-          className='bg-[#EDF7FF] border border-gray-300 w-56 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
-        >
-          {userSuggestions.response.map((user) => (
-            <li
-              key={user.userId}
-              onClick={() => handleUserClick(user.nickname, user.userId)}
-              className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center'
-            >
+      {/* 스크롤 가능한 메시지 영역 */}
+      <div
+        ref={scrollContainerRef}
+        className='w-full h-full overflow-y-auto flex flex-col space-y-4 pt-3 sidebar-scrollbar pb-[100px]'
+      >
+        <div className='flex flex-col space-y-4 flex-grow'>
+          {messages.map((message) => (
+            <div key={message.commentId} className='flex flex-col'>
+              <div className={`flex ${message.isHost ? 'justify-end' : 'justify-start'}`}>
+                {!message.isHost && (
+                  <img
+                    className='w-[40px] h-[40px] rounded-full mr-3 ml-5 object-contain'
+                    src={message?.writerProfileImage}
+                    alt='Profile'
+                  />
+                )}
+                <div
+                  className={`relative w-[240px] h-auto p-2 mt-3 rounded-[10px] bg-[#E9F2F5] ${
+                    message.isHost ? 'ml-auto text-right' : 'text-left'
+                  }`}
+                >
+                  <div className={`flex ${message.isHost ? 'justify-between' : 'justify-between'} items-center`}>
+                    {message.isHost ? (
+                      <>
+                        <FaEllipsisH
+                          className='mt-1 ml-2 cursor-pointer'
+                          onClick={(e) => handleMoreIconClick(e, message.commentId)}
+                        />
+                        {showOptionsDropdown && message.commentId === selectedMessageId && (
+                          <ul
+                            ref={setRef}
+                            style={{
+                              top: `${optionsDropdownPosition.top + 10}px`, // 기존 위치에서 10px 아래로 조정
+                              left: `${optionsDropdownPosition.left}px`,
+                            }}
+                            className='absolute bg-[#EDF7FF] border border-gray-300 w-20 max-h-60 
+                          rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
+                          >
+                            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleEditClick}>
+                              수정
+                            </li>
+                            <li
+                              className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center'
+                              onClick={handleDeleteClick}
+                            >
+                              삭제
+                            </li>
+                          </ul>
+                        )}
+                        {showDeleteModal && message.commentId === selectedMessageId && (
+                          <ul
+                            style={{
+                              top: `${optionsDropdownPosition.top + 15}px`,
+                              left: `${optionsDropdownPosition.left}px`,
+                            }}
+                            ref={deleteRef}
+                            className='absolute bg-[#EDF7FF] border border-gray-300 w-60 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
+                          >
+                            <li className='p-2 text-center'>정말 삭제하시겠습니까?</li>
+                            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={deleteComment}>
+                              삭제
+                            </li>
+                            <li
+                              className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center'
+                              onClick={handleCancelDelete}
+                            >
+                              취소
+                            </li>
+                          </ul>
+                        )}
+                        <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
+                      </>
+                    ) : (
+                      <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
+                    )}
+                  </div>
+                  {editingMessageId === message.commentId ? (
+                    <div className='text-xl my-1 mx-2'>
+                      <textarea
+                        value={editContent}
+                        onInput={handleEditInput}
+                        onKeyDown={handleKeyDownSend}
+                        onBlur={handleBlurWithTimeout}
+                        className='w-full p-1 rounded-md border border-gray-300 resize-none overflow-hidden'
+                        style={{ height: 'auto' }}
+                      />
+                      <button onClick={() => handleSaveEdit()} className='text-blue-500 font-bold mt-2 mr-3'>
+                        저장
+                      </button>
+                      <button onClick={() => handleCancelEdit()} className='text-blue-500 font-bold mt-2'>
+                        취소
+                      </button>
+                    </div>
+                  ) : (
+                    <div className='text-lg my-1 mx-2' style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                      {message.comment.map((part, index) =>
+                        part.type === 'TEXT' ? (
+                          <span key={index} style={{ display: 'inline' }}>
+                            {part.value}
+                          </span>
+                        ) : (
+                          <span
+                            key={index}
+                            className='font-bold text-blue-500 cursor-pointer'
+                            style={{ display: 'inline' }}
+                            onClick={(e) =>
+                              showUserInfo(e, part.value.nickname, part.value.profileImage, part.value.userId)
+                            } // 래퍼 함수로 감싸기
+                          >
+                            @{part.value.nickname}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+                {message.isHost && (
+                  <img
+                    className='w-[40px] h-[40px] rounded-full mr-5 ml-3 object-contain'
+                    src={message?.writerProfileImage}
+                    alt='Profile'
+                  />
+                )}
+              </div>
+              <div className={`flex ${message.isHost ? 'justify-end mr-[72px]' : 'justify-start ml-[72px]'}`}>
+                <span className='text-sm mx-1'>
+                  {new Date(message.createdDate).toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        {showDropdown && userSuggestions.response && userSuggestions.response.length > 0 && (
+          <ul
+            style={{
+              position: 'absolute',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+            }}
+            ref={userSuggestionRef}
+            className='bg-[#EDF7FF] border border-gray-300 w-56 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
+          >
+            {userSuggestions.response.map((user) => (
+              <li
+                key={user.userId}
+                onClick={() => handleUserClick(user.nickname, user.userId)}
+                className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center'
+              >
+                <img
+                  className='w-[50px] h-[50px] rounded-full mr-5 ml-3 object-contain'
+                  src={user.profileImage || ''}
+                  alt='Profile'
+                />
+                {user.nickname}
+              </li>
+            ))}
+          </ul>
+        )}
+        {showUser && user && (
+          <ul
+            style={{
+              position: 'absolute',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+            }}
+            className='bg-[#EDF7FF] border border-gray-300 w-36 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
+            ref={infoRef}
+          >
+            <li key={user.userId} className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center'>
               <img
                 className='w-[50px] h-[50px] rounded-full mr-5 ml-3 object-contain'
-                src={user.profileImage || User2}
+                src={user.profileImage || ''}
                 alt='Profile'
               />
               {user.nickname}
             </li>
-          ))}
-        </ul>
-      )}
-      {showUser && user && (
-        <ul
-          style={{
-            position: 'absolute',
-            top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`,
-          }}
-          className='bg-[#EDF7FF] border border-gray-300 w-36 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
-          ref={infoRef}
-        >
-          <li key={user.userId} className='p-2 hover:bg-[#D7E9F4] cursor-pointer flex flex-row items-center'>
-            <img
-              className='w-[50px] h-[50px] rounded-full mr-5 ml-3 object-contain'
-              src={user.profileImage || User2}
-              alt='Profile'
-            />
-            {user.nickname}
-          </li>
-        </ul>
-      )}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };

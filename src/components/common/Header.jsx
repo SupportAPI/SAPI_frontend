@@ -71,7 +71,7 @@ const Header = () => {
 
   return (
     <header className='w-full h-16 bg-[#F0F5F8]/50 text-[#666666] flex items-center px-12 justify-between relative border-b select-none dark:bg-dark-background dark:text-dark-text'>
-      <h1 className='text-2xl font-bold' onClick={handleMain}>
+      <h1 className='text-2xl font-bold cursor-pointer' onClick={handleMain}>
         Support API
       </h1>
 
@@ -92,12 +92,12 @@ const Header = () => {
           )}
         </div>
         {isWorkspaceDropdownOpen && (
-          <div className='absolute left-0 mt-2 w-48 bg-white text-[#666666] shadow-lg max-h-48 overflow-y-auto sidebar-scrollbar z-50 rounded-lg dark:bg-dark-background dark:text-dark-text'>
+          <div className='absolute mt-2 w-48 bg-white text-[#666666] shadow-lg max-h-48 overflow-y-auto sidebar-scrollbar z-50 rounded-lg dark:bg-dark-background dark:text-dark-text'>
             <ul>
               {filteredWorkspaces.map((workspace) => (
                 <li
                   key={workspace.id}
-                  className='px-4 py-2 hover:bg-gray-200 cursor-pointer'
+                  className='px-4 py-2 hover:bg-gray-200 cursor-pointer truncate'
                   onClick={() => handleWorkspaceSelect(workspace.id)}
                 >
                   {workspace.projectName}
