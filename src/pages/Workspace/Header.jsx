@@ -47,6 +47,23 @@ const Header = ({ onSettingsClick }) => {
 
   // const navigate = useNavigate();
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setProfileDropdownOpen(false);
+        setIsNotificationOpen(false);
+        setProfileDropdownOpen(false);
+        onSettingsClick('2');
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   return (
     <header className='w-full h-16 bg-[#f7fafb] text-[#666666] flex items-center px-12 justify-between relative border-b select-none dark:bg-dark-background dark:text-dark-text'>
       <h1 className='text-2xl font-bold'>Support API</h1>
@@ -66,7 +83,12 @@ const Header = ({ onSettingsClick }) => {
         </div>
 
         {/* 설정에 대한 아이콘 */}
-        <FaCog className='text-2xl cursor-pointer' onClick={onSettingsClick} />
+        <FaCog
+          className='text-2xl cursor-pointer'
+          onClick={() => {
+            onSettingsClick('1');
+          }}
+        />
 
         {/* 프로필 아이콘 및 드롭다운 */}
         <div className='relative ' ref={profileRef}>

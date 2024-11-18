@@ -125,9 +125,7 @@ export const InviteMember = async (requestData) => {
 export const useInviteMember = () => {
   return useMutation((requestData) => InviteMember(requestData), {
     refetchOnWindowFocus: false,
-    onSuccess: () => {
-      toast.success('초대가 완료되었습니다.'); // 성공 메시지
-    },
+    onSuccess: () => {},
     onError: (error) => {
       console.error('초대 실패:', error);
       toast.error(`초대에 실패했습니다. 다시 시도해 주세요.`); // 실패 메시지
