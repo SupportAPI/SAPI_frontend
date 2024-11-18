@@ -69,35 +69,29 @@ export const userEmailDuplication = async (email) => {
 };
 
 // React Query 훅 : 유저 이메일 중복 여부 확인
-export const useUserEmailDuplication = (email) => {
-  return useQuery(['isDuplication', email], () => userEmailDuplication(email), {
-    enabled: !!email, // email이 존재할 때만 실행
-  });
+export const useUserEmailDuplication = () => {
+  return useMutation((email) => userEmailDuplication(email));
 };
 
 // 4. 이메일 인증 코드 발송
 export const userAuthentication = async (email) => {
-  const response = await axiosInstance.post(`/api/emails/authentication`, {
-    email,
-  });
-  return response.data.data;
+  const response = await axiosInstance.post(`/api/users/send-code`, { email });
+  return response.data.success;
 };
-
 // React Query 훅 : 유저 이메일 인증 코드 발송
 export const useUserAuthentication = () => {
   return useMutation((email) => userAuthentication(email));
 };
 
-// 5. 이메일 검증 여부 확인
+// 5. 이메일 검증 코드 확인
 export const userEmailConfirm = async (email, code) => {
-  const response = await axiosInstance.post(`/api/emails/confirm`, {
-    email,
-    code,
+  const response = await axiosInstance.post(`/api/users/verify-code`, {
+    email: email,
+    code: code,
   });
-  return response.data.data;
+  return response.data.success;
 };
-
-// React Query 훅 : 유저 이메일 검증 (mutate 사용)
+// React Query 훅 : 이메일 검증 코드 확인
 export const useUserEmailConfirm = () => {
   return useMutation(({ email, code }) => userEmailConfirm(email, code));
 };
