@@ -4,7 +4,7 @@ import SettingThemee from '../Settings/SettingTheme';
 import SettingInvitation from '../Settings/SettingInvitation';
 import { IoClose } from 'react-icons/io5';
 
-const Settings = ({ onClose }) => {
+const Settings = ({ onClose, refetchWorkspaces }) => {
   // 어떤 컴포넌트를 불러올지 관리
   const [changeComponent, setChangeComponent] = useState(<UserComponent />);
   const [activeComponent, setActiveComponent] = useState('User');
@@ -65,7 +65,9 @@ const Settings = ({ onClose }) => {
                       ? 'bg-blue-100 dark:bg-gray-600 font-bold'
                       : 'hover:bg-blue-100 dark:hover:bg-gray-700'
                   } border-none rounded-xl`}
-                  onClick={() => handleComponentChange(<SettingInvitation />, 'Invitation')}
+                  onClick={() =>
+                    handleComponentChange(<SettingInvitation refetchWorkspaces={refetchWorkspaces} />, 'Invitation')
+                  }
                 >
                   Invitation
                 </button>

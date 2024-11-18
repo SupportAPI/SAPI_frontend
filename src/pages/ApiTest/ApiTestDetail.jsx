@@ -3,7 +3,8 @@ import { IoCopyOutline, IoCopy } from 'react-icons/io5';
 import { FaSave } from 'react-icons/fa';
 import 'react-resizable/css/styles.css';
 import ApiTestParameters from './ApiTestParameters';
-import ApiTestBody from './APitestBody';
+import ApiTestRequestBody from './ApiTestRequestBody';
+import ApiTestResponseBody from './ApiTestResponseBody';
 import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useSidebarStore } from '../../stores/useSidebarStore';
 import { useTabStore } from '../../stores/useTabStore';
@@ -19,7 +20,6 @@ import {
 import { toast } from 'react-toastify';
 import { useMutation } from 'react-query';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
-import ApiTestResponse from './APItestResponse';
 
 const ApiTestDetail = () => {
   const { workspaceId, apiId } = useParams();
@@ -244,7 +244,7 @@ const ApiTestDetail = () => {
       case 'Parameters':
         return <ApiTestParameters initialValues={apiDetail?.parameters || []} paramsChange={handleParamsChange} />;
       case 'Body':
-        return <ApiTestBody body={apiDetail?.request || []} bodyChange={handleBodyChange} />;
+        return <ApiTestRequestBody body={apiDetail?.request || []} bodyChange={handleBodyChange} />;
       default:
         return null;
     }
@@ -465,7 +465,7 @@ const ApiTestDetail = () => {
               Response
             </div>
             {testResult ? (
-              <ApiTestResponse initialData={testResult} />
+              <ApiTestResponseBody initialData={testResult} />
             ) : (
               <div className='flex justify-center items-center h-[200px] text-m'>Could not send request</div>
             )}

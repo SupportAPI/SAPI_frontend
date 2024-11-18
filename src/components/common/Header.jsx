@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFetchWorkspaces } from '../../api/queries/useWorkspaceQueries';
 import Alarm from './Alarm';
 import Settings from '../../pages/Settings/Settings';
-import useAuthStore from '../../stores/useAuthStore'; // useAuthStore 가져오기
+import useAuthStore from '../../stores/useAuthStore'; // useAuthStore 가져오기..
 import { useAlarmStore } from '../../stores/useAlarmStore';
 import { useFetchWorkspacesDetail } from '../../api/queries/useWorkspaceQueries';
 import { useTabStore } from '../../stores/useTabStore';

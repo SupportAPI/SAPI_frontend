@@ -1,4 +1,4 @@
-// src/pages/WorkspaceSelection.js
+// src/pages/WorkspaceSelection.js .
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFetchWorkspaces, useDeleteWorkspace, useModifiedWorkspace } from '../../api/queries/useWorkspaceQueries';
@@ -17,7 +17,7 @@ import { SlOptions } from 'react-icons/sl';
 const WorkspaceSelection = () => {
   const navigate = useNavigate();
   const { removeAllTabs } = useTabStore();
-  const { data: workspaces, isLoading } = useFetchWorkspaces();
+  const { data: workspaces, isLoading, refetch: refetchWorkspaces } = useFetchWorkspaces();
   const [prograssTable, setPrograssTable] = useState([]);
   const [doneTable, setDoneTable] = useState([]);
   const [newworkspaceid, setNewWorkSpaceId] = useState('');
@@ -236,6 +236,10 @@ const WorkspaceSelection = () => {
     setIsModalOpen(false); // 모달 닫기
   };
 
+  useEffect(() => {
+    refetchWorkspaces();
+  }, [isModalOpen]);
+
   // 로딩 중인 경우 로딩 메시지 표시
   if (isLoading) {
     return <p>Loading workspaces...</p>;
@@ -284,7 +288,9 @@ const WorkspaceSelection = () => {
                 <InviteUser workspaceId={newworkspaceid} onClose={() => handleCloseModal()}></InviteUser>
               )}
               {/* Setting 모달 */}
-              {isOpenSetting && <Settings onClose={() => handleSettingsClick(2)} />}
+              {isOpenSetting && (
+                <Settings onClose={() => handleSettingsClick(2)} refetchWorkspaces={refetchWorkspaces} />
+              )}
               {isModalOpen && (
                 <CheckModal
                   modalTitle='워크스페이스 삭제 확인'

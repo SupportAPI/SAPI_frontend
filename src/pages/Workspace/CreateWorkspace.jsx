@@ -4,8 +4,8 @@ import { toast } from 'react-toastify';
 import { useCreateWorkspace } from '../../api/queries/useWorkspaceQueries';
 import TextInput from '../../components/common/TextInput';
 import { FiUpload } from 'react-icons/fi';
-
-const DEFAULT_IMAGE = '/src/assets/workspace/basic_image.png';
+import defaultImage from '../../assets/workspace/basic_image.png';
+const DEFAULT_IMAGE = defaultImage;
 
 const CreateWorkspace = ({ onComplete, onClose }) => {
   // 상태 관리
