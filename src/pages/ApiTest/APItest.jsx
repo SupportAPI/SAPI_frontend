@@ -39,7 +39,7 @@ const ApiTest = () => {
 
   useEffect(() => {
     if (!isLoading) {
-      const allSelected = dataTest.every((api) => selectedItems[api.apiId]);
+      const allSelected = Array.isArray(dataTest) && dataTest.every((api) => selectedItems[api.apiId]);
       setIsAllSelected(allSelected);
     }
   }, [selectedItems, dataTest, isLoading]);
@@ -108,9 +108,7 @@ const ApiTest = () => {
   const copyApiPath = (docId, path) => {
     navigator.clipboard.writeText(path).then(() => {
       setCopiedStatus((prev) => ({ ...prev, [docId]: true }));
-      console.log(path);
       toast('클립보드에 복사되었습니다.');
-
       setTimeout(() => {
         setCopiedStatus((prev) => ({ ...prev, [docId]: false }));
       }, 1000);
@@ -121,7 +119,8 @@ const ApiTest = () => {
 
   if (isLoading) return <div className='p-4'>Loading...</div>;
   if (error) return <div className='p-4'>Failed to load data.</div>;
-  if (!dataTest || dataTest.length === 0) return <div className='p-4'>No data available.</div>;
+  if (!Array.isArray(dataTest)) return <div className='p-4'>Invalid data format.</div>;
+  if (dataTest.length === 0) return <div className='p-4'>No data available.</div>;
 
   return (
     <div className='px-8 py-8 overflow-x-auto overflow-y-auto max-w-[1200px] dark:bg-dark-background dark:text-dark-text'>
@@ -203,7 +202,7 @@ const ApiTest = () => {
             </tr>
           </thead>
           <tbody>
-            {dataTest &&
+            {Array.isArray(dataTest) &&
               dataTest.map((api, index) => {
                 const isSelected = !!selectedItems[api.apiId];
                 const isDetailVisible = expandedDetails[api.apiId]; // 상세 표시 여부 확인
