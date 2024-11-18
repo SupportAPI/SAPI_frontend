@@ -158,7 +158,7 @@ const ApiOverview = () => {
         </div>
       )}
 
-      <div className='overflow-x-auto mx-auto border border-gray-300 rounded-lg'>
+      <div className='overflow-x-auto mx-auto border border-gray-300 rounded-sm'>
         <table className='w-full min-w-[1200px] table-fixed' style={{ borderSpacing: 0 }}>
           <thead>
             <tr className='bg-gray-100 h-12'>

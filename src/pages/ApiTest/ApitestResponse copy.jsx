@@ -52,16 +52,16 @@ const ApiTestResponse = ({ initialData }) => {
 
         return (
           <div className='flex'>
-            <div className='flex flex-col w-[50%] items-center'>
+            <div className='flex flex-col w-[50%]'>
               <p className='text-xl ml-1 mb-1'>MY RESPONSE</p>
-              <div className='border w-[600px] p-4 overflow-auto'>
-                <pre className=''>{parsedBody ? JSON.stringify(parsedBody, null, 2) : 'No data'}</pre>
+              <div className='border w-[50%] p-4'>
+                <pre className='overflow-x'>{parsedBody ? JSON.stringify(parsedBody, null, 2) : 'No data'}</pre>
               </div>
             </div>
-            <div className='flex flex-col w-[50%] items-center'>
+            <div className='flex flex-col w-[50%]'>
               <p className='text-xl ml-1 mb-1'>MOCK RESPONSE</p>
-              <div className='border w-[600px] p-4 overflow-auto'>
-                <pre className=''>{parsedMockBody ? JSON.stringify(parsedMockBody, null, 2) : 'No data'}</pre>
+              <div className='border w-[50%] p-4'>
+                <pre className='overflow-x'>{parsedMockBody ? JSON.stringify(parsedMockBody, null, 2) : 'No data'}</pre>
               </div>
             </div>
           </div>
@@ -121,7 +121,7 @@ const ApiTestResponse = ({ initialData }) => {
   return (
     <>
       {/* 테스트 결과 영역 */}
-      <div className='p-4 overflow-y-auto sidebar-scrollbar h-[400px] border'>
+      <div className='p-4 overflow-y-auto sidebar-scrollbar h-[400px]'>
         {/* 탭 네비게이션 */}
         <div className='flex mb-4 justify-between'>
           <div className='flex flex-row'>

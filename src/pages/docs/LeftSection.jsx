@@ -53,7 +53,7 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
       <div className='mb-4'>
         <div className='flex relative justify-between'>
           <label className='flex items-center text-[16px] font-semibold h-8'>Category & Name</label>
-          <div className='flex space-x-4'>
+          <div className='flex space-x-1'>
             <button
               onClick={handleSave}
               disabled={isSaving}

@@ -1,5 +1,7 @@
 import { useQuery, useQueryClient, useMutation } from 'react-query';
 import axiosInstance from '../axiosInstance';
+import { values } from 'lodash';
+import axios from 'axios';
 
 // 1. Api List 호출 (전체)
 export const fetchApiList = async (workspaceId) => {
@@ -34,32 +36,127 @@ export const patchApiDetail = async (workspaceId, apiId, apiTestDetails) => {
 };
 
 // 4. API TEST Request
-export const requestApiTestDetail = async (workspaceId, apiDetail, apiUrl) => {
-  console.log(apiDetail);
+export const requestRealServer = async (apiInfo, apiBaseUrl) => {
+  try {
+    // 기본 URL 설정 (path 변수와 query 파라미터 적용)
+    let apiPath = apiInfo.path;
+    const pathVariables = apiInfo.parameters.pathVariables || [];
+    pathVariables.forEach((variable) => {
+      const placeholder = `{${variable.key}}`;
+      apiPath = apiPath.replace(placeholder, variable.value);
+    });
 
-  // 기본 headers 객체
-  const headers = {
-    'Content-Type': 'application/json',
-  };
+    const queryParameters = apiInfo.parameters.queryParameters || [];
+    const queryString = queryParameters
+      .filter((param) => param.isChecked) // 체크된 파라미터만 사용
+      .map((param) => `${param.key}=${param.value}`)
+      .join('&');
 
-  // apiUrl이 null이 아니면 "sapi-local-host" 헤더 추가
-  if (apiUrl !== null) {
-    headers['sapi-local-host'] = apiUrl;
+    // 최종 URL 생성
+    const finalUrl = `${apiBaseUrl}${apiPath}${queryString ? `?${queryString}` : ''}`;
+    // const finalUrl = `http://192.168.0.229:8080${apiPath}${queryString ? `?${queryString}` : ''}`;
+
+    // 헤더 조합
+    const headers = {};
+    const headerParams = apiInfo.parameters.headers || [];
+    headerParams.forEach((header) => {
+      if (header.isChecked) {
+        headers[header.key] = header.value;
+      }
+    });
+
+    // 쿠키 처리
+    const cookies = apiInfo.parameters.cookies || [];
+    const cookieString = cookies
+      .filter((cookie) => cookie.isChecked)
+      .map((cookie) => `${cookie.key}=${cookie.value}`)
+      .join('; ');
+    if (cookieString) {
+      headers['Cookie'] = cookieString;
+    }
+
+    // 바디 처리
+    let requestBody = null;
+    if (apiInfo.request.bodyType === 'JSON') {
+      requestBody = JSON.parse(apiInfo.request.json.value);
+    } else if (apiInfo.request.bodyType === 'FORM_DATA') {
+      const formData = new FormData();
+      apiInfo.request.formData.forEach((item) => {
+        if (item.isChecked) {
+          if (item.type === 'TEXT') {
+            formData.append(item.key, item.value);
+          } else if (item.type === 'FILE') {
+            const fileBlob = new Blob([item.file.fileName], { type: 'application/octet-stream' });
+            formData.append(item.key, fileBlob, item.file.fileName);
+          }
+        }
+      });
+      requestBody = formData;
+    }
+
+    // 요청 생성 및 전송
+    const axiosConfig = {
+      method: apiInfo.method,
+      url: finalUrl,
+      headers: headers,
+      data: requestBody,
+    };
+
+    const response = await axios(axiosConfig);
+    return response;
+  } catch (error) {
+    console.error('Error:', error.response ? error.response.data : error.message);
+    return error.response; // 호출 측에서 에러 처리를 할 수 있도록 재던짐
   }
-
-  // axios 요청
-  const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/request`, apiDetail, { headers });
-
-  return response.data.data;
 };
 
-export const useRequestApiTestDetail = (setTestResult) => {
-  const queryClient = useQueryClient();
-  return useMutation(({ workspaceId, apiDetail, apiUrl }) => requestApiTestDetail(workspaceId, apiDetail, apiUrl), {
-    onSuccess: (data) => {
-      setTestResult(data);
+export const useRequestRealServer = () => {
+  return useMutation(
+    async ({ apiInfo, apiBaseUrl }) => {
+      return await requestRealServer(apiInfo, apiBaseUrl);
+    },
+    {
+      onSuccess: (data) => {
+        return data;
+      },
+      onError: (error) => {
+        throw error;
+      },
+    }
+  );
+};
+
+// validateDocs 함수 수정
+export const validateDocs = async ({ workspaceId, docId, payload, type }) => {
+  const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/validate/${docId}`, payload, {
+    headers: {
+      'X-Test-Type': type,
     },
   });
+  return response.data;
+};
+
+export const useValidateDocs = () => {
+  return useMutation(
+    async ({ workspaceId, docId, payload, type }) => {
+      const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/validate/${docId}`, payload, {
+        headers: {
+          'X-Test-Type': type,
+        },
+      });
+      return response.data;
+    },
+    {
+      onSuccess: (data) => {
+        console.log('Validation 성공:', data);
+        return data;
+      },
+      onError: (error) => {
+        console.error('Validation 실패:', error);
+        throw error;
+      },
+    }
+  );
 };
 
 // 5. API TEST FILE 업로드

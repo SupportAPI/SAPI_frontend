@@ -119,10 +119,6 @@ const ApiTest = () => {
 
   // ----------------------------------------------------------------------------
 
-  if (isLoading) return <div className='p-4'>Loading...</div>;
-  if (error) return <div className='p-4'>Failed to load data.</div>;
-  if (!dataTest || dataTest.length === 0) return <div className='p-4'>No data available.</div>;
-
   return (
     <div className='px-8 py-8 overflow-x-auto overflow-y-auto max-w-[1200px] dark:bg-dark-background dark:text-dark-text'>
       <div className='flex justify-between items-baseline mb-4'>
@@ -180,7 +176,7 @@ const ApiTest = () => {
         </button>
       </div>
 
-      <div className='overflow-x-auto mx-auto border border-gray-300 rounded-lg'>
+      <div className='overflow-x-auto mx-auto border border-gray-300 rounded-sm'>
         <table className='w-full min-w-[900px] table-fixed' style={{ borderSpacing: 0 }}>
           <thead>
             <tr className='bg-gray-100 dark:bg-dark-background h-12'>

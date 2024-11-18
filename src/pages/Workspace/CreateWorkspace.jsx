@@ -95,7 +95,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
   return (
     <div className='fixed inset-0 flex justify-center items-center bg-black bg-opacity-30 z-50 overflow-auto'>
       <div
-        className='flex flex-col bg-white w-full max-w-2xl h-auto max-h-[90vh] border rounded-2xl dark:bg-dark-background'
+        className='flex flex-col bg-white w-full max-w-2xl h-auto max-h-[90vh] border rounded- dark:bg-dark-background'
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -118,10 +118,9 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
         </header>
 
         {/* 본문 */}
-        <div className='flex flex-col w-full p-6 pt-0 space-y-2 overflow-y-auto'>
+        <div className='flex flex-col w-full p-6 pt-0 space-y-8 overflow-y-auto'>
           {/* 이미지 업로드 */}
-          <div className='flex flex-col justify-center items-center relative space-y-0 mb-4'>
-            <h3 className='text-base font-medium text-gray-600 dark:text-dark-text'>Workspace Image</h3>
+          <div className='flex flex-col justify-center items-center relative my-4'>
             <div className='relative w-full max-w-[300px] aspect-[16/9] overflow-hidden border-2 border-gray-300 rounded-md shadow-sm'>
               <img src={previewImage} alt='Thumbnail Preview' className='object-cover w-full h-full' />
               <button
@@ -146,6 +145,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
             }}
             required
             error={projectNameError}
+            fixedLabel={true}
           />
 
           {/* 도메인 주소 입력 */}
@@ -160,6 +160,7 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
             required
             error={domainError}
             placeholder='k11b305.ssafy.p.io'
+            fixedLabel={true}
           />
 
           {/* 설명 입력 */}
@@ -171,14 +172,14 @@ const CreateWorkspace = ({ onComplete, onClose }) => {
               setDescription(e.target.value);
               setDescriptionError(''); // 입력 시 에러 초기화
             }}
-            helpText='최대 255글자까지 입력 가능합니다.'
             multiline={true}
             error={descriptionError}
+            fixedLabel={true}
           />
 
           {/* 생성 버튼 */}
           <button
-            className='bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-400'
+            className='bg-blue-400 w-[200px] mx-auto text-white py-4 px-4 rounded-lg hover:bg-blue-600'
             onClick={createWorkSpaceAPI}
           >
             Create

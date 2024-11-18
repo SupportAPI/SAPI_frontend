@@ -249,7 +249,7 @@ const ApiDocsSidebar = () => {
                         }}
                         onDoubleClick={() => handleApiDoubleClick(api.apiId)}
                       >
-                        <div className='pl-12 pr-4 py-2 text-[12px] flex justify-between items-center'>
+                        <div className='pl-12 pr-4 py-2 text-[14px] flex justify-between items-center'>
                           {api.name}
                           <BsThreeDots
                             className={`text-gray-500 hover:text-gray-700 cursor-pointer ${

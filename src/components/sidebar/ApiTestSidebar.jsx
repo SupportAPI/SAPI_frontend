@@ -154,7 +154,7 @@ const ApiTestSidebar = () => {
           onDoubleClick={handleAllApiDoubleClick}
         >
           <FaBars className='text-gray-500 dark:text-dark-text mr-2' />
-          <span className='text-lg font-semibold text-[#475467] dark:text-dark-text'>API Test</span>
+          <span className='text-[16px] font-semibold text-[#475467] dark:text-dark-text'>API Test</span>
         </div>
         <div className='flex space-x-2'>
           <BiExpandVertical

@@ -320,13 +320,6 @@ const ApiTestParameters = ({ body, bodyChange }) => {
 
       {bodyType === 'JSON' && (
         <div className='mb-4'>
-          <div className='flex justify-between items-center mb-4'>
-            <div className='font-bold text-sm'>JSON Body</div>
-            <button className='bg-blue-500 text-white px-4 py-2 rounded' onClick={handleFormDataChange}>
-              JSON 정렬
-            </button>
-          </div>
-
           <Editor
             height='200px'
             language='json'

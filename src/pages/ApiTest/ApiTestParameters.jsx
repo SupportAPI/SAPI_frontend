@@ -195,7 +195,7 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
                       type='text'
                       value={item.value}
                       onChange={(e) => handleInputChange(e, index, type)}
-                      className='w-full text-sm border p-1 text-center'
+                      className='w-full text-sm outline-none border-0 p-1 text-center'
                     />
                     {showDropdown[index] && (
                       <>

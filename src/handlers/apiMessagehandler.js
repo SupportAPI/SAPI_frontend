@@ -191,6 +191,8 @@ const handleRequestFormData = (data, apiDocDetail, setApiDocDetail, userId, apiD
   console.log(data);
   if (data.actionType === 'ADD' || data.actionType === 'DELETE') {
     apiDocDetailRefetch();
+  } else if (data.actionType === 'UPDATE') {
+    apiDocDetailRefetch();
   }
 };
 

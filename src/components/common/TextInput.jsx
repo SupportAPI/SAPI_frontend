@@ -64,13 +64,13 @@ const TextInput = forwardRef(
       fixedLabel || value || focused
         ? `-top-2 text-sm ${error ? `text-${theme.error}` : `text-${theme.primary}`}`
         : 'top-2 text-base text-gray-500',
-      `bg-${theme.background}`,
+      `bg-transparent`,
       disabled && 'cursor-not-allowed',
       labelClassName
     );
 
     const feedbackClass = cn(
-      'absolute left-3 top-full text-xs mt-1 transition-opacity duration-200', // absolute와 위치 지정 추가
+      'absolute left-0 top-full text-xs mt-1 transition-opacity duration-200', // absolute와 위치 지정 추가
       error ? `text-${theme.error}` : 'text-gray-500'
     );
 

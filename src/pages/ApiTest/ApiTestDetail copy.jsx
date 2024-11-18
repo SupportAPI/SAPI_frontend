@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
 import { IoCopyOutline, IoCopy } from 'react-icons/io5';
+import { ResizableBox } from 'react-resizable';
 import { FaSave } from 'react-icons/fa';
 import 'react-resizable/css/styles.css';
 import ApiTestParameters from './ApiTestParameters';
 import ApiTestBody from './APitestBody';
 import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useSidebarStore } from '../../stores/useSidebarStore';
+import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
 import { useTabStore } from '../../stores/useTabStore';
 import { useTestStore } from '../../stores/useTestStore';
 import { useParams, useLocation } from 'react-router-dom';
 import {
   useFetchApiDetail,
   patchApiDetail,
+  useRequestApiTestDetail,
   useRequestRealServer,
-  useValidateDocs,
-  validateDocs,
 } from '../../api/queries/useApiTestQueries';
 import { toast } from 'react-toastify';
 import { useMutation } from 'react-query';
@@ -30,14 +31,15 @@ const ApiTestDetail = () => {
   const [apiname, setApiname] = useState('null');
   const [apiUrl, setApiUrl] = useState('null');
   const [testResult, setTestResult] = useState(null);
-  const [activeTabContent, setActiveTabContent] = useState(null);
-  const [activeTabResult, setActiveTabResult] = useState('Body');
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [activeTabContent, setActiveTabContent] = useState(null); // 기본 탭을 'Parameters'로 설정
+  const [activeTabResult, setActiveTabResult] = useState('Body'); // 기본 탭을 'Parameters'로 설정
+  const [copySuccess, setCopySuccess] = useState(false); // 복사 성공 여부 상태 추가
   const [urlType, setUrlType] = useState('Server');
   const [showUrlDropdown, setShowUrlDropdown] = useState(false);
+  const { environment } = useEnvironmentStore();
 
   const { expandedCategories, expandCategory } = useSidebarStore();
-  const { addTab, openTabs } = useTabStore();
+  const { addTab, openTabs, removeTab } = useTabStore();
   const { setMenu } = useNavbarStore();
   const { testUrl, setTestUrl } = useTestStore();
 
@@ -46,8 +48,7 @@ const ApiTestDetail = () => {
 
   const location = useLocation();
 
-  const { mutateAsync: requestApiTest } = useRequestRealServer();
-  const mutation = useValidateDocs();
+  const { mutate: requestApiTest } = useRequestRealServer();
 
   const editApiTestDetailsMutation = useMutation((api) => patchApiDetail(workspaceId, apiId, api), {
     onSuccess: (response) => {
@@ -281,35 +282,35 @@ const ApiTestDetail = () => {
       path: apiDetail.path,
       parameters: {
         headers: (apiDetail.parameters.headers || []).map((header) => ({
-          id: header.id || null,
-          value: header.value || null,
+          headerId: header.id || null,
+          headerValue: header.value || null,
           isChecked: header.isChecked || true,
         })),
         pathVariables: (apiDetail.parameters.pathVariables || []).map((pathVariable) => ({
-          id: pathVariable.id || null,
-          value: pathVariable.value || null,
+          pathVariableId: pathVariable.id || null,
+          pathVariableValue: pathVariable.value || null,
         })),
         queryParameters: (apiDetail.parameters.queryParameters || []).map((queryParameter) => ({
-          id: queryParameter.id || null,
-          value: queryParameter.value || null,
+          queryParameterId: queryParameter.id || null,
+          queryParameterValue: queryParameter.value || null,
           isChecked: queryParameter.isChecked || true,
         })),
         cookies: (apiDetail.parameters.cookies || []).map((cookie) => ({
-          id: cookie.id || null,
-          value: cookie.value || null,
+          cookieId: cookie.id || null,
+          cookieValue: cookie.value || null,
           isChecked: cookie.isChecked || true,
         })),
       },
       request: {
         json: apiDetail.request.json
           ? {
-              id: apiDetail.request.json.id || null,
-              value: apiDetail.request.json.value || null,
+              jsonDataId: apiDetail.request.json.id || null,
+              jsonDataValue: apiDetail.request.json.value || null,
             }
           : null,
         formData: (apiDetail.request.formData || []).map((formData) => ({
-          id: formData.id || null,
-          value: formData.value || null,
+          formDataId: formData.id || null,
+          formDataValue: formData.value || null,
           isChecked: formData.isChecked || false,
         })),
       },
@@ -321,31 +322,9 @@ const ApiTestDetail = () => {
     editApiTestDetailsMutation.mutate(transformedData);
   };
 
-  const handleApiTest = async () => {
+  const handleApiTest = () => {
     if (apiInfo) {
-      try {
-        const response = await requestApiTest({ apiInfo: apiInfo, apiBaseUrl: apiInfo.domain });
-        const stringifiedData = JSON.stringify(response.data);
-        if (response) {
-          const responseData = await validateDocs({
-            workspaceId: workspaceId,
-            docId: apiInfo.docId,
-            payload: {
-              data: stringifiedData,
-              status: response.status,
-              statusText: response.statusText,
-              headers: response.headers,
-              config: response.config,
-              request: response.request,
-            },
-            type: 'Local',
-          });
-
-          setTestResult(responseData.data);
-        }
-      } catch (error) {
-        console.error('API Error:', error);
-      }
+      requestApiTest({ apiInfo: apiInfo, apiBaseUrl: apiInfo.domain });
     }
   };
 
@@ -454,14 +433,19 @@ const ApiTestDetail = () => {
 
           {/* 화면 분할 */}
           <div>
-            <div className='h-[400px]'>
+            <ResizableBox
+              width={Infinity}
+              height={400}
+              minConstraints={[Infinity, 100]}
+              maxConstraints={[Infinity, 700]}
+            >
               {/* 탭에 따른 내용 영역 */}
-              <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar border'>
+              <div className='p-4 overflow-y-auto border-b h-full sidebar-scrollbar'>
                 {activeTabContent && renderTabContent()}
               </div>
-            </div>
+            </ResizableBox>
 
-            <div key={activeTabResult} className='mt-5 mb-2'>
+            <div key={activeTabResult} className='mt-5 mb-2 border-b'>
               Response
             </div>
             {testResult ? (

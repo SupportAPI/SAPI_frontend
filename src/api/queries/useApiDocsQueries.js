@@ -112,8 +112,6 @@ export const exportDocument = async ({ workspaceId, docsId, ext }) => {
   try {
     const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/docs/${docsId}/export?ext=${ext}`);
 
-    console.log(response);
-
     // 파일 이름 추출 (Content-Disposition 헤더 활용 가능)
     const contentDisposition = response.headers['content-disposition'];
     const filename = contentDisposition

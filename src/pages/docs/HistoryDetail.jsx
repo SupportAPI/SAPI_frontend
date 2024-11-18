@@ -192,7 +192,7 @@ const HistoryDetail = ({ apiId, closeHistoryDetail }) => {
               <input
                 type='text'
                 className='border rounded px-2 py-1 flex-grow h-10'
-                placeholder='Enter URL'
+                placeholder='Enter API Path'
                 value={dummyData.path}
                 readOnly
               />

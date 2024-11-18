@@ -205,7 +205,7 @@ const LeftSectionPath = ({ apiDocDetail, apiId, workspaceId, occupationState, ha
                 borderColor: pathStatus.isOccupied ? pathStatus.color : undefined,
                 boxShadow: pathStatus.isOccupied ? `0 0 0 2px ${pathStatus.color}` : undefined,
               }}
-              placeholder='Enter URL'
+              placeholder='Enter API Path'
               value={path || ''}
               onChange={handlePathChange}
               onFocus={(e) => {

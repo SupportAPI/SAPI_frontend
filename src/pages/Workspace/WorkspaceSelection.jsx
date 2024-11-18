@@ -259,16 +259,18 @@ const WorkspaceSelection = () => {
           <div className='p-5'>
             <div className='flex flex-col mx-auto'>
               {/* 제목과 워크스페이스가 들어갈 공간 */}
-              <section className='flex justify-between items-center mb-2'>
+              <section className='flex justify-between items-center mt-2 mb-4'>
                 <p className='text-2xl font-bold'>Workspaces</p>
                 {/* 누르면 워크스페이스 추가 모달 띄우기 */}
+
                 <button
-                  className='p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-500 '
+                  className='flex items-center h-8 text-[18px] space-x-2 text-gray-800 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
                   onClick={() => {
                     setIsOpenCreateWorkspace(true);
                   }}
                 >
-                  + Add WorkSpaces
+                  <FaPlus />
+                  <span>Add</span>
                 </button>
               </section>
 
@@ -296,15 +298,15 @@ const WorkspaceSelection = () => {
               )}
 
               {/* In Progress가 들어갈 공간 */}
-              <section className='flex flex-col border rounded-3xl bg-white dark:bg-dark-background p-8'>
+              <section className='flex flex-col border rounded-sm h-80vh bg-white dark:bg-dark-background p-8'>
                 <div className='flex justify-between items-center mb-2'>
                   <p className='text-xl font-bold'>In Progress</p>
-                  <button
+                  {/* <button
                     className='flex justify-center items-center right-6 border rounded-full w-10 h-10 bg-gray-100 hover:bg-gray-200 dark:bg-dark-background dark:hover:bg-dark-hover'
                     onClick={() => setP_IsTableVisible(!isP_TableVisible)}
                   >
                     {isP_TableVisible ? <FaMinus /> : <FaPlus />}
-                  </button>
+                  </button> */}
                 </div>
                 {/* 가로 바 */}
                 <div className='border mt-2 mb-2 w-full'></div>
@@ -444,15 +446,15 @@ const WorkspaceSelection = () => {
                         ) : filterWorkspaces === '' ? (
                           <tr>
                             <td colSpan='4' className='text-center py-[80px]'>
-                              <div>No Workspace yet</div>
-                              <button
+                              <div>Is not workspaces.</div>
+                              {/* <button
                                 className='border p-2 rounded-lg bg-white hover:bg-blue-50 mt-4'
                                 onClick={() => {
                                   setIsOpenCreateWorkspace(true);
                                 }}
                               >
                                 + New Workspace
-                              </button>
+                              </button> */}
                             </td>
                           </tr>
                         ) : (
