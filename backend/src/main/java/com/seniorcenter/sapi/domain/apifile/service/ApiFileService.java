@@ -12,4 +12,6 @@ public interface ApiFileService {
     void deleteApiFile(UUID workspaceId, Long apiFileId);
 
     List<FileInfoResponseDto> getApiFilesByWorkspace(UUID workspaceId);
+
+    byte[] getApiFile(UUID workspaceId,Long apiFileId);
 }

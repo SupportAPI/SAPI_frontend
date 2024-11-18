@@ -29,4 +29,9 @@ public class ApiFileController {
     public List<FileInfoResponseDto> getApiFilesByWorkspace(@PathVariable("workspaceId") UUID workspaceId) {
         return apiFileService.getApiFilesByWorkspace(workspaceId);
     }
+
+    @GetMapping("/{apiFileId}")
+    public byte[] getImage(@PathVariable("workspaceId") UUID workspaceId, @PathVariable Long apiFileId) {
+        return apiFileService.getApiFile(workspaceId, apiFileId);
+    }
 }
