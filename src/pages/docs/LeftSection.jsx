@@ -7,11 +7,13 @@ import LeftSectionCategory from './LeftSectionCategory';
 import LeftSectionName from './LeftSectionName';
 import LeftSectionPath from './LeftSectionPath';
 import LeftSectionDescription from './LeftSectionDescription';
-import { useConfirmWorkspace } from '../../api/queries/useApiDocsQueries';
+import { useConfirmWorkspace, useExportDocument } from '../../api/queries/useApiDocsQueries';
 
 const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupationState, handleOccupationState }) => {
   const [activeLeftTab, setActiveLeftTab] = useState('parameters');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // 드롭다운 상태 관리
   const { mutate: confirmWorkspace, isLoading: isSaving } = useConfirmWorkspace();
+  const { mutate: handleExport, isLoading: isExportLoading } = useExportDocument();
 
   const tabComponents = {
     parameters: Parameters,
@@ -23,6 +25,11 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
     if (workspaceId && apiDocDetail.docId) {
       confirmWorkspace({ workspaceId, docsId: apiDocDetail.docId });
     }
+  };
+
+  const handleExportClick = (ext) => {
+    setIsDropdownOpen(false); // 드롭다운 닫기
+    handleExport({ workspaceId, docsId: apiDocDetail.docId, ext });
   };
 
   const ActiveTabComponent = tabComponents[activeLeftTab];
@@ -45,17 +52,37 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
               <FaTrashAlt />
               <span>Delete</span>
             </button>
-            <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-              <FaDownload />
-              <span>Export</span>
-            </button>
+            <div className='relative inline-block text-left'>
+              <button
+                className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
+                onClick={() => setIsDropdownOpen((prev) => !prev)}
+              >
+                <FaDownload />
+                <span>Export</span>
+              </button>
+              {isDropdownOpen && (
+                <div className='absolute left-0 mt-2 w-25 bg-white border border-gray-200 rounded-md shadow-lg z-50'>
+                  <div className='py-1'>
+                    {['PDF', 'MARKDOWN', 'HTML'].map((ext) => (
+                      <button
+                        key={ext}
+                        onClick={() => handleExportClick(ext)}
+                        className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left'
+                      >
+                        {ext}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
               <FaShareAlt />
               <span>Share</span>
             </button>
           </div>
         </div>
-        <div className='flex'>
+        <div className='flex relative'>
           <LeftSectionCategory
             initialCategory={apiDocDetail.category}
             categoryList={categoryList}

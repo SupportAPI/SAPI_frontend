@@ -142,12 +142,11 @@ const ApiDocsSidebar = () => {
     <div className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm dark:bg-dark-background dark:text-dark-text'>
       <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 z-10 dark:bg-dark-background dark:text-dark-text'>
         <div className='flex items-center'>
-          <FaPlus className='text-gray-600 cursor-pointer mr-2 dark:text-dark-text' onClick={handleAddApiDoc} />
           <div className='flex items-center flex-1 bg-white rounded border relative dark:bg-dark-background dark:text-dark-text'>
             <FaSearch className='text-gray-400 ml-2 dark:text-dark-text' />
             <input
               type='text'
-              placeholder='Search by State'
+              placeholder='Search'
               className='p-2 flex-1 bg-transparent outline-none dark:bg-dark-background dark:text-dark-text'
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -159,6 +158,7 @@ const ApiDocsSidebar = () => {
               />
             )}
           </div>
+          <FaPlus className='text-gray-600 cursor-pointer ml-2 dark:text-dark-text' onClick={handleAddApiDoc} />
         </div>
       </div>
       <div className='flex justify-between items-center px-4 mb-2 h-10'>

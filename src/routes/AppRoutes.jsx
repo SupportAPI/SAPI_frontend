@@ -13,6 +13,7 @@ import ApiTest from '../pages/ApiTest/APItest';
 import ApiTestDetail from '../pages/ApiTest/ApiTestDetail';
 import { getToken } from '../utils/cookies';
 import { useEffect } from 'react';
+import SignUp from '../pages/SignUp';
 
 const ProtectedRoute = ({ userId, children }) => {
   return userId ? children : <Navigate to='/login' />;
@@ -52,6 +53,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route path='/signup' element={userId ? <Navigate to='/workspace' /> : <SignUp />} />
       <Route
         path='/workspace/:workspaceId/apidocs/all'
         element={

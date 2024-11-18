@@ -170,11 +170,11 @@ const EnvironmentSidebar = () => {
     >
       <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 dark:bg-dark-background z-10'>
         <div className='flex items-center'>
-          <FaPlus className='text-gray-600 dark:text-dark-text cursor-pointer mr-2' onClick={handleAddEnvironment} />
           <div className='flex items-center flex-1 bg-white dark:bg-dark-background rounded border relative'>
             <FaSearch className='text-gray-400 dark:text-dark-text ml-2' />
             <input type='text' placeholder='Search' className='p-2 flex-1 bg-transparent outline-none' />
           </div>
+          <FaPlus className='text-gray-600 dark:text-dark-text cursor-pointer ml-2' onClick={handleAddEnvironment} />
         </div>
       </div>
       <div className='flex-1 overflow-y-auto sidebar-scrollbar'>
