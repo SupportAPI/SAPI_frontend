@@ -143,7 +143,7 @@ public class ProxyServiceImpl implements ProxyService {
         Specification specification = matchingApi.getSpecification();
         String url;
         HttpHeaders httpHeaders = new HttpHeaders();
-        if (specification.getServerStatus().getValue().equals("SUCCESS")) {
+        if (!specification.getServerStatus().getValue().equals("SUCCESS")) {
             url = String.format("https://%s.execute-api.%s.amazonaws.com%s", matchingApi.getSpecification().getApiGatewayId(), region.id(), queryString);
 
             Set<String> excludeHeaders = Set.of(
