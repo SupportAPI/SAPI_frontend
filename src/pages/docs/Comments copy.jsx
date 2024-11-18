@@ -2,9 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { BsSend } from 'react-icons/bs';
 import { FaEllipsisH } from 'react-icons/fa';
 import { useMutation } from 'react-query';
-import { useWebSocket, WebSocketProvider } from '../../contexts/WebSocketProvider';
+import { useWebSocket } from '../../contexts/WebSocketProvider';
 import { findComments, findIndex, findInitComments, findUsers } from '../../api/queries/useCommentsQueries';
-import { getToken } from '../../utils/cookies';
 import { fetchUserInfo } from '../../api/queries/useAPIUserQueries';
 import useAuthStore from '../../stores/useAuthStore';
 import { throttle } from 'lodash';
@@ -605,7 +604,7 @@ const Comments = ({ docsId, workspaceId }) => {
                           <ul
                             ref={setRef}
                             style={{
-                              top: `${optionsDropdownPosition.top + 10}px`, // 기존 위치에서 10px 아래로 조정
+                              top: `${optionsDropdownPosition.top + 10}px`,
                               left: `${optionsDropdownPosition.left}px`,
                             }}
                             className='absolute bg-[#EDF7FF] border border-gray-300 w-20 max-h-60 

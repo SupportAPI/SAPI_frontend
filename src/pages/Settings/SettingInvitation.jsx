@@ -1,7 +1,7 @@
 import { useUserInvitedList, useInvitedAccept, useInvitedRefuse } from '../../api/queries/useWorkspaceQueries';
 import { toast } from 'react-toastify';
 
-const UserInvitation = () => {
+const UserInvitation = ({ refetchWorkspaces = () => {} }) => {
   const { data: InvitedList, refetch } = useUserInvitedList();
   const AcceptMutation = useInvitedAccept();
   const RefuseMutation = useInvitedRefuse();
@@ -10,11 +10,17 @@ const UserInvitation = () => {
     AcceptMutation.mutate(membershipId, {
       onSuccess: () => {
         toast.success('워크스페이스에 가입되셨습니다.');
-        refetch(); // 초대 수락 후 목록 다시 불러오기
+        refetch(); // 초대 목록 다시 불러오기
+        if (refetchWorkspaces) {
+          refetchWorkspaces();
+        }
+        if (refetchWorkspaces) {
+          refetchWorkspaces(); // Workspaces 목록 새로고침
+        }
       },
       onError: () => {
         toast.error('오류로 가입에 실패하였습니다.');
-        refetch(); // 초대 수락 후 목록 다시 불러오기
+        refetch();
       },
     });
   };
@@ -22,12 +28,15 @@ const UserInvitation = () => {
   const handleRefuse = (membershipId) => {
     RefuseMutation.mutate(membershipId, {
       onSuccess: () => {
-        toast.success('가입에 거절하셨습니다.');
-        refetch(); // 초대 수락 후 목록 다시 불러오기
+        toast.success('가입을 거절하셨습니다.');
+        refetch();
+        if (refetchWorkspaces) {
+          refetchWorkspaces(); // Workspaces 목록 새로고침
+        }
       },
       onError: () => {
         toast.error('오류로 거절에 실패하였습니다.');
-        refetch(); // 초대 수락 후 목록 다시 불러오기
+        refetch();
       },
     });
   };
@@ -63,6 +72,7 @@ const UserInvitation = () => {
                     className='w-[50px] h-[40px] ml-3 rounded-lg bg-green-500 hover:bg-green-600 text-white'
                     onClick={() => {
                       handleAccept(invite.membershipId);
+                      refetchWorkspaces();
                     }}
                   >
                     수락

@@ -29,6 +29,9 @@ const ApiDocsSidebar = () => {
     if (workspaceId) {
       publish(`/ws/pub/workspaces/${workspaceId}/docs`, { type: 'ADD', message: '' });
       toast('새로운 API 문서가 추가되었습니다.');
+      if (!expandedCategories['미설정']) {
+        toggleCategory('미설정');
+      }
     }
   };
 
@@ -168,7 +171,7 @@ const ApiDocsSidebar = () => {
           onDoubleClick={handleAllApiDoubleClick}
         >
           <FaBars className='text-gray-500 mr-2 dark:text-dark-text' />
-          <span className='text-lg font-semibold text-[#475467] dark:text-dark-text'>API Overview</span>
+          <span className='text-[16px] font-semibold text-[#475467] dark:text-dark-text'>API Overview</span>
         </div>
         <div className='flex space-x-2'>
           <BiExpandVertical
@@ -212,7 +215,7 @@ const ApiDocsSidebar = () => {
           {filteredData.map((category) => (
             <div key={category.category}>
               <div
-                className='flex items-center px-4 py-1 text-[#475467] dark:text-dark-text cursor-pointer h-10 hover:bg-gray-300 dark:hover:bg-dark-hover'
+                className='flex items-center text-[14px] px-4 py-1 text-[#475467] dark:text-dark-text cursor-pointer h-10 hover:bg-gray-300 dark:hover:bg-dark-hover'
                 onClick={(e) => {
                   e.stopPropagation();
                   handleCategoryToggle(category.category);
@@ -246,7 +249,7 @@ const ApiDocsSidebar = () => {
                         }}
                         onDoubleClick={() => handleApiDoubleClick(api.apiId)}
                       >
-                        <div className='pl-12 pr-4 py-2 flex justify-between items-center'>
+                        <div className='pl-12 pr-4 py-2 text-[12px] flex justify-between items-center'>
                           {api.name}
                           <BsThreeDots
                             className={`text-gray-500 hover:text-gray-700 cursor-pointer ${
