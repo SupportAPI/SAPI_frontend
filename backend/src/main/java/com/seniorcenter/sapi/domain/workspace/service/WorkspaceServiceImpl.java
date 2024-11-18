@@ -90,10 +90,10 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		// 총 멤버 수 가져오기
 		Integer totalMemberCount = membershipRepository.countAcceptedMembersByWorkspaceId(workspace.getId());
 
-        log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspace.getId() +"/docs"));
+        log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestinationByLambda("/ws/sub/workspaces/"+ workspace.getId() +"/docs"));
 		WorkspaceInfoResponseDto workspaceInfoResponseDto = new WorkspaceInfoResponseDto(workspace.getId(),
 			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
-			workspace.getIsCompleted(), webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspaceId +"/docs"),
+			workspace.getIsCompleted(), webSocketUtil.countUsersSubscribedToDestinationByLambda("/ws/sub/workspaces/"+ workspaceId +"/docs"),
 			totalMemberCount);
 		return workspaceInfoResponseDto;
 	}
@@ -106,7 +106,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		return memberships.stream()
 			.map(membership -> {
 				Workspace workspace = membership.getWorkspace();
-				log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspace.getId() +"/docs"));
+				log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestinationByLambda("/ws/sub/workspaces/"+ workspace.getId() +"/docs"));
 
 				// 총 멤버 수 가져오기
 				Integer totalMemberCount = membershipRepository.countAcceptedMembersByWorkspaceId(workspace.getId());
@@ -118,7 +118,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 					workspace.getMainImage(),
 					workspace.getDomain(),
 					workspace.getIsCompleted(),
-					webSocketUtil.countUsersSubscribedToDestination("/ws/sub/workspaces/"+ workspace.getId() +"/docs"),
+					webSocketUtil.countUsersSubscribedToDestinationByLambda("/ws/sub/workspaces/"+ workspace.getId() +"/docs"),
 					totalMemberCount
 				);
 			})

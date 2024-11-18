@@ -109,7 +109,7 @@ public class SpecificationService {
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         return specifications.stream()
             .map(specification -> {
-                Api api = apiRepository.findById(specification.getConfirmedApiId())
+                Api api = apiRepository.findTopBySpecificationIdOrderByCreatedDateDesc(specification.getId())
                     .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
                 return new SpecificationResponseDto(api, specification);
             }).collect(Collectors.toList());
