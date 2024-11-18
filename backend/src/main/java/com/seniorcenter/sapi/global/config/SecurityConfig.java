@@ -42,7 +42,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests((auth) -> auth
                 .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                 .requestMatchers("/api/users/login", "/api/users/check-email-duplicate",
-                        "/api/users/send-code", "/api/users/verify-code", "/api/users/send-password", "/api/users/1").permitAll()
+                        "/api/users/send-code", "/api/users/verify-code", "/api/users/send-password", "/api/users/1",
+                        "/api/members/1", "/api/members/2").permitAll()
                 .requestMatchers("/ws/ws-stomp/**", "/ws/pub/**", "/ws/sub/**").permitAll()
                 .requestMatchers("/proxy/**").permitAll()
                 .anyRequest().authenticated()

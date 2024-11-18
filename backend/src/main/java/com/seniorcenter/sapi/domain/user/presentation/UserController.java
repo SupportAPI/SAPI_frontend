@@ -110,9 +110,4 @@ public class UserController {
 		return userService.searchUserInWorkspaceWithNickname(workspaceId, nicknameValue);
 	}
 
-	@GetMapping("/users/1")
-	public TempUserResponseDto getUserInfo() {
-		return new TempUserResponseDto(1L, "박찬호" , "chpark6851@naver.com");
-	}
-
 }
