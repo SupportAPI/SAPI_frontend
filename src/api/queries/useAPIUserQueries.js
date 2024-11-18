@@ -84,7 +84,7 @@ export const useUserAuthentication = () => {
 };
 
 // 5. 이메일 검증 코드 확인
-export const userEmailConfirm = async (email, code) => {
+export const userEmailConfirm = async ({ email, code }) => {
   const response = await axiosInstance.post(`/api/users/verify-code`, {
     email: email,
     code: code,
@@ -93,23 +93,25 @@ export const userEmailConfirm = async (email, code) => {
 };
 // React Query 훅 : 이메일 검증 코드 확인
 export const useUserEmailConfirm = () => {
-  return useMutation(({ email, code }) => userEmailConfirm(email, code));
+  return useMutation(({ email, code }) => userEmailConfirm({ email, code }));
 };
 
 // 6. 유저 회원가입 요청
 export const userSignup = async ({ email, password, passwordConfirm, nickname, isAuthorized, code }) => {
-  const response = await axiosInstance.post(`/api/users/signup`, {
-    email,
-    password,
-    passwordConfirm,
-    nickname,
-    isAuthorized,
-    code,
+  const response = await axiosInstance.post(`/api/users`, {
+    email: email,
+    password: password,
+    passwordConfirm: passwordConfirm,
+    nickname: nickname,
+    isAuthorized: isAuthorized,
+    code: `${code}`,
   });
-  return response.data.data;
+  return response.data.status;
 };
 
 // React Query 훅 : 유저 회원가입 (mutate 사용)
 export const useUserSignup = () => {
-  return useMutation((signupData) => userSignup(signupData));
+  return useMutation(({ email, password, passwordConfirm, nickname, isAuthorized, code }) =>
+    userSignup({ email, password, passwordConfirm, nickname, isAuthorized, code })
+  );
 };
