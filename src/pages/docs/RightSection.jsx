@@ -22,6 +22,8 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
     setActiveRightTab(activeRightTab === tab ? null : tab);
   };
 
+  console.log(apiDocDetail);
+
   return (
     <>
       <div
@@ -39,18 +41,7 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
             <FiX size={20} />
           </button>
         )}
-        {activeRightTab === 'summary' && (
-          <Summary
-            apiDetail={apiDocDetail?.name}
-            method={apiDocDetail?.method}
-            methodStyles={methodStyles}
-            apiUrl={apiDocDetail?.path}
-            description={apiDocDetail?.description}
-            params={apiDocDetail?.parameters}
-            request={apiDocDetail?.request}
-            response={apiDocDetail?.response}
-          />
-        )}
+        {activeRightTab === 'summary' && <Summary apiDocDetail={apiDocDetail} methodStyles={methodStyles} />}
         {activeRightTab === 'comment' && <Comments docsId={apiDocDetail.docId} workspaceId={workspaceId} />}
         {activeRightTab === 'code' && (
           <CodeSnippet
