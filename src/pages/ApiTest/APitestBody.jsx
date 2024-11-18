@@ -33,7 +33,6 @@ const ApiTestParameters = ({ body, bodyChange }) => {
   };
 
   useEffect(() => {
-    setBodyType('JSON');
     try {
       const parsed = JSON.parse(json.value || '{}');
       setJson({
@@ -125,26 +124,51 @@ const ApiTestParameters = ({ body, bodyChange }) => {
     });
   };
 
+  const handleCheckboxChange = (event, id) => {
+    const { checked } = event.target;
+
+    setFormData((prevFormData) =>
+      prevFormData.map((item) => (item.id === id ? { ...item, isChecked: checked } : item))
+    );
+  };
+
   const renderFormDataTable = () => (
     <div className='mb-4'>
       <h3 className='font-bold text-sm mb-2'>Form Data</h3>
-      <table className='w-full border border-gray-300'>
+      <table className='w-full  border-gray-300'>
         <thead>
           <tr>
-            <th className='py-2 px-4 text-sm border bg-gray-100'>Parameter Name</th>
+            <th className='py-2 px-4 text-sm border bg-gray-100'>Checked</th>
+            <th className='py-2 px-4 text-sm border bg-gray-100'>Requirement</th>
+            <th className='py-2 px-4 text-sm border bg-gray-100'>Key</th>
             <th className='py-2 px-4 text-sm border bg-gray-100'>Value</th>
+            <th className='py-2 px-4 text-sm border bg-gray-100'>Descriotion</th>
           </tr>
         </thead>
         <tbody>
           {formData.map((item, index) => (
-            <tr key={index} className='hover:bg-gray-50'>
-              <td className='py-2 px-4 text-sm border text-center'>{item.key}</td>
+            <tr key={index} className='hover:bg-gray-50 h-20'>
+              <td className='py-2 px-4 text-sm border text-center'>
+                <label>
+                  <input
+                    type='checkbox'
+                    name={item.id} // 고유한 ID나 키 값을 사용
+                    checked={item.isChecked} // 현재 체크 상태
+                    onChange={(event) => handleCheckboxChange(event, item.id)} // 상태 변경 핸들러
+                  />
+                </label>
+              </td>
+              <td className='py-2 px-4 text-sm border text-center'>{item.isRequired ? `Required` : `Optional`}</td>
+              <td className='px-4 py-2 text-sm flex items-center border-b justify-between h-20'>
+                <div>{item.key}</div>
+                <div className='w-[55px] bg-white border text-center'>{item.type}</div>
+              </td>
               <td className='py-2 px-4 border text-center relative'>
                 <input
                   type='text'
                   value={item.value}
                   onChange={(e) => handleInputChange(e, index)}
-                  className='w-full text-sm border p-1 text-center'
+                  className='w-full text-sm text-center'
                 />
                 {showDropdown && (
                   <div className='absolute left-0 right-0 bg-white border border-gray-300 mt-1 z-10'>
@@ -160,6 +184,7 @@ const ApiTestParameters = ({ body, bodyChange }) => {
                   </div>
                 )}
               </td>
+              <td></td>
             </tr>
           ))}
         </tbody>
@@ -207,7 +232,7 @@ const ApiTestParameters = ({ body, bodyChange }) => {
         </div>
       )}
 
-      {bodyType === 'FORM_DATA' && formData.length > 0 && renderFormDataTable()}
+      {bodyType === 'FORM_DATA' && renderFormDataTable()}
     </div>
   );
 };

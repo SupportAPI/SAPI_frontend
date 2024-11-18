@@ -53,6 +53,8 @@ const ApiTestDetail = () => {
     onError: (error) => console.error('저장 실패!', error),
   });
 
+  console.log(apiDetail);
+
   useEffect(() => {
     // 페이지 이동이나 location 변경 시 refetch로 데이터 다시 로딩
     if (apiId) {
@@ -93,7 +95,7 @@ const ApiTestDetail = () => {
                 key: header.key || '',
                 value: header.value || '',
                 description: header.description || '',
-                isEssential: header.isEssential || false,
+                isRequired: header.isRequired || false,
                 isChecked: header.isChecked || false,
               }))
             : [
@@ -102,7 +104,7 @@ const ApiTestDetail = () => {
                   key: '',
                   value: '',
                   description: '',
-                  isEssential: false,
+                  isRequired: false,
                   isChecked: false,
                 },
               ],
@@ -127,7 +129,7 @@ const ApiTestDetail = () => {
                 key: queryParam.key || '',
                 value: queryParam.value || '',
                 description: queryParam.description || '',
-                isEssential: queryParam.isEssential || false,
+                isRequired: queryParam.isRequired || false,
                 isChecked: queryParam.isChecked || false,
               }))
             : [
@@ -146,7 +148,7 @@ const ApiTestDetail = () => {
                 key: cookie.key || '',
                 value: cookie.value || '',
                 description: cookie.description || '',
-                isEssential: cookie.isEssential || false,
+                isRequired: cookie.isRequired || false,
                 isChecked: cookie.isChecked || false,
               }))
             : [
@@ -155,7 +157,7 @@ const ApiTestDetail = () => {
                   key: '',
                   value: '',
                   description: '',
-                  isEssential: false,
+                  isRequired: false,
                   isChecked: false,
                 },
               ],
@@ -175,7 +177,7 @@ const ApiTestDetail = () => {
                 value: formItem.value || '',
                 type: formItem.type || 'TEXT',
                 description: formItem.description || '',
-                isEssential: formItem.isEssential || false,
+                isRequired: formItem.isRequired || false,
                 isChecked: formItem.isChecked || false,
               }))
             : [
@@ -185,7 +187,7 @@ const ApiTestDetail = () => {
                   value: '',
                   type: 'TEXT',
                   description: '',
-                  isEssential: false,
+                  isRequired: false,
                   isChecked: false,
                 },
               ],

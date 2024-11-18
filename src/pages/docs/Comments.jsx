@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { BsSend } from 'react-icons/bs';
 import { FaEllipsisH } from 'react-icons/fa';
 import { useMutation } from 'react-query';
 import { useWebSocket, WebSocketProvider } from '../../contexts/WebSocketProvider';
-import { findComments, findIndex, findUsers } from '../../api/queries/useCommentsQueries';
+import { findComments, findIndex, findInitComments, findUsers } from '../../api/queries/useCommentsQueries';
 import { getToken } from '../../utils/cookies';
 import { fetchUserInfo } from '../../api/queries/useAPIUserQueries';
 import useAuthStore from '../../stores/useAuthStore';
@@ -36,6 +36,7 @@ const Comments = ({ docsId, workspaceId }) => {
   const setRef = useRef(null);
   const deleteRef = useRef(null);
   const infoRef = useRef(null);
+  const userSuggestionRef = useRef(null);
 
   const [initIndex, setInitIndex] = useState(-1);
   const [index, setIndex] = useState(-1);
@@ -49,7 +50,6 @@ const Comments = ({ docsId, workspaceId }) => {
   const [internalMessage, setInternalMessage] = useState(''); // 내부 저장 메시지 형식: [닉네임:아이디]
   const [taggedUsers, setTaggedUsers] = useState([]); // 태그된 유저 리스트
 
-  const accessToken = getToken();
   const { userId } = useAuthStore();
 
   // 소켓 관련 변수들
@@ -71,6 +71,11 @@ const Comments = ({ docsId, workspaceId }) => {
     };
   }, [docsId]);
 
+  useEffect(() => {
+    document.removeEventListener('click', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+  }, [docsId, showUser, showDeleteModal, showOptionsDropdown, showDropdown]);
+
   // 최근 인덱스 호출 완료 -> 코멘트들 불러오기
   useEffect(() => {
     if (initIndex !== -1) {
@@ -79,17 +84,23 @@ const Comments = ({ docsId, workspaceId }) => {
   }, [initIndex]);
 
   // 드롭다운 바깥 선택 시 꺼지는 함수
-  const handleClickOutside = (event) => {
-    if (setRef.current && !setRef.current.contains(event.target)) {
-      setShowOptionsDropdown(false);
-    }
-    if (deleteRef.current && !deleteRef.current.contains(event.target)) {
-      setShowDeleteModal(false);
-    }
-    if (infoRef.current && !infoRef.current.contains(event.target)) {
-      setShowUser(false);
-    }
-  };
+  const handleClickOutside = useCallback(
+    (event) => {
+      if (setRef.current && !setRef.current.contains(event.target)) {
+        setShowOptionsDropdown(false);
+      }
+      if (deleteRef.current && !deleteRef.current.contains(event.target)) {
+        setShowDeleteModal(false);
+      }
+      if (infoRef.current && !infoRef.current.contains(event.target)) {
+        setShowUser(false);
+      }
+      if (userSuggestionRef.current && !userSuggestionRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    },
+    [setRef, deleteRef, infoRef, userSuggestionRef] // 필요한 경우 의존성 추가
+  );
 
   // 소켓 연결 함수
   useEffect(() => {
@@ -97,13 +108,13 @@ const Comments = ({ docsId, workspaceId }) => {
       const subScriptionPath = `/ws/sub/docs/${docsId}/comments/user/${userId}/message`;
 
       const subscription = subscribe(subScriptionPath, (parsedData) => {
+        console.log(parsedData);
         const { type, message: receivedMessage } = parsedData;
 
         switch (type) {
           case 'ADD':
             if (receivedMessage) {
               setMessages((prevMessages) => [receivedMessage, ...prevMessages]);
-              console.log(receivedMessage);
             }
             break;
           case 'UPDATE':
@@ -115,7 +126,7 @@ const Comments = ({ docsId, workspaceId }) => {
             break;
           case 'DELETE':
             if (receivedMessage) {
-              setMessages((prevMessages) => prevMessages.filter((msg) => msg.commentId !== receivedMessage.commentId));
+              setMessages((prevMessages) => prevMessages.filter((msg) => msg.commentId !== receivedMessage));
             }
             break;
           default:
@@ -146,7 +157,7 @@ const Comments = ({ docsId, workspaceId }) => {
   });
 
   // 처음 메세지 불러오기
-  const findInitMutation = useMutation(() => findComments(initIndex, 6, docsId), {
+  const findInitMutation = useMutation(() => findInitComments(initIndex, 6, docsId), {
     onSuccess: (response) => {
       setMessages(response);
       setIndex(Math.min(...response.map((message) => message.commentId)));
@@ -156,7 +167,7 @@ const Comments = ({ docsId, workspaceId }) => {
   });
 
   // 메세지 불러오기
-  const findMutation = useMutation(() => findComments(index - 1, 5, docsId), {
+  const findMutation = useMutation(() => findComments(index, 5, docsId), {
     onSuccess: (response) => {
       setMessages((prevMessages) => [...prevMessages, ...response]);
       setIndex(Math.min(...response.map((message) => message.commentId)));
@@ -268,9 +279,10 @@ const Comments = ({ docsId, workspaceId }) => {
         const { top, left } = textarea.getBoundingClientRect();
         const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
         setDropdownPosition({
-          top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
+          top: top - containerTop + scrollContainerRef.current.scrollTop - 80,
           left: left - containerLeft + scrollContainerRef.current.scrollLeft,
         });
+
         setShowDropdown(true);
       } else {
         setShowDropdown(false);
@@ -396,31 +408,17 @@ const Comments = ({ docsId, workspaceId }) => {
     }
   };
 
+  // 4. 수정 창 포커싱 잃었을 때 호출하는 함수
+  const handleBlurWithTimeout = () => {
+    setTimeout(() => {
+      handleSaveEdit(); // 저장 호출
+    }, 100); // 짧은 지연 시간 설정
+  };
+
   // 더보기 아이콘 (수정/삭제) 클릭
   const handleMoreIconClick = (e, messageId) => {
     e.stopPropagation();
     setSelectedMessageId(messageId); // 선택된 메시지 ID 설정
-
-    const iconRect = e.currentTarget.getBoundingClientRect();
-    const containerRect = scrollContainerRef.current.getBoundingClientRect();
-
-    const calculatedTop = iconRect.top - containerRect.top + 75;
-    const calculatedLeft = iconRect.left - containerRect.left + 20;
-
-    const dropdownHeight = 15;
-    const dropdownWidth = 50;
-
-    let adjustedTop = calculatedTop;
-    let adjustedLeft = calculatedLeft;
-
-    if (adjustedTop + dropdownHeight > scrollContainerRef.current.clientHeight) {
-      adjustedTop = calculatedTop - dropdownHeight - e.currentTarget.offsetHeight - 5;
-    }
-    if (adjustedLeft + dropdownWidth > scrollContainerRef.current.clientWidth) {
-      adjustedLeft = scrollContainerRef.current.clientWidth - dropdownWidth - 10;
-    }
-
-    setOptionsDropdownPosition({ top: adjustedTop, left: adjustedLeft });
     setShowOptionsDropdown(!showOptionsDropdown);
   };
 
@@ -476,6 +474,7 @@ const Comments = ({ docsId, workspaceId }) => {
   // 2. 수정 취소 시 상태 초기화
   const handleCancelEdit = () => {
     setEditingMessageId(null);
+    setSelectedMessageId(null);
     setEditContent('');
   };
 
@@ -490,6 +489,7 @@ const Comments = ({ docsId, workspaceId }) => {
   // 2. 삭제 취소
   const handleCancelDelete = () => {
     setShowDeleteModal(false);
+    setSelectedMessageId(null);
   };
 
   // 3. 삭제 클릭 시
@@ -501,6 +501,7 @@ const Comments = ({ docsId, workspaceId }) => {
       message: deleteTargetId.commentId,
     });
     setShowDeleteModal(false);
+    setSelectedMessageId(null);
   };
 
   // 스크롤 감지 후 무한 스크롤 데이터 로딩
@@ -527,44 +528,38 @@ const Comments = ({ docsId, workspaceId }) => {
     };
   }, [handleScroll]);
 
-  // 태그된 유저 정보 확인
   const showUserInfo = (e, nickname, profileImage, userId) => {
     e.stopPropagation(); // 이벤트 전파 중단
 
-    // `e`와 `e.target`이 존재하는지 확인
-    if (!e || !e.target) {
+    if (!e || !e.target || !scrollContainerRef.current) {
       console.error('이벤트 또는 이벤트 타겟이 정의되지 않았습니다.');
       return;
     }
 
     const targetElement = e.target;
 
-    // `targetElement`가 `span`인지 확인하고 `scrollContainerRef.current`가 존재하는지 확인
-    if (targetElement.tagName === 'SPAN' && scrollContainerRef.current) {
-      const { top, left } = targetElement.getBoundingClientRect();
-      const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
+    // `targetElement`의 위치를 가져와 드롭다운 위치 계산
+    const { top, left } = targetElement.getBoundingClientRect();
+    const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
 
-      setUser({
-        userId: userId,
-        nickname: nickname,
-        profileImage: profileImage,
-      });
+    setUser({
+      userId,
+      nickname,
+      profileImage,
+    });
 
-      // 부모 컨테이너 기준으로 상대 위치를 계산
-      setDropdownPosition({
-        top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
-        left: left - containerLeft + scrollContainerRef.current.scrollLeft,
-      });
-      setShowUser(true);
-    } else {
-      console.error('targetElement가 span이 아니거나 scrollContainerRef가 초기화되지 않았습니다.');
-    }
+    setDropdownPosition({
+      top: top - containerTop - 85, // 30px 상단 여백 추가
+      left: left - containerLeft - 60,
+    });
+
+    setShowUser(true); // 드롭다운 표시
   };
 
   return (
     <div className='relative w-full h-[calc(100vh-200px)] bg-white dark:bg-dark-background mt-3'>
       {/* 입력 영역 (상단 고정) */}
-      <div className='absolute w-[360px] bg-[#E9F2F5] ml-5 mr-5 z-10 bottom-0 bg-transparent'>
+      <div className='absolute w-50 bg-[#E9F2F5] ml-5 mr-5 z-10 bottom-0 bg-transparent'>
         <div className='flex flex-row w-full rounded-[10px] mx-6 bg-[#E9F2F5] p-4'>
           <textarea
             ref={textareaRef}
@@ -606,6 +601,48 @@ const Comments = ({ docsId, workspaceId }) => {
                           className='mt-1 ml-2 cursor-pointer'
                           onClick={(e) => handleMoreIconClick(e, message.commentId)}
                         />
+                        {showOptionsDropdown && message.commentId === selectedMessageId && (
+                          <ul
+                            ref={setRef}
+                            style={{
+                              top: `${optionsDropdownPosition.top + 10}px`, // 기존 위치에서 10px 아래로 조정
+                              left: `${optionsDropdownPosition.left}px`,
+                            }}
+                            className='absolute bg-[#EDF7FF] border border-gray-300 w-20 max-h-60 
+                          rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
+                          >
+                            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleEditClick}>
+                              수정
+                            </li>
+                            <li
+                              className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center'
+                              onClick={handleDeleteClick}
+                            >
+                              삭제
+                            </li>
+                          </ul>
+                        )}
+                        {showDeleteModal && message.commentId === selectedMessageId && (
+                          <ul
+                            style={{
+                              top: `${optionsDropdownPosition.top + 15}px`,
+                              left: `${optionsDropdownPosition.left}px`,
+                            }}
+                            ref={deleteRef}
+                            className='absolute bg-[#EDF7FF] border border-gray-300 w-60 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
+                          >
+                            <li className='p-2 text-center'>정말 삭제하시겠습니까?</li>
+                            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={deleteComment}>
+                              삭제
+                            </li>
+                            <li
+                              className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center'
+                              onClick={handleCancelDelete}
+                            >
+                              취소
+                            </li>
+                          </ul>
+                        )}
                         <span className='text-xl font-bold my-1 mx-2'>{message.writerNickname}</span>
                       </>
                     ) : (
@@ -618,6 +655,7 @@ const Comments = ({ docsId, workspaceId }) => {
                         value={editContent}
                         onInput={handleEditInput}
                         onKeyDown={handleKeyDownSend}
+                        onBlur={handleBlurWithTimeout}
                         className='w-full p-1 rounded-md border border-gray-300 resize-none overflow-hidden'
                         style={{ height: 'auto' }}
                       />
@@ -673,41 +711,6 @@ const Comments = ({ docsId, workspaceId }) => {
             </div>
           ))}
         </div>
-        {showOptionsDropdown && (
-          <ul
-            style={{
-              top: `${optionsDropdownPosition.top}px`,
-              left: `${optionsDropdownPosition.left}px`,
-            }}
-            ref={setRef}
-            className='absolute bg-[#EDF7FF] border border-gray-300 w-20 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
-          >
-            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleEditClick}>
-              수정
-            </li>
-            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleDeleteClick}>
-              삭제
-            </li>
-          </ul>
-        )}
-        {showDeleteModal && (
-          <ul
-            style={{
-              top: `${optionsDropdownPosition.top}px`,
-              left: `${optionsDropdownPosition.left}px`,
-            }}
-            ref={deleteRef}
-            className='absolute bg-[#EDF7FF] border border-gray-300 w-60 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10 p-2 shadow-lg'
-          >
-            <li className='p-2 text-center'>정말 삭제하시겠습니까?</li>
-            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={deleteComment}>
-              삭제
-            </li>
-            <li className='p-2 hover:bg-[#D7E9F4] cursor-pointer text-center' onClick={handleCancelDelete}>
-              취소
-            </li>
-          </ul>
-        )}
         {showDropdown && userSuggestions.response && userSuggestions.response.length > 0 && (
           <ul
             style={{
@@ -715,6 +718,7 @@ const Comments = ({ docsId, workspaceId }) => {
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
             }}
+            ref={userSuggestionRef}
             className='bg-[#EDF7FF] border border-gray-300 w-56 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
           >
             {userSuggestions.response.map((user) => (
