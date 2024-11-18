@@ -54,13 +54,13 @@ const ApiTestResponse = ({ initialData }) => {
           <div className='flex'>
             <div className='flex flex-col w-[50%] items-center'>
               <p className='text-xl ml-1 mb-1'>MY RESPONSE</p>
-              <div className='border w-[600px] p-4 overflow-auto'>
+              <div className='border w-[500px] p-4 overflow-auto'>
                 <pre className=''>{parsedBody ? JSON.stringify(parsedBody, null, 2) : 'No data'}</pre>
               </div>
             </div>
             <div className='flex flex-col w-[50%] items-center'>
               <p className='text-xl ml-1 mb-1'>MOCK RESPONSE</p>
-              <div className='border w-[600px] p-4 overflow-auto'>
+              <div className='border w-[500px] p-4 overflow-auto'>
                 <pre className=''>{parsedMockBody ? JSON.stringify(parsedMockBody, null, 2) : 'No data'}</pre>
               </div>
             </div>

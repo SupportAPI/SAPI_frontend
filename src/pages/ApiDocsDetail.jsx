@@ -129,6 +129,7 @@ const ApiDocsDetail = () => {
           case 'API_METHOD':
             handleSaveAction();
             apiHandler.handleApiMethodHandler(data, setApiDocDetail);
+            apiDocDetailRefetch();
             break;
           case 'API_PATH':
             apiHandler.handlePathHandler(data, setApiDocDetail, userId);

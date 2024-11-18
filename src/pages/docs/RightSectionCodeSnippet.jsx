@@ -2,22 +2,26 @@ import { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { FiCopy } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import { useParams } from 'react-router';
 
 const RightSectionCodeSnippet = ({ path, method, parameters, request }) => {
   const [library, setLibrary] = useState('axios'); // 기본값을 'axios'로 설정
+  const { workspaceId } = useParams();
 
   const headerValue = parameters.headers?.[0]?.headerValue || 'application/json';
 
+  const url = `https://k11b305.p.ssafy.io/proxy/${workspaceId}/dynamic`;
+
   const snippets = {
     axios: `
-axios.${method.toLowerCase()}(\`\${url}/${path}\`, {
+axios.${method.toLowerCase()}(\`${url}${path}\`, {
   headers: {
     'Content-Type': '${headerValue}',
   },
 });
     `,
     fetch: `
-fetch(\`\${url}/${path}\`, {
+fetch(\`\${url}${path}\`, {
   method: '${method}',
   headers: {
     'Content-Type': '${headerValue}',

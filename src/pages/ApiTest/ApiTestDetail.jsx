@@ -324,6 +324,7 @@ const ApiTestDetail = () => {
   const handleApiTest = async () => {
     if (apiInfo) {
       try {
+        console.log(apiInfo);
         const response = await requestApiTest({ apiInfo: apiInfo, apiBaseUrl: apiInfo.domain });
         const stringifiedData = JSON.stringify(response.data);
         if (response) {
