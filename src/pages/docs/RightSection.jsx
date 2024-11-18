@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { FiCode, FiFileText, FiMessageSquare, FiInfo, FiX } from 'react-icons/fi';
+import { FaHistory } from 'react-icons/fa';
 import Summary from './Summary';
 import CodeSnippet from './CodeSnippet';
 import Comments from './Comments';
 import Info from './Info';
+import History from './History/History';
 
-const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
+const RightSection = ({ apiDocDetail, apiId, workspaceId, openHistoryDetail }) => {
   const [activeRightTab, setActiveRightTab] = useState(null);
 
   const methodStyles = {
@@ -21,8 +23,6 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
   const toggleRightTab = (tab) => {
     setActiveRightTab(activeRightTab === tab ? null : tab);
   };
-
-  console.log(apiDocDetail);
 
   return (
     <>
@@ -54,6 +54,7 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
         {activeRightTab === 'info' && (
           <Info createdData={apiDocDetail?.createdDate} lastModifiedDate={apiDocDetail?.lastModifyDate} />
         )}
+        {activeRightTab === 'history' && <History openHistoryDetail={openHistoryDetail} docId={apiDocDetail.docId} />}
       </div>
 
       <div className='absolute border-l right-0 top-[104px] h-[calc(100vh-104px)] w-[50px] flex flex-col items-center pt-4 bg-white shadow-lg dark:bg-dark-background dark:text-dark-text'>
@@ -71,6 +72,11 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
           className={`cursor-pointer mb-4 ${activeRightTab === 'summary' ? 'text-blue-500' : 'text-gray-500'}`}
           size={24}
           onClick={() => toggleRightTab('summary')}
+        />
+        <FaHistory
+          className={`cursor-pointer mb-4 ${activeRightTab === 'history' ? 'text-blue-500' : 'text-gray-500'}`}
+          size={24}
+          onClick={() => toggleRightTab('history')}
         />
         <FiInfo
           className={`cursor-pointer mb-4 ${activeRightTab === 'info' ? 'text-blue-500' : 'text-gray-500'}`}

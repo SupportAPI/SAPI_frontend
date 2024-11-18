@@ -40,9 +40,29 @@ const ApiDocsDetail = () => {
   const [categoryList, setCategoryList] = useState([]);
   const [occupationState, setOccupationState] = useState([]);
 
+  const [isHistoryDetailOpen, setIsHistoryDetailOpen] = useState(false);
+  const [historyApiId, setHistoryApiId] = useState(null);
+
   // useEffect(() => {
   //   if (location.pathname.includes('/apidocs')) setMenu('API Docs');
   // }, [setMenu]);
+
+  // 히스토리 영역
+  const openHistoryDetail = (apiId) => {
+    if (historyApiId === apiId) {
+      setIsHistoryDetailOpen(false);
+      setHistoryApiId(null);
+    } else {
+      setIsHistoryDetailOpen(true);
+      setHistoryApiId(apiId);
+    }
+  };
+
+  // History Detail 창 닫기 함수
+  const closeHistoryDetail = () => {
+    setHistoryApiId(null);
+    setIsHistoryDetailOpen(false);
+  };
 
   useEffect(() => {
     if (
@@ -179,9 +199,17 @@ const ApiDocsDetail = () => {
         workspaceId={workspaceId}
         occupationState={occupationState}
         handleOccupationState={handleOccupationState}
+        openHistoryDetail={isHistoryDetailOpen}
+        historyApiId={historyApiId}
+        closeHistoryDetail={closeHistoryDetail}
       />
 
-      <RightSection apiDocDetail={apiDocDetail} apiId={apiId} workspaceId={workspaceId} />
+      <RightSection
+        apiDocDetail={apiDocDetail}
+        apiId={apiId}
+        workspaceId={workspaceId}
+        openHistoryDetail={openHistoryDetail}
+      />
     </div>
   );
 };
