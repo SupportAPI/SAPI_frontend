@@ -115,13 +115,6 @@ const ApiTest = () => {
     });
   };
 
-  // ----------------------------------------------------------------------------
-
-  if (isLoading) return <div className='p-4'>Loading...</div>;
-  if (error) return <div className='p-4'>Failed to load data.</div>;
-  if (!Array.isArray(dataTest)) return <div className='p-4'>Invalid data format.</div>;
-  if (dataTest.length === 0) return <div className='p-4'>No data available.</div>;
-
   return (
     <div className='px-8 py-8 overflow-x-auto overflow-y-auto max-w-[1200px] dark:bg-dark-background dark:text-dark-text'>
       <div className='flex justify-between items-baseline mb-4'>

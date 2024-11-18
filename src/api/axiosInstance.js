@@ -38,7 +38,7 @@ axiosInstance.interceptors.response.use(
       error.response.data.code == 'NOT_FOUND_API' ||
       error.response.data.code == 'INVALID_ADDRESS'
     ) {
-      // window.location.href = '/404page';
+      window.location.href = '/404page';
     }
     return Promise.reject(error);
   }

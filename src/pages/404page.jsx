@@ -9,7 +9,7 @@ const Page404 = () => {
       <div
         className='w-screen h-screen bg-cover bg-center flex items-center justify-center object-cover'
         style={{
-          backgroundImage: `url('/src/assets/error/404page.JPG')`,
+          backgroundImage: `url('/404page.JPG')`,
           backgroundRepeat: 'no-repeat',
           backgroundSize: 'cover',
         }}
