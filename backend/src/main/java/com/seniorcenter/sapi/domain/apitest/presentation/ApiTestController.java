@@ -2,6 +2,7 @@ package com.seniorcenter.sapi.domain.apitest.presentation;
 
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.request.TestApiRequestDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.request.UpdateApiDetailRequestDto;
+import com.seniorcenter.sapi.domain.apitest.presentation.dto.request.ValidateRequestDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.ApiTestDetailResponseDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.ApiTestResponseDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.TestResponseDto;
@@ -54,5 +55,15 @@ public class ApiTestController {
         @RequestHeader Map<String, String> headers
     ) {
         return apiTestService.requestTestApiBySpecificationId(workspaceId, specificationId, headers);
+    }
+
+    @PostMapping("/workspaces/{workspaceId}/validate/{specificationId}")
+    public TestResponseDto validateRequest(
+        @PathVariable("workspaceId") UUID workspaceId,
+        @PathVariable("specificationId") UUID specificationId,
+        @RequestBody ValidateRequestDto validateRequestDto,
+        @RequestHeader("X-Test-Type") String testType
+    ) {
+        return apiTestService.validateRequest(workspaceId, specificationId, validateRequestDto, testType);
     }
 }
