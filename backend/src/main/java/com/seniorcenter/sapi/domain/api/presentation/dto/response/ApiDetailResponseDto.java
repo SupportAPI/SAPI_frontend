@@ -19,6 +19,8 @@ public record ApiDetailResponseDto(
         String managerEmail,
         String managerName,
         String managerProfileImage,
+		String confirmUserNickname,
+		String ConfirmUserEmail,
         ParametersDto parameters,
         RequestDto request,
         List<ResponseDto> response,
