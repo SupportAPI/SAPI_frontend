@@ -29,4 +29,7 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
 	boolean existsByWorkspaceIdAndColor(UUID workspaceId, Color color);
 
+	@Query("SELECT COUNT(m) FROM Membership m WHERE m.workspace.id = :workspaceId AND m.inviteStatus = 'ACCEPTED'")
+	Integer countAcceptedMembersByWorkspaceId(@Param("workspaceId") UUID workspaceId);
+
 }
