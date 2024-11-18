@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { toast } from 'react-toastify';
 import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
+import { useParams } from 'react-router';
+import { requestApiTestFileUpload, requestApiTestFileRemove } from '../../api/queries/useApiTestQueries';
 
 const ApiTestParameters = ({ body, bodyChange }) => {
   const [bodyType, setBodyType] = useState(body.bodyType);
@@ -10,6 +12,9 @@ const ApiTestParameters = ({ body, bodyChange }) => {
   const { environment } = useEnvironmentStore();
   const [envDropdown, setEnvDropdown] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const { workspaceId } = useParams();
+
+  console.log(formData);
 
   useEffect(() => {
     bodyChange({
@@ -132,6 +137,91 @@ const ApiTestParameters = ({ body, bodyChange }) => {
     );
   };
 
+  // 파일 업로드 핸들러 함수
+  const handleFileUpload = async (event, index) => {
+    const file = event.target.files[0]; // 선택된 파일
+    console.log('File Type:', file.type);
+
+    if (!file) return;
+
+    try {
+      // // 파일을 이진 데이터로 변환
+      // const binaryData = await fileToBinary(file);
+      // console.log('Binary Data:', binaryData);
+
+      // // 파일 객체 생성
+      // // const binaryFile = new File([binaryData], file.name, { type: file.type });
+
+      // API 호출
+      const response = await requestApiTestFileUpload(workspaceId, file);
+
+      // 폼 데이터 업데이트 (선택적으로 파일 이름 저장)
+      const updatedFormData = [...formData];
+      updatedFormData[index].value = {
+        id: response.id,
+        fileName: response.fileName,
+      };
+      console.log(updatedFormData[index].value);
+      setFormData(updatedFormData);
+
+      toast.success('파일 업로드 성공!');
+    } catch (error) {
+      console.error('파일 업로드 실패:', error);
+      toast.error('파일 업로드 실패!');
+    }
+  };
+
+  // // 파일을 Binary로 변환하는 유틸리티 함수
+  // const fileToBinary = (file) => {
+  //   return new Promise((resolve, reject) => {
+  //     const reader = new FileReader();
+
+  //     // 파일 읽기 완료 시 호출
+  //     reader.onload = (event) => {
+  //       if (event.target.result) {
+  //         resolve(event.target.result); // Binary 데이터 반환
+  //       } else {
+  //         reject(new Error('파일 변환 실패'));
+  //       }
+  //     };
+
+  //     // 파일 읽기 오류 처리
+  //     reader.onerror = () => {
+  //       reject(new Error('파일 읽기 오류'));
+  //     };
+
+  //     // 파일을 ArrayBuffer 형식으로 읽기
+  //     reader.readAsArrayBuffer(file);
+  //   });
+  // };
+
+  // 파일 삭제 핸들러 함수
+  const handleFileRemove = async (index) => {
+    const fileData = formData[index].value;
+    console.log(fileData);
+
+    if (!fileData || !fileData.id) {
+      toast.error('삭제할 파일이 없습니다.');
+      return;
+    }
+
+    try {
+      // 서버에 파일 삭제 요청
+      console.log(fileData.id);
+      await requestApiTestFileRemove(workspaceId, fileData.id);
+
+      // 폼 데이터에서 파일 제거
+      const updatedFormData = [...formData];
+      updatedFormData[index].value = null; // 파일 데이터 초기화
+      setFormData(updatedFormData);
+
+      toast.success('파일 삭제 성공!');
+    } catch (error) {
+      console.error('파일 삭제 실패:', error);
+      toast.error('파일 삭제 실패!');
+    }
+  };
+
   const renderFormDataTable = () => (
     <div className='mb-4'>
       <h3 className='font-bold text-sm mb-2'>Form Data</h3>
@@ -146,47 +236,75 @@ const ApiTestParameters = ({ body, bodyChange }) => {
           </tr>
         </thead>
         <tbody>
-          {formData.map((item, index) => (
-            <tr key={index} className='hover:bg-gray-50 h-20'>
-              <td className='py-2 px-4 text-sm border text-center'>
-                <label>
-                  <input
-                    type='checkbox'
-                    name={item.id} // 고유한 ID나 키 값을 사용
-                    checked={item.isChecked} // 현재 체크 상태
-                    onChange={(event) => handleCheckboxChange(event, item.id)} // 상태 변경 핸들러
-                  />
-                </label>
-              </td>
-              <td className='py-2 px-4 text-sm border text-center'>{item.isRequired ? `Required` : `Optional`}</td>
-              <td className='px-4 py-2 text-sm flex items-center border-b justify-between h-20'>
-                <div>{item.key}</div>
-                <div className='w-[55px] bg-white border text-center'>{item.type}</div>
-              </td>
-              <td className='py-2 px-4 border text-center relative'>
-                <input
-                  type='text'
-                  value={item.value}
-                  onChange={(e) => handleInputChange(e, index)}
-                  className='w-full text-sm text-center'
-                />
-                {showDropdown && (
-                  <div className='absolute left-0 right-0 bg-white border border-gray-300 mt-1 z-10'>
-                    {envDropdown.map((env, i) => (
-                      <div
-                        key={i}
-                        onClick={() => handleEnvironmentSelect(env.variable, index)}
-                        className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
+          {formData.map((item, index) => {
+            const fileInputRef = useRef(null); // 각 파일 인풋에 고유한 ref 생성
+            return (
+              <tr key={index} className='hover:bg-gray-50 h-20'>
+                <td className='py-2 px-4 text-sm border text-center'>
+                  <label>
+                    <input
+                      type='checkbox'
+                      name={item.id} // 고유한 ID나 키 값을 사용
+                      checked={item.isChecked} // 현재 체크 상태
+                      onChange={(event) => handleCheckboxChange(event, item.id)} // 상태 변경 핸들러
+                    />
+                  </label>
+                </td>
+                <td className='py-2 px-4 text-sm border text-center'>{item.isRequired ? `Required` : `Optional`}</td>
+                <td className='px-4 py-2 text-sm flex items-center border-b justify-between h-20'>
+                  <div>{item.key}</div>
+                  <div className='w-[55px] bg-white border text-center'>{item.type}</div>
+                </td>
+                <td className='py-2 px-4 border text-center relative'>
+                  {item.type === 'TEXT' && (
+                    <>
+                      <input
+                        type='text'
+                        value={item.value}
+                        onChange={(e) => handleInputChange(e, index)}
+                        className='w-full text-sm'
+                      />
+                      {showDropdown && (
+                        <div className='absolute left-0 right-0 bg-white border border-gray-300 mt-1 z-10'>
+                          {envDropdown.map((env, i) => (
+                            <div
+                              key={i}
+                              onClick={() => handleEnvironmentSelect(env.variable, index)}
+                              className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
+                            >
+                              {env.variable}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {item.type === 'FILE' && (
+                    <div className='w-full flex flex-row justify-between'>
+                      <input
+                        type='file'
+                        ref={fileInputRef}
+                        onChange={(e) => handleFileUpload(e, index)}
+                        className='w-[80%] text-sm p-1 text-center'
+                      />
+                      <button
+                        onClick={() => {
+                          handleFileRemove(index);
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = null;
+                          }
+                        }}
+                        className='w-[20%] text-center text-sm'
                       >
-                        {env.variable}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </td>
-              <td></td>
-            </tr>
-          ))}
+                        삭제
+                      </button>
+                    </div>
+                  )}
+                </td>
+                <td className='py-2 px-4 border text-center'>{item.description}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

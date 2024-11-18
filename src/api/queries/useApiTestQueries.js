@@ -61,3 +61,24 @@ export const useRequestApiTestDetail = (setTestResult) => {
     },
   });
 };
+
+// 5. API TEST FILE 업로드
+export const requestApiTestFileUpload = async (workspaceId, fileData) => {
+  console.log('파일', fileData);
+  const formRequestData = new FormData();
+  formRequestData.append('file', fileData); // 파일 객체로 추가
+  const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/file`, formRequestData, {
+    headers: {},
+  });
+  return response.data.data;
+};
+
+// 6. API TEST FILE 삭제
+export const requestApiTestFileRemove = async (workspaceId, fileId) => {
+  const response = await axiosInstance.delete(`/api/workspaces/${workspaceId}/file/${fileId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  return response.data.data;
+};
