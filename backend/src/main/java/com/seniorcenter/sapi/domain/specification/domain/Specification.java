@@ -83,9 +83,9 @@ public class Specification extends BaseTimeEntity {
     }
 
     public void updateTestStatus(String testType, TestStatus testStatus) {
-        if (testType.equals("LOCAL"))
+        if (testType.equalsIgnoreCase("LOCAL"))
             this.localStatus = testStatus;
-        if (testType.equals("SERVER")) {
+        if (testType.equalsIgnoreCase("SERVER")) {
             this.serverStatus = testStatus;
         }
     }
