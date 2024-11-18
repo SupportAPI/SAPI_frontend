@@ -4,8 +4,8 @@ import { ResizableBox } from 'react-resizable';
 import { FaSave } from 'react-icons/fa';
 import 'react-resizable/css/styles.css';
 import ApiTestParameters from './ApiTestParameters';
-import ApiTestBody from './ApiTestRequestBody';
-import ApiTestResponse from './ApiTestResponse';
+import ApiTestRequestBody from './ApiTestRequestBody';
+import ApiTestResponseBody from './ApiTestResponseBody';
 import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useSidebarStore } from '../../stores/useSidebarStore';
 import { useEnvironmentStore } from '../../stores/useEnvironmentStore';
@@ -245,7 +245,7 @@ const ApiTestDetail = () => {
       case 'Parameters':
         return <ApiTestParameters initialValues={apiDetail?.parameters || []} paramsChange={handleParamsChange} />;
       case 'Body':
-        return <ApiTestBody body={apiDetail?.request || []} bodyChange={handleBodyChange} />;
+        return <ApiTestRequestBody body={apiDetail?.request || []} bodyChange={handleBodyChange} />;
       default:
         return null;
     }
@@ -484,7 +484,7 @@ const ApiTestDetail = () => {
               Response
             </div>
             {testResult ? (
-              <ApiTestResponse initialData={testResult} />
+              <ApiTestResponseBody initialData={testResult} />
             ) : (
               <div className='flex justify-center items-center h-[200px] text-m'>Could not send request</div>
             )}
