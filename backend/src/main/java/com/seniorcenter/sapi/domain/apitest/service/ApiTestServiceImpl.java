@@ -487,6 +487,7 @@ public class ApiTestServiceImpl implements ApiTestService {
     }
 
     @Override
+    @Transactional
     public TestResponseDto validateRequest(UUID workspaceId, UUID specificationId, ValidateRequestDto validateRequestDto, String testType) {
         User user = userUtils.getUserFromSecurityContext();
 
@@ -509,8 +510,10 @@ public class ApiTestServiceImpl implements ApiTestService {
 
         HttpStatusCode httpStatusCode = HttpStatusCode.valueOf(validateRequestDto.status());
         HttpHeaders headers = new HttpHeaders();
-        for (String key : validateRequestDto.headers().keySet()) {
-            headers.add(key, validateRequestDto.headers().get(key));
+        if (validateRequestDto.headers() != null) {
+            for (String key : validateRequestDto.headers().keySet()) {
+                headers.add(key, validateRequestDto.headers().get(key));
+            }
         }
 
         TestResponseEntityDto testResponseEntityDto = new TestResponseEntityDto(httpStatusCode, headers);
@@ -524,7 +527,6 @@ public class ApiTestServiceImpl implements ApiTestService {
     }
 
     @Override
-    @Transactional
     public TestResponseDto toTestResponseDto(
         UUID specificationId,
         TestResponseEntityDto testResponseEntityDto,
