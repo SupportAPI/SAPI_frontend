@@ -181,61 +181,69 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
         <table className='w-full border border-gray-300'>
           <thead>
             <tr>
-              <th className='py-2 px-4 text-sm border bg-gray-100 w-[40%]'>Parameter Name</th>
+              <th className='py-2 px-4 44 border bg-gray-100 w-[40%]'>Parameter Name</th>
               <th className='py-2 px-4 text-sm border bg-gray-100 w-[60%]'>Value</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((item, index) => (
-              <tr key={item.id} className='hover:bg-gray-50'>
-                <td className='py-2 px-4 text-sm border text-center w-[40%]'>{item.key}</td>
-                <td className='py-2 px-4 border text-center w-[60%]'>
-                  <input
-                    type='text'
-                    value={item.value}
-                    onChange={(e) => handleInputChange(e, index, type)}
-                    className='w-full text-sm border p-1 text-center'
-                  />
-                  {showDropdown[index] && (
-                    <>
-                      <div className='w-[15%] rounded-bl-lg absolute left-[45%] right-0 bg-white border border-gray-300 mt-1 z-10 h-[150px] overflow-y-scroll sidebar-scrollbar'>
-                        {envDropdown.map((env, i) => (
-                          <div
-                            key={i}
-                            onClick={() => handleEnvironmentSelect(env.variable, index, type)}
-                            onMouseEnter={() => setHoveredEnvIndex(i)} // hover 시 인덱스를 상태에 저장
-                            className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
-                          >
-                            {env.variable}
-                          </div>
-                        ))}
-                      </div>
-                      {hoveredEnvIndex !== null && (
-                        <div className='w-[28%] rounded-br-lg absolute left-[60%] right-0 bg-white border border-gray-300 mt-1 z-10 h-[150px]'>
-                          <div key={hoveredEnvIndex} className='p-2 text-sm flex flex-col'>
-                            <div className='flex flex-col'>
-                              {Object.entries(envDropdown[hoveredEnvIndex]).map(([key, value]) => {
-                                if (key !== 'id' && key !== 'orderIndex') {
-                                  return (
-                                    <div
-                                      key={key}
-                                      className='flex flex-row dark:text-dark-text text-[#121212] text-start ml-4'
-                                    >
-                                      <div className='w-[30%] font-semibold'>{key}</div> {value}
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              })}
+            {data && Object.keys(data).length > 0 ? (
+              data.map((item, index) => (
+                <tr key={item.id} className='hover:bg-gray-50'>
+                  <td className='py-2 px-4 text-sm border text-center w-[40%]'>{item.key}</td>
+                  <td className='py-2 px-4 border text-center w-[60%]'>
+                    <input
+                      type='text'
+                      value={item.value}
+                      onChange={(e) => handleInputChange(e, index, type)}
+                      className='w-full text-sm border p-1 text-center'
+                    />
+                    {showDropdown[index] && (
+                      <>
+                        <div className='w-[15%] rounded-bl-lg absolute left-[45%] right-0 bg-white border border-gray-300 mt-1 z-10 h-[150px] overflow-y-scroll sidebar-scrollbar'>
+                          {envDropdown.map((env, i) => (
+                            <div
+                              key={i}
+                              onClick={() => handleEnvironmentSelect(env.variable, index, type)}
+                              onMouseEnter={() => setHoveredEnvIndex(i)} // hover 시 인덱스를 상태에 저장
+                              className='p-2 text-sm hover:bg-gray-100 cursor-pointer'
+                            >
+                              {env.variable}
+                            </div>
+                          ))}
+                        </div>
+                        {hoveredEnvIndex !== null && (
+                          <div className='w-[28%] rounded-br-lg absolute left-[60%] right-0 bg-white border border-gray-300 mt-1 z-10 h-[150px]'>
+                            <div key={hoveredEnvIndex} className='p-2 text-sm flex flex-col'>
+                              <div className='flex flex-col'>
+                                {Object.entries(envDropdown[hoveredEnvIndex]).map(([key, value]) => {
+                                  if (key !== 'id' && key !== 'orderIndex') {
+                                    return (
+                                      <div
+                                        key={key}
+                                        className='flex flex-row dark:text-dark-text text-[#121212] text-start ml-4'
+                                      >
+                                        <div className='w-[30%] font-semibold'>{key}</div> {value}
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </>
-                  )}
+                        )}
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={2} className='py-2 px-4 text-sm border text-center'>
+                  No Parameters
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
@@ -244,10 +252,10 @@ const ApiTestBody = ({ initialValues, paramsChange }) => {
 
   return (
     <div>
-      {headers.length > 0 && renderTable('Headers', headers, 'headers')}
-      {pathVariables.length > 0 && renderTable('Path Variables', pathVariables, 'pathVariables')}
-      {queryParameters.length > 0 && renderTable('Query Parameters', queryParameters, 'queryParameters')}
-      {cookies.length > 0 && renderTable('Cookies', cookies, 'cookies')}
+      {renderTable('Headers', headers, 'headers')}
+      {renderTable('Path Variables', pathVariables, 'pathVariables')}
+      {renderTable('Query Parameters', queryParameters, 'queryParameters')}
+      {renderTable('Cookies', cookies, 'cookies')}
     </div>
   );
 };

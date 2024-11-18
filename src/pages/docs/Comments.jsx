@@ -8,7 +8,6 @@ import { getToken } from '../../utils/cookies';
 import { fetchUserInfo } from '../../api/queries/useAPIUserQueries';
 import useAuthStore from '../../stores/useAuthStore';
 import { throttle } from 'lodash';
-import { useWebSocket } from '../../contexts/WebSocketProvider';
 
 const Comments = ({ docsId, workspaceId }) => {
   // 드롭다운 불러오는 변수들

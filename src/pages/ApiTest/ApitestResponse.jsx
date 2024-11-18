@@ -92,19 +92,40 @@ const ApiTestResponse = ({ initialData }) => {
           </div>
         );
       case 'Cookies':
-        return <div>2</div>;
-      case 'Headers':
         return (
           <>
-            <div className='flex h-10 text-[14px] border bg-[#f1f5f8]'>
+            <div className='flex flex-col items-center'>
+              <div className='w-[100%] flex h-10 text-[14px] border bg-[#f1f5f8]'>
+                <div className='flex-1 p-2 h-10 text-center border-r'>Key</div>
+                <div className='flex-1 p-2 h-10 text-center border-r'>Value</div>
+              </div>
+              {resultData?.cookies && Object.keys(resultData.cookies).length > 0 ? (
+                Object.entries(resultData.cookies).map(([key, value], index) => (
+                  <div className='w-[100%] flex border mt-1' key={index}>
+                    <div className='flex-1 p-2 border-r'>{key || 'N/A'}</div>
+                    <div className='flex-1 p-2'>{value || 'N/A'}</div>
+                  </div>
+                ))
+              ) : (
+                <div className='flex w-full border-x border-b p-2'>
+                  <div className='w-full text-[16px] text-center'>No header Data</div>
+                </div>
+              )}
+            </div>
+          </>
+        );
+      case 'Headers':
+        return (
+          <div className='flex flex-col items-center'>
+            <div className='w-[100%] flex h-10 text-[14px] border bg-[#f1f5f8]'>
               <div className='flex-1 p-2 h-10 text-center border-r'>Key</div>
               <div className='flex-1 p-2 h-10 text-center border-r'>Value</div>
             </div>
-            {Array.isArray(resultData?.parameters?.headers) ? (
-              resultData.parameters.headers.map((header, index) => (
-                <div className='flex' key={index}>
-                  <div className='flex-1 p-2 border-r'>{header.key}</div>
-                  <div className='flex-1 p-2'>{header.value}</div>
+            {resultData?.headers && Object.keys(resultData.headers).length > 0 ? (
+              Object.entries(resultData.headers).map(([key, value], index) => (
+                <div className='w-[100%] flex border mt-1' key={index}>
+                  <div className='flex-1 p-2 border-r'>{key || 'N/A'}</div>
+                  <div className='flex-1 p-2'>{value || 'N/A'}</div>
                 </div>
               ))
             ) : (
@@ -112,7 +133,7 @@ const ApiTestResponse = ({ initialData }) => {
                 <div className='w-full text-[16px] text-center'>No header Data</div>
               </div>
             )}
-          </>
+          </div>
         );
       default:
         return null;
