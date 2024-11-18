@@ -8,14 +8,14 @@ import { login } from '../api/queries/useAuthQueries';
 import { useNavigate } from 'react-router-dom';
 
 const useAuth = () => {
-  const [loading, setLoading] = useState(true); // 로딩 상태 추가
+  const [loading, setLoading] = useState(true);
   const setUserId = useAuthStore((state) => state.setUserId);
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
 
   useEffect(() => {
     const initializeAuth = async () => {
-      setLoading(true); // 로딩 시작
+      setLoading(true);
       const accessToken = getToken();
 
       if (accessToken) {

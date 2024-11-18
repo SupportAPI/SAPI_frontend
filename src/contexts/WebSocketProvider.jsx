@@ -16,23 +16,24 @@ export const WebSocketProvider = ({ children }) => {
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`https://k11b305.p.ssafy.io/ws/ws-stomp?accessToken=${getToken()}`),
+      // webSocketFactory: () => new SockJS(`http://192.168.31.219:8080/ws/ws-stomp?accessToken=${getToken()}`),
       reconnectDelay: 5000,
       heartbeatIncoming: 5000,
       heartbeatOutgoing: 5000,
       onConnect: () => {
-        console.log('Connected to WebSocket');
-        setIsConnected(true); // 연결 완료 상태로 설정
+        // console.log('Connected to WebSocket');
+        setIsConnected(true);
       },
       onDisconnect: () => {
-        console.log('Disconnected from WebSocket');
-        setIsConnected(false); // 연결 해제 상태로 설정
+        // console.log('Disconnected from WebSocket');
+        setIsConnected(false);
       },
       onStompError: (frame) => {
-        console.error('Broker reported error: ' + frame.headers['message']);
-        console.error('Additional details: ' + frame.body);
+        // console.error('Broker reported error: ' + frame.headers['message']);
+        // console.error('Additional details: ' + frame.body);
       },
       debug: (str) => {
-        console.log(str);
+        // console.log(str);
       },
     });
 
@@ -59,6 +60,16 @@ export const WebSocketProvider = ({ children }) => {
     }
   };
 
+  // 구독 해제 메소드
+  const unsubscribe = (subscription) => {
+    if (subscription) {
+      subscription.unsubscribe();
+      console.log('Unsubscribed from topic');
+    } else {
+      console.error('No subscription to unsubscribe');
+    }
+  };
+
   // 메시지 전송 메소드
   const publish = (destination, message) => {
     if (stompClient.current && stompClient.current.connected) {
@@ -71,7 +82,11 @@ export const WebSocketProvider = ({ children }) => {
     }
   };
 
-  return <WebSocketContext.Provider value={{ subscribe, publish, isConnected }}>{children}</WebSocketContext.Provider>;
+  return (
+    <WebSocketContext.Provider value={{ subscribe, unsubscribe, publish, isConnected }}>
+      {children}
+    </WebSocketContext.Provider>
+  );
 };
 
 export const useWebSocket = () => useContext(WebSocketContext);

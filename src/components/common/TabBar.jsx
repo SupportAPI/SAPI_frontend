@@ -1,6 +1,6 @@
 import { useTabStore } from '../../stores/useTabStore';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { FaFileAlt, FaTimes } from 'react-icons/fa';
+import { FaBook, FaTimes, FaFlask, FaTachometerAlt, FaListAlt } from 'react-icons/fa';
 
 const TabBar = () => {
   const { openTabs, confirmTab, removeTab } = useTabStore();
@@ -14,16 +14,16 @@ const TabBar = () => {
     navigate(tab.path);
   };
 
-  const handleTabDoubleClick = (tabId) => {
-    confirmTab(tabId);
+  const handleTabDoubleClick = (tabId, tabType) => {
+    confirmTab(tabId, tabType);
   };
 
-  const handleTabClose = (tabId) => {
-    const tabIndex = openTabs.findIndex((tab) => tab.id === tabId);
-    const isActiveTab = openTabs[tabIndex].path === currentPath;
+  const handleTabClose = (tabId, tabType) => {
+    const tabIndex = openTabs.findIndex((tab) => tab.id === tabId && tab.type === tabType);
+    const isActiveTab = openTabs[tabIndex]?.path === currentPath;
 
     // 탭을 먼저 제거
-    removeTab(tabId);
+    removeTab(tabId, tabType);
 
     // 탭이 활성화된 상태에서 닫혔다면, 다른 탭을 활성화
     if (isActiveTab) {
@@ -44,19 +44,36 @@ const TabBar = () => {
     }
   };
 
+  const renderTabIcon = (type, isActive) => {
+    const iconClasses = `mr-2 flex-shrink-0 ${
+      isActive ? 'text-gray-800 dark:text-dark-text' : 'text-gray-500 dark:text-gray-500'
+    }`;
+
+    switch (type) {
+      case 'apidocs':
+        return <FaBook className={iconClasses} />;
+      case 'api-test':
+        return <FaFlask className={iconClasses} />;
+      case 'dashboard':
+        return <FaTachometerAlt className={iconClasses} />;
+      default:
+        return <FaListAlt className={iconClasses} />;
+    }
+  };
+
   return (
-    <div className='flex bg-white border-b h-10'>
+    <div className='flex bg-white dark:bg-dark-background border-b h-10'>
       {openTabs.map((tab) => {
         const isActive = currentPath === tab.path;
 
         return (
           <div
-            key={tab.id}
-            className={`flex items-center cursor-pointer relative px-2 h-10 ${
-              isActive ? 'bg-white border-t-2 border-gray-800' : 'bg-gray-100 border-b'
+            key={`${tab.id}-${tab.type}`} // `id`와 `type`을 조합하여 고유한 키 생성
+            className={`flex items-center cursor-pointer relative px-2 h-10 dark:bg-dark-background   ${
+              isActive ? 'bg-white border-t-2 border-gray-800 dark:border-white' : 'bg-gray-100 border-b'
             }`}
             onClick={() => handleTabClick(tab)}
-            onDoubleClick={() => handleTabDoubleClick(tab.id)}
+            onDoubleClick={() => handleTabDoubleClick(tab.id, tab.type)}
             style={{
               width: '150px',
               flexShrink: 0,
@@ -65,10 +82,10 @@ const TabBar = () => {
               borderBottom: isActive ? '0' : '',
             }}
           >
-            <FaFileAlt className={`mr-2 flex-shrink-0 ${isActive ? 'text-gray-800' : 'text-gray-500'}`} />
+            {renderTabIcon(tab.type, isActive)}
             <span
               className={`flex-1 overflow-hidden text-ellipsis ${
-                isActive ? 'font-bold text-gray-800' : 'text-gray-600'
+                isActive ? 'font-bold text-gray-800 dark:text-dark-text' : 'text-gray-600 dark:text-gray-500'
               } ${tab.confirmed ? '' : 'italic'}`}
               style={{
                 whiteSpace: 'nowrap',
@@ -78,17 +95,19 @@ const TabBar = () => {
             </span>
             <FaTimes
               className={`ml-2 flex-shrink-0 cursor-pointer ${
-                isActive ? 'text-gray-500 hover:text-gray-800' : 'text-gray-400 hover:text-gray-600'
+                isActive
+                  ? 'text-gray-500 hover:text-gray-800 dark:text-dark-text'
+                  : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400'
               }`}
               onClick={(e) => {
                 e.stopPropagation(); // 클릭 이벤트가 부모로 전파되지 않도록 합니다.
-                handleTabClose(tab.id);
+                handleTabClose(tab.id, tab.type);
               }}
             />
           </div>
         );
       })}
-      {openTabs.length === 0 && <div className='flex bg-white border-b h-10'></div>}
+      {openTabs.length === 0 && <div className='flex bg-white dark:bg-dark-background border-b h-10'></div>}
     </div>
   );
 };

@@ -31,23 +31,22 @@ export const useDetailApiDocs = () => {
 // API 문서 조회 (Detail)
 export const fetchApiDocDetail = async (workspaceId, apiId) => {
   const response = await axiosInstance.get(`api/workspaces/${workspaceId}/apis/${apiId}`);
+
   return response.data.data;
 };
 
-export const useApiDocDetail = () => {
-  const { workspaceId, apiId } = useParams();
+export const useApiDocDetail = (workspaceId, apiId) => {
   return useQuery(['apiDocDetail', workspaceId, apiId], () => fetchApiDocDetail(workspaceId, apiId));
 };
 
 // 워크스페이스 카테고리 조회
-export const fetchWorkspaceCategory = async (workspaceId) => {
+export const fetchWorkspaceCategoryList = async (workspaceId) => {
   const response = await axiosInstance.get(`api/workspaces/${workspaceId}/categories`);
   return response.data.data;
 };
 
-export const useWorkspaceCategory = () => {
-  const { workspaceId } = useParams();
-  return useQuery(['categories', workspaceId], () => fetchWorkspaceCategory(workspaceId));
+export const useWorkspaceCategoryList = (workspaceId) => {
+  return useQuery(['categories', workspaceId], () => fetchWorkspaceCategoryList(workspaceId));
 };
 
 // 새로운 API 문서 생성
@@ -86,6 +85,60 @@ export const useDeleteApiDoc = () => {
       console.error('Error deleting API document:', error);
     },
   });
+};
+
+// API 확정
+export const confirmWorkspace = async ({ workspaceId, docsId }) => {
+  const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/docs/${docsId}/confirm`);
+  return response.data;
+};
+
+export const useConfirmWorkspace = () => {
+  const queryClient = useQueryClient();
+  return useMutation(({ workspaceId, docsId }) => confirmWorkspace({ workspaceId, docsId }), {
+    onSuccess: () => {
+      queryClient.invalidateQueries('apiDocs');
+      console.log('Workspace document confirmed successfully!');
+    },
+    onError: (error) => {
+      // 에러 처리
+      console.error('Error confirming workspace document:', error);
+    },
+  });
+};
+
+// API 문서 내보내기
+export const exportDocument = async ({ workspaceId, docsId, ext }) => {
+  try {
+    const response = await axiosInstance.post(`/api/workspaces/${workspaceId}/docs/${docsId}/export?ext=${ext}`);
+
+    console.log(response);
+
+    // 파일 이름 추출 (Content-Disposition 헤더 활용 가능)
+    const contentDisposition = response.headers['content-disposition'];
+    const filename = contentDisposition
+      ? contentDisposition.split('filename=')[1].replace(/"/g, '')
+      : `document.${ext.toLowerCase()}`;
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename); // 동적으로 파일 이름 설정
+    document.body.appendChild(link);
+    link.click();
+
+    // URL 객체 정리
+    window.URL.revokeObjectURL(url);
+    link.remove();
+  } catch (error) {
+    console.error('문서 내보내기 중 오류 발생:', error);
+    throw error;
+  }
+};
+
+// React Query를 활용한 Hook
+export const useExportDocument = () => {
+  return useMutation(({ workspaceId, docsId, ext }) => exportDocument({ workspaceId, docsId, ext }));
 };
 
 // API 문서 업데이트

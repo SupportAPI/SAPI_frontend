@@ -1,31 +1,20 @@
-import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { getToken } from '../../utils/cookies';
-
-const base_URL = 'https://k11b305.p.ssafy.io'; // 본 서버
+import axiosInstance from '../axiosInstance';
 
 // 1. 회원 정보 조회
 export const fetchUserInfo = async (userId) => {
-  const accessToken = getToken();
-
-  const response = await axios.get(`${base_URL}/api/users/${userId}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  const response = await axiosInstance.get(`/api/users/${userId}`);
   return response.data.data;
 };
-
 // React Query 훅 : 유저 정보 조회하기
 export const useUserInfo = (userId) => {
-  return useQuery(['userInfo', userId], () => fetchUserInfo(userId), {});
+  return useQuery(['userInfo', userId], () => fetchUserInfo(userId), {
+    enabled: !!userId,
+  });
 };
 
 // 2. 회원 정보 변경
 export const mutateUserInfo = async (userId, nickname, profileImage) => {
-  const accessToken = getToken();
-
   // FormData 객체 생성
   const formData = new FormData();
 
@@ -43,10 +32,9 @@ export const mutateUserInfo = async (userId, nickname, profileImage) => {
     formData.append('profileImage', profileImage);
   }
 
-  const response = await axios.patch(`${base_URL}/api/users/${userId}`, formData, {
+  const response = await axiosInstance.patch(`/api/users/${userId}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
-      Authorization: `Bearer ${accessToken}`,
     },
   });
 

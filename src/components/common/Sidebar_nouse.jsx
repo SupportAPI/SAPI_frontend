@@ -2,12 +2,12 @@ import { FaPlus, FaSearch, FaChevronDown } from 'react-icons/fa';
 
 const Sidebar = () => {
   return (
-    <div className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm'>
-      <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 z-10'>
+    <div className='w-[300px] bg-[#F0F5F8]/50 h-full border-r flex flex-col text-sm dark:bg-dark-background'>
+      <div className='p-2 sticky top-0 bg-[#F0F5F8]/50 z-10 dark:bg-dark-background'>
         <div className='flex items-center'>
-          <FaPlus className='text-gray-600 cursor-pointer mr-2' />
-          <div className='flex items-center flex-1 bg-white rounded border'>
-            <FaSearch className='text-gray-400 ml-2' />
+          <FaPlus className='text-gray-600 cursor-pointer mr-2 dark:text-dark-text' />
+          <div className='flex items-center flex-1 bg-white rounded border dark:bg-dark-background'>
+            <FaSearch className='text-gray-400 dark:text-dark-text ml-2' />
             <input type='text' placeholder='Search' className='p-2 flex-1 bg-transparent outline-none' />
           </div>
         </div>

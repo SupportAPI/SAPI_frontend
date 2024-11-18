@@ -41,7 +41,10 @@ const UserInvitation = () => {
         <div className='flex flex-col h-[440px] mt-10 p-2 border overflow-y-auto sidebar-scrollbar'>
           {InvitedList && InvitedList.length > 0 ? (
             InvitedList.map((invite, index) => (
-              <div className='flex justify-between border-none hover:bg-blue-100 p-2 rounded-lg' key={index}>
+              <div
+                className='flex justify-between border-none hover:bg-blue-100 dark:hover:bg-gray-600 p-2 rounded-lg'
+                key={index}
+              >
                 <div className='flex'>
                   <img
                     className='border rounded-full w-14 h-14 mr-2 object-contain'
