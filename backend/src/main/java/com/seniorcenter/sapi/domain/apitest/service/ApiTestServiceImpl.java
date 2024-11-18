@@ -192,6 +192,7 @@ public class ApiTestServiceImpl implements ApiTestService {
 
         // ApiTestDetailResponseDto 생성 및 반환
         return new ApiTestDetailResponseDto(
+            specification.getWorkspace().getDomain(),
             api.getSpecification().getId().toString(),
             api.getId().toString(),
             api.getName(),
