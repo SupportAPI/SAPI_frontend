@@ -10,11 +10,14 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 const Workspace = () => {
   const { data = {}, error, refetch } = useFetchDashboardList(); // 기본값을 빈 객체로 설정
   const { workspaceId } = useParams();
+
+  console.log(data);
+
   const mockData = {
     labels: ['Completed', 'Remaining'],
     datasets: [
       {
-        data: [30, 70],
+        data: [1, data.totalSpecifications],
         backgroundColor: ['#F7FAFB', '#D1D5DB'], // 포인트 색상과 대비되는 색
         hoverBackgroundColor: ['#E2E8F0', '#A0AEC0'], // 포인트 색상보다 약간 어두운 색
       },

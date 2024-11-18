@@ -512,6 +512,7 @@ const RightSectionComments = ({ docsId, workspaceId }) => {
   // 스크롤 감지 후 무한 스크롤 데이터 로딩
   const handleScroll = throttle(() => {
     const scrollContainer = scrollContainerRef.current;
+    console.log('스크롤', scrollContainer.scrollTop);
     if (scrollContainer && scrollContainer.scrollTop === 0) {
       findMutation.mutate();
     }
