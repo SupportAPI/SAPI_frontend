@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { BsSend } from 'react-icons/bs';
 import { FaEllipsisH } from 'react-icons/fa';
 import { useMutation } from 'react-query';
@@ -36,6 +36,7 @@ const Comments = ({ docsId, workspaceId }) => {
   const setRef = useRef(null);
   const deleteRef = useRef(null);
   const infoRef = useRef(null);
+  const userSuggestionRef = useRef(null);
 
   const [initIndex, setInitIndex] = useState(-1);
   const [index, setIndex] = useState(-1);
@@ -49,7 +50,6 @@ const Comments = ({ docsId, workspaceId }) => {
   const [internalMessage, setInternalMessage] = useState(''); // 내부 저장 메시지 형식: [닉네임:아이디]
   const [taggedUsers, setTaggedUsers] = useState([]); // 태그된 유저 리스트
 
-  const accessToken = getToken();
   const { userId } = useAuthStore();
 
   // 소켓 관련 변수들
@@ -71,6 +71,11 @@ const Comments = ({ docsId, workspaceId }) => {
     };
   }, [docsId]);
 
+  useEffect(() => {
+    document.removeEventListener('click', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+  }, [docsId, showUser, showDeleteModal, showOptionsDropdown, showDropdown]);
+
   // 최근 인덱스 호출 완료 -> 코멘트들 불러오기
   useEffect(() => {
     if (initIndex !== -1) {
@@ -79,17 +84,23 @@ const Comments = ({ docsId, workspaceId }) => {
   }, [initIndex]);
 
   // 드롭다운 바깥 선택 시 꺼지는 함수
-  const handleClickOutside = (event) => {
-    if (setRef.current && !setRef.current.contains(event.target)) {
-      setShowOptionsDropdown(false);
-    }
-    if (deleteRef.current && !deleteRef.current.contains(event.target)) {
-      setShowDeleteModal(false);
-    }
-    if (infoRef.current && !infoRef.current.contains(event.target)) {
-      setShowUser(false);
-    }
-  };
+  const handleClickOutside = useCallback(
+    (event) => {
+      if (setRef.current && !setRef.current.contains(event.target)) {
+        setShowOptionsDropdown(false);
+      }
+      if (deleteRef.current && !deleteRef.current.contains(event.target)) {
+        setShowDeleteModal(false);
+      }
+      if (infoRef.current && !infoRef.current.contains(event.target)) {
+        setShowUser(false);
+      }
+      if (userSuggestionRef.current && !userSuggestionRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    },
+    [setRef, deleteRef, infoRef, userSuggestionRef] // 필요한 경우 의존성 추가
+  );
 
   // 소켓 연결 함수
   useEffect(() => {
@@ -268,9 +279,10 @@ const Comments = ({ docsId, workspaceId }) => {
         const { top, left } = textarea.getBoundingClientRect();
         const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
         setDropdownPosition({
-          top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
+          top: top - containerTop + scrollContainerRef.current.scrollTop - 80,
           left: left - containerLeft + scrollContainerRef.current.scrollLeft,
         });
+
         setShowDropdown(true);
       } else {
         setShowDropdown(false);
@@ -396,6 +408,13 @@ const Comments = ({ docsId, workspaceId }) => {
     }
   };
 
+  // 4. 수정 창 포커싱 잃었을 때 호출하는 함수
+  const handleBlurWithTimeout = () => {
+    setTimeout(() => {
+      handleSaveEdit(); // 저장 호출
+    }, 100); // 짧은 지연 시간 설정
+  };
+
   // 더보기 아이콘 (수정/삭제) 클릭
   const handleMoreIconClick = (e, messageId) => {
     e.stopPropagation();
@@ -509,38 +528,32 @@ const Comments = ({ docsId, workspaceId }) => {
     };
   }, [handleScroll]);
 
-  // 태그된 유저 정보 확인
   const showUserInfo = (e, nickname, profileImage, userId) => {
     e.stopPropagation(); // 이벤트 전파 중단
 
-    // `e`와 `e.target`이 존재하는지 확인
-    if (!e || !e.target) {
+    if (!e || !e.target || !scrollContainerRef.current) {
       console.error('이벤트 또는 이벤트 타겟이 정의되지 않았습니다.');
       return;
     }
 
     const targetElement = e.target;
 
-    // `targetElement`가 `span`인지 확인하고 `scrollContainerRef.current`가 존재하는지 확인
-    if (targetElement.tagName === 'SPAN' && scrollContainerRef.current) {
-      const { top, left } = targetElement.getBoundingClientRect();
-      const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
+    // `targetElement`의 위치를 가져와 드롭다운 위치 계산
+    const { top, left } = targetElement.getBoundingClientRect();
+    const { top: containerTop, left: containerLeft } = scrollContainerRef.current.getBoundingClientRect();
 
-      setUser({
-        userId: userId,
-        nickname: nickname,
-        profileImage: profileImage,
-      });
+    setUser({
+      userId,
+      nickname,
+      profileImage,
+    });
 
-      // 부모 컨테이너 기준으로 상대 위치를 계산
-      setDropdownPosition({
-        top: top - containerTop + scrollContainerRef.current.scrollTop - 30,
-        left: left - containerLeft + scrollContainerRef.current.scrollLeft,
-      });
-      setShowUser(true);
-    } else {
-      console.error('targetElement가 span이 아니거나 scrollContainerRef가 초기화되지 않았습니다.');
-    }
+    setDropdownPosition({
+      top: top - containerTop - 85, // 30px 상단 여백 추가
+      left: left - containerLeft - 60,
+    });
+
+    setShowUser(true); // 드롭다운 표시
   };
 
   return (
@@ -642,6 +655,7 @@ const Comments = ({ docsId, workspaceId }) => {
                         value={editContent}
                         onInput={handleEditInput}
                         onKeyDown={handleKeyDownSend}
+                        onBlur={handleBlurWithTimeout}
                         className='w-full p-1 rounded-md border border-gray-300 resize-none overflow-hidden'
                         style={{ height: 'auto' }}
                       />
@@ -704,6 +718,7 @@ const Comments = ({ docsId, workspaceId }) => {
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
             }}
+            ref={userSuggestionRef}
             className='bg-[#EDF7FF] border border-gray-300 w-56 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
           >
             {userSuggestions.response.map((user) => (
@@ -726,7 +741,7 @@ const Comments = ({ docsId, workspaceId }) => {
           <ul
             style={{
               position: 'absolute',
-              top: `${dropdownPosition.top - 20}px`,
+              top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
             }}
             className='bg-[#EDF7FF] border border-gray-300 w-36 max-h-60 rounded-xl overflow-y-auto sidebar-scrollbar z-10'
