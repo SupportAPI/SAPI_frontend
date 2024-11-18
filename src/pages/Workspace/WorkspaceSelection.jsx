@@ -1,4 +1,4 @@
-// src/pages/WorkspaceSelection.js
+// src/pages/WorkspaceSelection.js .
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFetchWorkspaces, useDeleteWorkspace, useModifiedWorkspace } from '../../api/queries/useWorkspaceQueries';
