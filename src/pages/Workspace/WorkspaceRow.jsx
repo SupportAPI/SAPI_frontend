@@ -1,31 +1,55 @@
-import React from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { SlOptions } from 'react-icons/sl';
+import OptionMenu from './OptionMenu';
 
-const WorkspaceRow = ({ workspace, onClick, setIsModalOpen, setDeleteWorkspaceId }) => {
+const WorkspaceRow = ({ workspace, onWorkspaceSelect, onModifyWorkspace, onDeleteWorkspace }) => {
+  const [showOptions, setShowOptions] = useState(false);
+  const rowRef = useRef();
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (rowRef.current && !rowRef.current.contains(e.target)) {
+        setShowOptions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
-    <tr className='border-b cursor-pointer hover:bg-gray-50' onClick={onClick}>
+    <tr
+      className='border-b cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-hover'
+      onClick={() => onWorkspaceSelect(workspace.id)}
+      ref={rowRef}
+    >
       <td className='p-2 w-[23%]'>
-        <div className='flex items-center ml-3'>
-          <img
-            src={workspace.mainImage}
-            alt='icon'
-            className='border min-w-[60px] max-w-[60px] min-h-[50px] max-h-[50px] rounded-lg object-contain'
-          />
+        <div className='flex items-center'>
+          <img src={workspace.mainImage} alt='icon' className='min-w-[50px] max-w-[50px] h-auto rounded-lg' />
           <div className='ml-3'>{workspace.projectName}</div>
         </div>
       </td>
       <td className='p-2 w-[30%]'>{workspace.description}</td>
       <td className='p-2 w-[25%]'>{workspace.id}</td>
-      <td className='p-2 w-[25%]'>
+      <td className='p-2 w-[25%] text-center'>
         <button
-          className='text-red-500'
+          className='inline-block'
           onClick={(e) => {
             e.stopPropagation();
-            setIsModalOpen(true);
-            setDeleteWorkspaceId(workspace.id);
+            setShowOptions(!showOptions);
           }}
         >
-          Delete
+          <SlOptions />
         </button>
+        {showOptions && (
+          <OptionMenu
+            workspace={workspace}
+            onModifyWorkspace={onModifyWorkspace}
+            onDeleteWorkspace={onDeleteWorkspace}
+          />
+        )}
       </td>
     </tr>
   );

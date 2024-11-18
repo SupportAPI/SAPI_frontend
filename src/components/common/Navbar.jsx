@@ -55,9 +55,9 @@ const Navbar = ({ onMenuClick }) => {
             <FaFlask className='text-2xl mb-2 text-[#475467] dark:text-dark-text' />
             <span className='text-[10px]'>API Test</span>
           </div>
-          <div className='w-14 border-b border-gray-300 mt-2'></div>
+          {/* <div className='w-14 border-b border-gray-300 mt-2'></div> */}
         </li>
-        <li className='flex flex-col items-center'>
+        {/* <li className='flex flex-col items-center'>
           <div
             className={`flex cursor-pointer flex-col items-center justify-center w-16 h-16 p-2 rounded-lg text-[#475467] dark:text-dark-text ${
               selectedMenu === 'Dashboard' ? 'bg-gray-300 dark:bg-black' : 'hover:bg-gray-200 dark:hover:bg-black'
@@ -67,7 +67,7 @@ const Navbar = ({ onMenuClick }) => {
             <FaTachometerAlt className='text-2xl mb-2 text-[#475467] dark:text-dark-text' />
             <span className='text-[10px]'>Dashboard</span>
           </div>
-        </li>
+        </li> */}
       </ul>
       <button onClick={() => navigate('/workspaces')}>
         <TbLogout2 className='text-3xl m-5 text-[#475467] dark:text-dark-text' />

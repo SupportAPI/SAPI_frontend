@@ -467,6 +467,167 @@ const WorkspaceSelection = () => {
                   </div>
                 </div>
               </section>
+
+              {/* Done이 들어갈 공간 */}
+              <section className='flex flex-col border w-full rounded-3xl bg-white p-8 mt-5 dark:bg-dark-background'>
+                <div className='flex justify-between items-center mb-2'>
+                  <p className='text-xl font-bold'>Done</p>
+                  <button
+                    className='flex justify-center items-center right-6 border rounded-full w-10 h-10 bg-gray-100 hover:bg-gray-200 dark:bg-dark-background dark:hover:bg-dark-hover'
+                    onClick={() => setD_IsTableVisible(!isD_TableVisible)}
+                    onMouseLeave={() => setDevelopAuthId(null)} // Hover 종료 시 Delete 옵션 버튼 닫기
+                  >
+                    {isD_TableVisible ? <FaMinus /> : <FaPlus />}
+                  </button>
+                </div>
+                {/* 가로 바 */}
+                <div className='border mt-2 mb-2 w-full'></div>
+                <div className={`custom-table-move ${isD_TableVisible ? 'show' : ''}`}>
+                  {/* 여기에 끝난 워크 스페이스 항목 넣기 */}
+                  <div className='h-80'>
+                    <table className='w-full table-fixed custom-table'>
+                      <thead>
+                        <tr className='text-left border-b'>
+                          <th className='p-2 w-[23%]'>
+                            <div className='flex items-center'>
+                              <div>🍳</div>
+                              <input
+                                className='ml-2 border-b font-normal dark:bg-dark-background'
+                                type='text'
+                                placeholder='Search'
+                                value={filterDoneWorkspaces}
+                                onChange={(e) => setFilterDoneWorkspaces(e.target.value)}
+                              />
+                            </div>
+                          </th>
+                          <th className='p-2 w-[30%]'>
+                            <div className='flex justify-center items-center'>
+                              <button className='flex justify-center items-center'>
+                                <p className={`mr-2 px-4 py-2 rounded-3xl`}>Description</p>
+                              </button>
+                            </div>
+                          </th>
+
+                          <th className='p-2 w-[25%]'>
+                            <div className='flex justify-center items-center'>
+                              <button className='flex justify-center items-center'>
+                                <p className={`mr-2  px-4 py-2 rounded-3xl`}>RENEWAL DATE</p>
+                              </button>
+                            </div>
+                          </th>
+                          <th className='p-2 w-[25%]'>
+                            <div className='flex justify-center items-center'>
+                              <p className='pr-2 py-2'>Option</p>
+                            </div>
+                          </th>
+                        </tr>
+                      </thead>
+
+                      <tbody className='block overflow-y-auto h-[260px] sidebar-scrollbar'>
+                        {doneTable.length > 0 ? (
+                          doneTable.map((item, index) => (
+                            <tr
+                              key={index}
+                              className='border-b cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-hover'
+                              onClick={() => handleWorkspaceSelect(item.id)}
+                              onMouseLeave={() => setDevelopAuthId(null)}
+                            >
+                              <td className='p-2 w-[23%]'>
+                                <div className='flex items-center ml-3'>
+                                  <img
+                                    src={item.mainImage}
+                                    alt='icon'
+                                    className='border min-w-[60px] max-w-[60px] min-h-[50px] max-h-[50px] rounded-lg object-contain'
+                                  />
+                                  <div className='flex flex-col ml-3'>
+                                    <div className='text-left'>{item.projectName}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className='p-2 w-[30%] text-center'>
+                                <div
+                                  className='rounded-lg h-[50px] p-1'
+                                  style={{
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    wordBreak: 'break-all',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2, // 원하는 줄 수
+                                    WebkitBoxOrient: 'vertical',
+                                  }}
+                                >
+                                  {item.description}
+                                </div>
+                              </td>
+                              <td className='p-2 w-[25%] text-center'>{item.id}</td>
+                              <td className='p-2 w-[25%] text-center'>
+                                {/* 행이 hover 될 때 보이는 버튼 */}
+                                <div className='inline-block option-button opacity-0 transition-opacity duration-200'>
+                                  <button
+                                    className='inline-block p-4'
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // 부모의 onClick 이벤트가 실행되지 않도록 방지
+                                      toggleDevelopAuth(index, e);
+                                    }}
+                                  >
+                                    <SlOptions />
+                                  </button>
+                                  {DevelopAuthId === index && (
+                                    <div
+                                      ref={modalRef}
+                                      style={{
+                                        position: 'absolute',
+                                        top: modalPosition.top,
+                                        left: modalPosition.left,
+                                      }}
+                                      className='border bg-white rounded-lg shadow-lg z-10 w-28 p-2 dark:bg-dark-background'
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <button
+                                        className='w-full text-center text-gray-700 py-2 hover:bg-gray-100 dark:text-dark-text dark:hover:bg-dark-hover rounded-t-lg'
+                                        onClick={() => {
+                                          handleModifiedWorkspace(
+                                            item.id,
+                                            '',
+                                            item.projectName,
+                                            item.domain,
+                                            item.description,
+                                            !item.isCompleted
+                                          );
+                                          setDevelopAuthId(null);
+                                        }}
+                                      >
+                                        완료 취소
+                                      </button>
+
+                                      <button
+                                        className='w-full text-center text-red-500 py-2 hover:bg-red-100 rounded-b-lg'
+                                        onClick={() => {
+                                          setIsModalOpen(true);
+                                          setdeleteWorkspaceId(item.id);
+                                          setDevelopAuthId(null);
+                                        }}
+                                      >
+                                        DELETE
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan='4' className='text-center py-[100px]'>
+                              <div>No WorkSpace yet</div>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
             </div>
           </div>
         </div>

@@ -29,23 +29,23 @@ const Workspace = () => {
         <div className='flex flex-col flex-wrap justify-center gap-6 py-6'>
           <Link
             to={`/workspace/${workspaceId}/apidocs/all`}
-            className='px-12 py-6 bg-gray-50 text-xl font-bold rounded-lg shadow-lg hover:bg-gray-100 transition w-[300px] h-[150px] flex items-center justify-center'
+            className='px-12 py-6 bg-gray-50 text-xl font-bold rounded-lg shadow-lg hover:bg-gray-100 transition w-[250px] h-[100px] flex items-center justify-center'
           >
             Go to API Docs
           </Link>
           <Link
             to={`/workspace/${workspaceId}/api-test`}
-            className='px-12 py-6 bg-gray-50 text-xl font-bold rounded-lg shadow-lg hover:bg-gray-100 transition w-[300px] h-[150px] flex items-center justify-center'
+            className='px-12 py-6 bg-gray-50 text-xl font-bold rounded-lg shadow-lg hover:bg-gray-100 transition w-[250px] h-[100px] flex items-center justify-center'
           >
             Go to API Test
           </Link>
         </div>
         <div className='flex gap-32 justify-center py-8'>
-          <div className='w-80 h-80'>
+          <div className='w-60 h-60'>
             <Doughnut data={mockData} />
             <div className='text-center text-[20px]'>Local API Status</div>
           </div>
-          <div className='w-80 h-80'>
+          <div className='w-60 h-60'>
             <Doughnut data={mockData} />
             <div className='text-center text-[20px]'>Server API Status</div>
           </div>

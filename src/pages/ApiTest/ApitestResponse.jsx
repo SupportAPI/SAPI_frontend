@@ -62,19 +62,21 @@ const ApiTestResponse = ({ initialData }) => {
   // Result Tab
   const renderTabResult = () => {
     switch (activeTabResult) {
-      case 'Body':
+      case 'Body': {
         let parsedBody;
         try {
           parsedBody = JSON.parse(resultData.responseBody);
         } catch (error) {
           parsedBody = resultData.responseBody;
         }
+
         let parsedMockBody;
         try {
           parsedMockBody = JSON.parse(resultData.mockBody);
         } catch (error) {
           parsedMockBody = resultData.mockBody;
         }
+
         return (
           <div className='flex flex-row justify-between gap-10'>
             <div className='flex flex-col w-full'>
@@ -91,7 +93,8 @@ const ApiTestResponse = ({ initialData }) => {
             </div>
           </div>
         );
-      case 'Cookies':
+      }
+      case 'Cookies': {
         return (
           <>
             <div className='flex flex-col items-center'>
@@ -114,7 +117,8 @@ const ApiTestResponse = ({ initialData }) => {
             </div>
           </>
         );
-      case 'Headers':
+      }
+      case 'Headers': {
         return (
           <div className='flex flex-col items-center'>
             <div className='w-[100%] flex h-10 text-[14px] border bg-[#f1f5f8]'>
@@ -135,6 +139,7 @@ const ApiTestResponse = ({ initialData }) => {
             )}
           </div>
         );
+      }
       default:
         return null;
     }

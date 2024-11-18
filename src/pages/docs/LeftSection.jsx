@@ -63,7 +63,7 @@ const LeftSection = ({ apiDocDetail, categoryList, apiId, workspaceId, occupatio
               {isDropdownOpen && (
                 <div className='absolute left-0 mt-2 w-25 bg-white border border-gray-200 rounded-md shadow-lg z-50'>
                   <div className='py-1'>
-                    {['PDF', 'MARKDOWN', 'HTML'].map((ext) => (
+                    {['MARKDOWN', 'HTML'].map((ext) => (
                       <button
                         key={ext}
                         onClick={() => handleExportClick(ext)}
