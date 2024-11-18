@@ -15,6 +15,7 @@ import { useFetchApiDetail, patchApiDetail, useRequestApiTestDetail } from '../.
 import { toast } from 'react-toastify';
 import { useMutation } from 'react-query';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
+import ApiTestResponse from './APItestResponse';
 
 const ApiTestDetail = () => {
   const { workspaceId, apiId } = useParams();
@@ -51,6 +52,8 @@ const ApiTestDetail = () => {
     },
     onError: (error) => console.error('저장 실패!', error),
   });
+
+  console.log(apiDetail);
 
   useEffect(() => {
     // 페이지 이동이나 location 변경 시 refetch로 데이터 다시 로딩
@@ -92,7 +95,7 @@ const ApiTestDetail = () => {
                 key: header.key || '',
                 value: header.value || '',
                 description: header.description || '',
-                isEssential: header.isEssential || false,
+                isRequired: header.isRequired || false,
                 isChecked: header.isChecked || false,
               }))
             : [
@@ -101,7 +104,7 @@ const ApiTestDetail = () => {
                   key: '',
                   value: '',
                   description: '',
-                  isEssential: false,
+                  isRequired: false,
                   isChecked: false,
                 },
               ],
@@ -126,7 +129,7 @@ const ApiTestDetail = () => {
                 key: queryParam.key || '',
                 value: queryParam.value || '',
                 description: queryParam.description || '',
-                isEssential: queryParam.isEssential || false,
+                isRequired: queryParam.isRequired || false,
                 isChecked: queryParam.isChecked || false,
               }))
             : [
@@ -145,7 +148,7 @@ const ApiTestDetail = () => {
                 key: cookie.key || '',
                 value: cookie.value || '',
                 description: cookie.description || '',
-                isEssential: cookie.isEssential || false,
+                isRequired: cookie.isRequired || false,
                 isChecked: cookie.isChecked || false,
               }))
             : [
@@ -154,7 +157,7 @@ const ApiTestDetail = () => {
                   key: '',
                   value: '',
                   description: '',
-                  isEssential: false,
+                  isRequired: false,
                   isChecked: false,
                 },
               ],
@@ -174,7 +177,7 @@ const ApiTestDetail = () => {
                 value: formItem.value || '',
                 type: formItem.type || 'TEXT',
                 description: formItem.description || '',
-                isEssential: formItem.isEssential || false,
+                isRequired: formItem.isRequired || false,
                 isChecked: formItem.isChecked || false,
               }))
             : [
@@ -184,7 +187,7 @@ const ApiTestDetail = () => {
                   value: '',
                   type: 'TEXT',
                   description: '',
-                  isEssential: false,
+                  isRequired: false,
                   isChecked: false,
                 },
               ],
@@ -248,24 +251,6 @@ const ApiTestDetail = () => {
     }
   };
 
-  // Result Tap
-  const renderTabResult = () => {
-    switch (activeTabResult) {
-      case 'Body':
-        return (
-          <div>
-            <div>11</div>
-          </div>
-        );
-      case 'Cookies':
-        return <div>2</div>;
-      case 'Headers':
-        return <div>3</div>;
-      default:
-        return null;
-    }
-  };
-
   useEffect(() => {
     if (apiData && apiId) {
       const category = apiData.category;
@@ -291,6 +276,10 @@ const ApiTestDetail = () => {
 
   const transformApiDetail = (apiDetail) => {
     return {
+      docId: apiDetail.docId,
+      apiId: apiDetail.apiId,
+      method: apiDetail.method,
+      path: apiDetail.path,
       parameters: {
         headers: (apiDetail.parameters.headers || []).map((header) => ({
           headerId: header.id || null,
@@ -336,6 +325,10 @@ const ApiTestDetail = () => {
   const handleApiTest = () => {
     if (apiDetail) {
       const transformData = {
+        docId: apiDetail.docId,
+        apiId: apiDetail.apiId,
+        method: apiDetail.method,
+        path: apiDetail.path,
         parameters: apiDetail.parameters,
         request: apiDetail.request,
       };
@@ -487,42 +480,14 @@ const ApiTestDetail = () => {
               </div>
             </ResizableBox>
 
-            {/* 테스트 결과 영역 */}
-            <div className='p-4 overflow-y-auto border-t-2 sidebar-scrollbar h-[400px]'>
-              {/* 탭 네비게이션 */}
-              <div key={activeTabResult} className='mb-2 border-b'>
-                Response
-              </div>
-              <div className='flex mb-4'>
-                <button
-                  className={`w-[60px] mr-3 mb-1 text-[13px] ${
-                    activeTabResult === 'Body' ? 'border-b-2 border-blue-500' : ''
-                  }`}
-                  onClick={() => setActiveTabResult('Body')}
-                >
-                  Body
-                </button>
-                <button
-                  className={`w-[60px] mr-3 mb-1 text-[13px] ${
-                    activeTabResult === 'Cookies' ? 'border-b-2 border-blue-500' : ''
-                  }`}
-                  onClick={() => setActiveTabResult('Cookies')}
-                >
-                  Cookies
-                </button>
-                <button
-                  className={`w-[60px] mr-3 mb-1 text-[13px] ${
-                    activeTabResult === 'Headers' ? 'border-b-2 border-blue-500' : ''
-                  }`}
-                  onClick={() => setActiveTabResult('Headers')}
-                >
-                  Headers
-                </button>
-              </div>
-              <div className='border p-4 overflow-y-auto border-b sidebar-scrollbar text-[13px]'>
-                {renderTabResult()}
-              </div>
+            <div key={activeTabResult} className='mt-5 mb-2 border-b'>
+              Response
             </div>
+            {testResult ? (
+              <ApiTestResponse initialData={testResult} />
+            ) : (
+              <div className='flex justify-center items-center h-[200px] text-m'>Could not send request</div>
+            )}
           </div>
         </div>
       </div>

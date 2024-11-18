@@ -154,6 +154,8 @@ const Environment = () => {
   };
 
   const handleAddRow = async (currentIndex) => {
+    console.log(currentIndex);
+
     if (currentIndex === -1) {
       currentIndex = lastIndex;
     }
@@ -223,6 +225,8 @@ const Environment = () => {
       handleEditRow(item);
     });
   };
+
+  console.log(data);
 
   const lastIndex = data.length > 0 ? data.length - 1 : 1;
 
