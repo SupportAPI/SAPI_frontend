@@ -3,7 +3,7 @@ import Editor from '@monaco-editor/react';
 import { FiCopy } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
-const CodeSnippet = ({ path, method, parameters, request }) => {
+const RightSectionCodeSnippet = ({ path, method, parameters, request }) => {
   const [library, setLibrary] = useState('axios'); // 기본값을 'axios'로 설정
 
   const headerValue = parameters.headers?.[0]?.headerValue || 'application/json';
@@ -100,4 +100,4 @@ fetch(\`\${url}/${path}\`, {
   );
 };
 
-export default CodeSnippet;
+export default RightSectionCodeSnippet;

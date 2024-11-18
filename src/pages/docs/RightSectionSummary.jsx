@@ -1,4 +1,4 @@
-const Summary = ({ apiDocDetail, methodStyles }) => {
+const RightSectionSummary = ({ apiDocDetail, methodStyles }) => {
   const { headers = [], authType = 'None', queryParameters = [], cookies = [] } = apiDocDetail.parameters;
 
   console.log(apiDocDetail);
@@ -127,4 +127,4 @@ const Summary = ({ apiDocDetail, methodStyles }) => {
   );
 };
 
-export default Summary;
+export default RightSectionSummary;

@@ -1,4 +1,4 @@
-const Info = ({ createdData, lastModifiedDate }) => {
+const RightSectionInfo = ({ createdData, lastModifiedDate }) => {
   return (
     <div className='flex flex-col mb-4'>
       <p className='text-2xl font-bold mb-4'>API INFO</p>
@@ -26,4 +26,4 @@ const Info = ({ createdData, lastModifiedDate }) => {
   );
 };
 
-export default Info;
+export default RightSectionInfo;

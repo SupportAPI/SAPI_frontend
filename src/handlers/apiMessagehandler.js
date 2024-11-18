@@ -211,7 +211,11 @@ const handleResponse = (data, apiDocDetail, setApiDocDetail, userId, apiDocDetai
     if (data.message.key === 'NAME') {
       targetResponse.name = data.message.value;
     } else if (data.message.key === 'DATA') {
-      targetResponse.bodyType = data.message.type;
+      if (targetResponse.bodyType !== data.message.type) {
+        targetResponse.bodyType = data.message.type;
+      } else {
+        targetResponse.bodyData = data.message.value;
+      }
     } else if (data.message.type === 'DESCRIPTION') {
       targetResponse.description = data.message.value;
     } else if (data.message.type === 'REQUIRED') {

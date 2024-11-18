@@ -136,7 +136,7 @@ const Header = () => {
         <div className='relative' ref={profileRef}>
           <FaUser className='text-2xl cursor-pointer' onClick={() => setProfileDropdownOpen((prev) => !prev)} />
           {isProfileDropdownOpen && (
-            <div className='absolute right-0 mt-2 w-[250px] h-auto bg-white text-black rounded-lg shadow-lg'>
+            <div className='absolute right-0 mt-2 w-[250px] z-10 h-auto bg-white text-black rounded-lg shadow-lg'>
               <div className='flex flex-col items-center pt-4 pb-4 dark:bg-dark-background dark:text-dark-text'>
                 {/* 프로필 이미지와 유저 정보 */}
                 <div className='flex items-center mb-3 px-4 w-full'>

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { FiCode, FiFileText, FiMessageSquare, FiInfo, FiX } from 'react-icons/fi';
-import Summary from './Summary';
-import CodeSnippet from './CodeSnippet';
-import Comments from './Comments';
-import Info from './Info';
+import CodeSnippet from './RightSectionCodeSnippet';
+import Info from './RightSectionInfo';
+import RightSectionComments from './RightSectionComments';
+import RightSectionSummary from './RightSectionSummary';
+import RightSectionCodeSnippet from './RightSectionCodeSnippet';
+import RightSectionInfo from './RightSectionInfo';
 
 const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
   const [activeRightTab, setActiveRightTab] = useState(null);
@@ -22,16 +24,14 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
     setActiveRightTab(activeRightTab === tab ? null : tab);
   };
 
-  console.log(apiDocDetail);
-
   return (
     <>
       <div
-        className={`transition-width duration-300 p-8 mr-[50px] relative ${
+        className={`transition-width duration-300 p-8 mr-[50px] z-0 relative ${
           activeRightTab === 'comment' ? '' : 'overflow-y-auto'
         } dark:bg-dark-background dark:text-dark-text ${
           activeRightTab ? 'w-[500px] min-w-[500px] max-w-[500px]' : 'w-[350px] min-w-[350px] max-w-[350px]'
-        } ${activeRightTab ? 'border-l' : ''} sidebar-scrollbar h-[775px] pb-5`}
+        } ${activeRightTab ? 'border-l' : ''} sidebar-scrollbar pb-5`}
       >
         {activeRightTab && (
           <button
@@ -41,10 +41,12 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
             <FiX size={20} />
           </button>
         )}
-        {activeRightTab === 'summary' && <Summary apiDocDetail={apiDocDetail} methodStyles={methodStyles} />}
-        {activeRightTab === 'comment' && <Comments docsId={apiDocDetail.docId} workspaceId={workspaceId} />}
+        {activeRightTab === 'summary' && (
+          <RightSectionSummary apiDocDetail={apiDocDetail} methodStyles={methodStyles} />
+        )}
+        {activeRightTab === 'comment' && <RightSectionComments docsId={apiDocDetail.docId} workspaceId={workspaceId} />}
         {activeRightTab === 'code' && (
-          <CodeSnippet
+          <RightSectionCodeSnippet
             path={apiDocDetail?.path}
             method={apiDocDetail?.method}
             parameters={apiDocDetail.parameters}
@@ -52,7 +54,7 @@ const RightSection = ({ apiDocDetail, apiId, workspaceId }) => {
           />
         )}
         {activeRightTab === 'info' && (
-          <Info createdData={apiDocDetail?.createdDate} lastModifiedDate={apiDocDetail?.lastModifyDate} />
+          <RightSectionInfo createdData={apiDocDetail?.createdDate} lastModifiedDate={apiDocDetail?.lastModifyDate} />
         )}
       </div>
 
