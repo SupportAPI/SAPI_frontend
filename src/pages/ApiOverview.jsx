@@ -205,7 +205,6 @@ const ApiOverview = () => {
               <th className='p-4 text-left font-medium w-[10%]'>HTTP</th>
               <th className='p-4 text-left font-medium w-[20%]'>API Path</th>
               <th className='p-4 text-left font-medium w-[15%]'>Description</th>
-              <th className='p-4 text-center font-medium w-[10%]'>Manager</th>
               <th className='p-4 text-center font-medium w-[5%]'>LS</th>
               <th className='p-4 text-center font-medium w-[5%]'>SS</th>
             </tr>
@@ -238,12 +237,11 @@ const ApiOverview = () => {
                       />
                     </div>
                   </td>
-                  <td className='p-4'>{api.category || 'Uncategorized'}</td>
-                  <td className='p-4'>{api.name || 'Unnamed API'}</td>
-                  <td className='p-4'>{api.method || 'GET'}</td>
-                  <td className='p-4'>{api.path || `/api/${api.name.toLowerCase().replace(/\s+/g, '-')}`}</td>
-                  <td className='p-4 '>{api.description}</td>
-                  <td className='p-4 text-center'>{api.manager_id || 'N/A'}</td>
+                  <td className='p-4 truncate'>{api.category || 'Uncategorized'}</td>
+                  <td className='p-4 truncate'>{api.name || 'Unnamed API'}</td>
+                  <td className='p-4 truncate'>{api.method || 'GET'}</td>
+                  <td className='p-4 truncate'>{api.path || `/api/${api.name.toLowerCase().replace(/\s+/g, '-')}`}</td>
+                  <td className='p-4 truncate'>{api.description}</td>
                   <td className='p-4 text-center'>
                     {api.localStatus === 'PENDING' ? (
                       <GoDotFill className='text-gray-500 mx-auto' />

@@ -116,7 +116,7 @@ const ApiTest = () => {
   };
 
   return (
-    <div className='px-8 py-8 overflow-x-auto overflow-y-auto max-w-[1200px] dark:bg-dark-background dark:text-dark-text'>
+    <div className='px-8 py-8 overflow-x-auto overflow-y-auto dark:bg-dark-background dark:text-dark-text'>
       <div className='flex justify-between items-baseline mb-4'>
         <h2 className='text-2xl font-bold'>API Test</h2>
       </div>

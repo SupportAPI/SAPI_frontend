@@ -58,7 +58,6 @@ const Layout = ({ children }) => {
         <div className='flex-1 flex flex-col'>
           <div className='flex flex-row justify-between dark:bg-dark-background'>
             <TabBar />
-            <Environment workspaceId={workspaceId} />
           </div>
           <div className='flex-1 overflow-y-scroll sidebar-scrollbar dark:bg-dark-background dark:text-dark-text '>
             {children}
