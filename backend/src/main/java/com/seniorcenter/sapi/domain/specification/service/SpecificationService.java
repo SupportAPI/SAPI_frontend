@@ -188,7 +188,6 @@ public class SpecificationService {
         while (matcher.find()) {
             pathVariables.add(ApiPathVariable.createApiPathVariable(originApi, matcher.group(1)));
         }
-        apiPathVariableRepository.deleteAllByApi(originApi);
         apiPathVariableRepository.saveAll(pathVariables);
 
         Api newApi = Api.createApi();
@@ -210,11 +209,6 @@ public class SpecificationService {
             .map(queryParameter -> ApiQueryParameter.copyApiQueryParameter(newApi, queryParameter))
             .collect(Collectors.toList());
         apiQueryParameterRepository.saveAll(newQueryParameter);
-
-        List<ApiPathVariable> newPathVariable = originApi.getPathVariables().stream()
-            .map(pathVariable -> ApiPathVariable.copyApiPathVariable(newApi, pathVariable))
-            .collect(Collectors.toList());
-        apiPathVariableRepository.saveAll(newPathVariable);
 
         List<ApiBody> newBodies = originApi.getBodies().stream()
             .map(body -> ApiBody.copyBody(newApi, body))
