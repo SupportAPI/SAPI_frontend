@@ -145,6 +145,7 @@ public class ApiLambdaService {
     private ByteArrayOutputStream createZip(String lambdaFunctionCode) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+            zos.setComment("UTF-8");
             ZipEntry entry = new ZipEntry("index.js");
             zos.putNextEntry(entry);
             zos.write(lambdaFunctionCode.getBytes());
