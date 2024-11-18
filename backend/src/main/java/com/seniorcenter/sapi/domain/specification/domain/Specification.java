@@ -37,6 +37,8 @@ public class Specification extends BaseTimeEntity {
 
     private String apiGatewayId;
 
+    private Long confirmUserId;
+
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "workspace_id")
     private Workspace workspace;
@@ -63,16 +65,17 @@ public class Specification extends BaseTimeEntity {
 
     public static Specification createSpecification(Workspace workspace) {
         return builder()
-                .workspace(workspace)
-                .build();
+            .workspace(workspace)
+            .build();
     }
 
     public void updateManager(User manager) {
         this.manager = manager;
     }
 
-    public void updateConfirmedApiId(UUID confirmedApiId) {
+    public void updateConfirmedApiId(UUID confirmedApiId, Long confirmUserId) {
         this.confirmedApiId = confirmedApiId;
+        this.confirmUserId = confirmUserId;
     }
 
     public void updateApiGatewayId(String apiGatewayId) {
