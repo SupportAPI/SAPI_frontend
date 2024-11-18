@@ -28,6 +28,7 @@ public class ApiResponse extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private BodyType bodyType;
 
+    @Column(length = 65535)
     private String bodyData;
 
     private String description;
