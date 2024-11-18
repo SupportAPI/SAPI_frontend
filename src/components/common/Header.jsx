@@ -71,7 +71,7 @@ const Header = () => {
 
   return (
     <header className='w-full h-16 bg-[#F0F5F8]/50 text-[#666666] flex items-center px-12 justify-between relative border-b select-none dark:bg-dark-background dark:text-dark-text'>
-      <h1 className='text-2xl font-bold' onClick={handleMain}>
+      <h1 className='text-2xl font-bold cursor-pointer' onClick={handleMain}>
         Support API
       </h1>
 

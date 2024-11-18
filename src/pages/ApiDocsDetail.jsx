@@ -91,6 +91,8 @@ const ApiDocsDetail = () => {
           }
         };
 
+        console.log(data);
+
         switch (data.apiType) {
           case 'CATEGORY':
             handleSaveAction();
