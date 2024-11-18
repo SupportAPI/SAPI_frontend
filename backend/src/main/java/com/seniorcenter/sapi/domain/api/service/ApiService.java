@@ -26,6 +26,7 @@ import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepos
 import com.seniorcenter.sapi.domain.occupation.service.OccupationService;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
 import com.seniorcenter.sapi.domain.specification.domain.repository.SpecificationRepository;
+import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationHistoryListResponseDto;
 import com.seniorcenter.sapi.domain.user.domain.User;
 import com.seniorcenter.sapi.domain.user.domain.repository.UserRepository;
 import com.seniorcenter.sapi.global.error.exception.CustomException;
@@ -192,7 +193,7 @@ public class ApiService {
         } else if (message.apiType().equals(ApiType.REQUEST_FORM_DATA)) {
             apiBodyService.updateDBFormData(message, workspaceId, apiId);
         }
-            messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, message);
+        messagingTemplate.convertAndSend("/ws/sub/workspaces/" + workspaceId + "/apis/" + apiId, message);
     }
 
     public void updateRequestType(ApiMessage message, UUID apiId) {
@@ -284,6 +285,17 @@ public class ApiService {
                 .map(api -> {
                     ApiResponseDto apiResponseDto = new ApiResponseDto(api);
                     return apiResponseDto;
+                }).collect(Collectors.toList());
+    }
+
+    public List<SpecificationHistoryListResponseDto> getApiHistoryListBySpecificationId(UUID specificationId) {
+        List<Api> apis = apiRepository.findBySpecificationIdOrderByCreatedDateDesc(specificationId);
+        return apis.stream()
+                .map(api -> {
+                    User user = userRepository.findById(api.getConfirmUserId())
+                            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+                    SpecificationHistoryListResponseDto specificationHistoryListResponseDto = new SpecificationHistoryListResponseDto(user.getNickname(), api.getId(), api.getConfirmTime());
+                    return specificationHistoryListResponseDto;
                 }).collect(Collectors.toList());
     }
 
@@ -445,7 +457,7 @@ public class ApiService {
         String confirmUserEmail = " ";
         if (confirmUserId != null) {
             User confirmUser = userRepository.findById(confirmUserId)
-                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
+                    .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
             confirmUserNickname = confirmUser.getNickname();
             confirmUserEmail = confirmUser.getEmail();
         }

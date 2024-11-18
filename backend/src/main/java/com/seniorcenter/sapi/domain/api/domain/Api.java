@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,6 +44,10 @@ public class Api extends BaseTimeEntity {
     private AuthenticationType authenticationType;
 
     private String category;
+
+    private Long confirmUserId;
+
+    private LocalDateTime confirmTime;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "specification_id")
@@ -122,5 +127,10 @@ public class Api extends BaseTimeEntity {
 
     public void updateCategory(String category){
         this.category = category;
+    }
+
+    public void confirm(Long confirmUserId, LocalDateTime confirmTime) {
+        this.confirmUserId = confirmUserId;
+        this.confirmTime = confirmTime;
     }
 }

@@ -3,6 +3,7 @@ package com.seniorcenter.sapi.domain.specification.presentation;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.service.ApiService;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationCategoryResponseDto;
+import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationHistoryListResponseDto;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationResponseDto;
 import com.seniorcenter.sapi.domain.specification.service.SpecificationService;
 import com.seniorcenter.sapi.global.annotation.ExcludeFromAdvice;
@@ -52,6 +53,11 @@ public class SpecificationController {
     @GetMapping("/workspaces/{workspaceId}/docs/{docsId}/history")
     public List<ApiResponseDto> getHistory(@PathVariable("docsId") UUID docUUID){
         return apiService.getApiHistoryBySpecificationId(docUUID);
+    }
+
+    @GetMapping("/workspaces/{workspaceId}/docs/{docsID}/history-list")
+    public List<SpecificationHistoryListResponseDto> getHistoryList(@PathVariable("docsID") UUID docUUID){
+        return apiService.getApiHistoryListBySpecificationId(docUUID);
     }
 
     @ExcludeFromAdvice
