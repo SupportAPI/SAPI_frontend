@@ -8,7 +8,7 @@ export const cn = (...classes) => {
 const defaultTheme = {
   primary: 'gray-700',
   error: 'red-500',
-  background: 'white',
+  background: 'white dark:bg-dark-background dark:text-dark-text',
 };
 
 const TextInput = forwardRef(
@@ -48,7 +48,7 @@ const TextInput = forwardRef(
 
     const baseContainerClass = 'relative w-full';
     const baseInputClass = cn(
-      'w-full px-3 py-2 text-gray-700 border rounded-md peer outline-none transition-colors',
+      'w-full px-3 py-2 text-gray-700 border rounded-md peer outline-none transition-colors dark:bg-dark-background dark:text-dark-text',
       'placeholder:opacity-0 focus:placeholder:opacity-100',
       disabled && 'bg-gray-100 cursor-not-allowed',
       error ? `border-${theme.error} focus:border-${theme.error}` : `border-gray-300 focus:border-${theme.primary}`,
@@ -74,7 +74,7 @@ const TextInput = forwardRef(
     );
 
     const clearButtonClass = cn(
-      'absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer',
+      'absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer dark:text-dark-text',
       'hover:text-gray-700',
       disabled && 'hidden'
     );

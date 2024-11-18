@@ -29,17 +29,13 @@ const InviteUser = ({ workspaceId, onClose }) => {
 
   // 필터링된 자동완성 목록
   const InviteAutoList = inviteUsername
-    ? (InviteAutoListRaw ?? []).filter(
-        (user) => !userList.some((addedUser) => addedUser.email === user.email)
-      )
+    ? (InviteAutoListRaw ?? []).filter((user) => !userList.some((addedUser) => addedUser.email === user.email))
     : [];
 
   // 검색어가 변경되거나 InviteAutoList가 변경될 때 선택된 인덱스를 조정
   useEffect(() => {
     if (InviteAutoList.length > 0) {
-      setSelectedIndex((prevIndex) =>
-        prevIndex >= InviteAutoList.length ? InviteAutoList.length - 1 : prevIndex
-      );
+      setSelectedIndex((prevIndex) => (prevIndex >= InviteAutoList.length ? InviteAutoList.length - 1 : prevIndex));
     } else {
       setSelectedIndex(0);
     }
@@ -80,9 +76,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
 
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
-      setSelectedIndex((prevIndex) =>
-        prevIndex < InviteAutoList.length - 1 ? prevIndex + 1 : prevIndex
-      );
+      setSelectedIndex((prevIndex) => (prevIndex < InviteAutoList.length - 1 ? prevIndex + 1 : prevIndex));
     } else if (e.key === 'ArrowUp') {
       setSelectedIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : prevIndex));
     } else if (e.key === 'Enter' && InviteAutoList[selectedIndex]) {
@@ -96,7 +90,7 @@ const InviteUser = ({ workspaceId, onClose }) => {
       <div
         key={user.userId}
         className={`flex items-center p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-dark-hover ${
-          selectedIndex === index ? 'bg-gray-300' : ''
+          selectedIndex === index ? 'bg-gray-300 dark:bg-dark-hover' : ''
         }`}
         ref={(el) => {
           if (selectedIndex === index && el) {
@@ -109,13 +103,13 @@ const InviteUser = ({ workspaceId, onClose }) => {
         onClick={() => handleAutoCompleteClick(user)}
       >
         <img
-          className="border rounded-full w-14 h-14 mr-4 object-contain"
+          className='border rounded-full w-14 h-14 mr-4 object-contain'
           src={user.profileImage}
-          alt="프로필 이미지"
+          alt='프로필 이미지'
         />
         <div>
           <div>{user.nickname}</div>
-          <div className="text-sm text-gray-500">{user.email}</div>
+          <div className='text-sm text-gray-500'>{user.email}</div>
         </div>
       </div>
     ));
@@ -140,9 +134,9 @@ const InviteUser = ({ workspaceId, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-30 z-50 overflow-auto">
+    <div className='fixed inset-0 flex justify-center items-center bg-black bg-opacity-30 z-50 overflow-auto'>
       <div
-        className="flex flex-col bg-white w-full max-w-2xl h-auto max-h-[90vh] border rounded-2xl dark:bg-dark-background"
+        className='flex flex-col bg-white w-full max-w-2xl h-auto max-h-[90vh] border rounded-2xl dark:bg-dark-background'
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -156,19 +150,19 @@ const InviteUser = ({ workspaceId, onClose }) => {
           `}
         </style>
 
-        <header className="flex justify-between items-center w-full text-gray-700 px-6 py-3 z-10 sticky">
-          <div className="text-xl">Invite User</div>
-          <button className="mr-4" onClick={onClose}>
-            <IoClose className="text-3xl" />
+        <header className='flex justify-between items-center w-full text-gray-700 px-6 py-3 z-10 sticky'>
+          <div className='text-xl dark:text-dark-text'>Invite User</div>
+          <button className='mr-4' onClick={onClose}>
+            <IoClose className='text-3xl dark:text-dark-text' />
           </button>
         </header>
 
-        <div className="flex flex-col w-full p-6 pt-1 space-y-1 overflow-y-auto">
-          <div className="relative">
+        <div className='flex flex-col w-full p-6 pt-1 space-y-1 overflow-y-auto'>
+          <div className='relative'>
             <TextInput
-              id="inviteUsername"
-              label="Invite a member to Project"
-              placeholder="ssafy@ssafy.com"
+              id='inviteUsername'
+              label='Invite a member to Project'
+              placeholder='ssafy@ssafy.com'
               value={inviteUsername}
               clearable='true'
               onChange={(e) => {
@@ -178,45 +172,48 @@ const InviteUser = ({ workspaceId, onClose }) => {
               }}
               onKeyDown={handleKeyDown}
               error={!isemailvalid ? emailErrormessage : ''}
-              autoComplete="off"
+              autoComplete='off'
             />
             {showAutoList && inviteUsername && (
-              <div className="absolute top-full left-0 right-0 rounded-lg overflow-y-auto max-h-40 bg-white shadow-lg z-10 sidebar-scrollbar dark:bg-dark-background">
+              <div className='absolute top-full left-0 right-0 rounded-lg overflow-y-auto max-h-40 bg-white shadow-lg z-10 sidebar-scrollbar dark:bg-dark-background'>
                 {renderAutoCompleteList()}
               </div>
             )}
           </div>
 
-          <div className="block h-[350px] border rounded-lg overflow-y-auto sidebar-scrollbar mb-10">
+          <div className='block h-[350px] border rounded-lg overflow-y-auto sidebar-scrollbar mb-10'>
             {userList.map((item, index) => (
-              <div key={index} className="flex justify-between hover:bg-blue-300 border-none rounded-lg">
-                <div className="flex items-center p-2">
+              <div
+                key={index}
+                className='flex justify-between hover:bg-blue-300 dark:hover:bg-dark-hover border-none rounded-lg'
+              >
+                <div className='flex items-center p-2'>
                   <img
-                    className="border rounded-full w-14 h-14 mr-4 object-contain"
+                    className='border rounded-full w-14 h-14 mr-4 object-contain'
                     src={item.profileImage}
-                    alt="프로필"
+                    alt='프로필'
                   />
                   <div>
                     <div>{item.nickname}</div>
-                    <div className="text-sm text-gray-500">{item.email}</div>
+                    <div className='text-sm text-gray-500'>{item.email}</div>
                   </div>
                 </div>
-                <button className="mr-4" onClick={() => removeUser(item.email)}>
-                  <IoClose className="text-3xl" />
+                <button className='mr-4' onClick={() => removeUser(item.email)}>
+                  <IoClose className='text-3xl' />
                 </button>
               </div>
             ))}
           </div>
 
-          <div className="flex flex-col w-full items-center pt-4">
+          <div className='flex flex-col w-full items-center pt-4'>
             <button
-              className="bg-blue-500 text-white w-full py-2 px-4 mb-2 rounded-lg hover:bg-blue-400"
+              className='bg-blue-500 text-white w-full py-2 px-4 mb-2 rounded-lg hover:bg-blue-400'
               onClick={sendInvitation}
               disabled={userList.length === 0}
             >
               Send Invitation
             </button>
-            <button className="text-sm text-blue-500" onClick={onClose}>
+            <button className='text-sm text-blue-500' onClick={onClose}>
               Skip for Now
             </button>
           </div>

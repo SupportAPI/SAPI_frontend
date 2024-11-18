@@ -15,6 +15,27 @@ export const findIndex = async (docsId) => {
   return response.data.data;
 };
 
+export const findInitComments = async (id, size, docsId) => {
+  try {
+    console.log(`Requesting: /comments?targetcommentid=${id}&size=${size}`);
+    const accessToken = getToken();
+    const response = await axios.get(`${base_URL}/api/docs/${docsId}/initcomments`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      params: {
+        targetcommentid: id,
+        size: size,
+      },
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('Find comments error:', error);
+    throw error;
+  }
+};
+
 export const findComments = async (id, size, docsId) => {
   try {
     console.log(`Requesting: /comments?targetcommentid=${id}&size=${size}`);
