@@ -538,6 +538,8 @@ public class ApiTestServiceImpl implements ApiTestService {
         Specification specification = specificationRepository.findById(specificationId)
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
+        String responseBodyStr = bodyString != null ? bodyString : "";
+
         if (!testResponseEntityDto.statusCode().is2xxSuccessful()) {
 
             // 2xx가 아닌 경우 에러 상태와 메시지를 반환
@@ -545,7 +547,7 @@ public class ApiTestServiceImpl implements ApiTestService {
             return new TestResponseDto(
                 TestStatus.FAIL.name(),
                 testResponseEntityDto.statusCode().value(),
-                "",
+                responseBodyStr,
                 mockResponse != null ? mockResponse.getBodyData() : "",
                 testResponseEntityDto.headers().toSingleValueMap(),
                 Map.of(),
@@ -564,7 +566,6 @@ public class ApiTestServiceImpl implements ApiTestService {
             : Map.of();
 
         // 응답 바디와 목 바디를 비교하여 구조 차이 찾기
-        String responseBodyStr = bodyString != null ? bodyString : "";
         Map<String, Object> responseBodyMap = parseJsonToMap(responseBodyStr);
         Map<String, Object> mockBodyMap = parseJsonToMap(mockResponse != null ? mockResponse.getBodyData() : "");
 
