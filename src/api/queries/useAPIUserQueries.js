@@ -61,3 +61,61 @@ export const useMutateUserInfo = (options = {}) => {
     ...options,
   });
 };
+
+// 3. 이메일 중복 여부 확인
+export const userEmailDuplication = async (email) => {
+  const response = await axiosInstance.get(`/api/users/check-email-duplicate?email=${email}`);
+  return response.data.data;
+};
+
+// React Query 훅 : 유저 이메일 중복 여부 확인
+export const useUserEmailDuplication = (email) => {
+  return useQuery(['isDuplication', email], () => userEmailDuplication(email), {
+    enabled: !!email, // email이 존재할 때만 실행
+  });
+};
+
+// 4. 이메일 인증 코드 발송
+export const userAuthentication = async (email) => {
+  const response = await axiosInstance.post(`/api/emails/authentication`, {
+    email,
+  });
+  return response.data.data;
+};
+
+// React Query 훅 : 유저 이메일 인증 코드 발송
+export const useUserAuthentication = () => {
+  return useMutation((email) => userAuthentication(email));
+};
+
+// 5. 이메일 검증 여부 확인
+export const userEmailConfirm = async (email, code) => {
+  const response = await axiosInstance.post(`/api/emails/confirm`, {
+    email,
+    code,
+  });
+  return response.data.data;
+};
+
+// React Query 훅 : 유저 이메일 검증 (mutate 사용)
+export const useUserEmailConfirm = () => {
+  return useMutation(({ email, code }) => userEmailConfirm(email, code));
+};
+
+// 6. 유저 회원가입 요청
+export const userSignup = async ({ email, password, passwordConfirm, nickname, isAuthorized, code }) => {
+  const response = await axiosInstance.post(`/api/users/signup`, {
+    email,
+    password,
+    passwordConfirm,
+    nickname,
+    isAuthorized,
+    code,
+  });
+  return response.data.data;
+};
+
+// React Query 훅 : 유저 회원가입 (mutate 사용)
+export const useUserSignup = () => {
+  return useMutation((signupData) => userSignup(signupData));
+};
