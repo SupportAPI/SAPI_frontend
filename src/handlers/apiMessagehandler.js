@@ -202,7 +202,7 @@ const handleResponse = (data, apiDocDetail, setApiDocDetail, userId, apiDocDetai
   if (data.actionType === 'ADD' || data.actionType === 'DELETE') {
     apiDocDetailRefetch();
   } else if (data.actionType === 'UPDATE') {
-    console.log(data);
+    apiDocDetailRefetch();
     const targetResponseIndex = apiDocDetail.response.findIndex(
       (response) => String(response.id) === String(data.message.id)
     );

@@ -136,7 +136,29 @@ export const exportDocument = async ({ workspaceId, docsId, ext }) => {
 
 // React Query를 활용한 Hook
 export const useExportDocument = () => {
-  return useMutation(({ workspaceId, docsId, ext }) => exportDocument({ workspaceId, docsId, ext }));
+  return useMutation(({ workspaceId, ext }) => exportDocument({ workspaceId, ext }));
+};
+
+// API 문서 내보내기
+export const exportDocumentList = async ({ workspaceId, ext, selectedDocs }) => {
+  const response = await axiosInstance.post(
+    `/api/workspaces/${workspaceId}/export?ext=${ext}&specifications=${selectedDocs}`
+  );
+
+  // 파일 다운로드 처리
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `document.${ext}`); // 파일 확장자에 따라 이름 설정
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url); // 메모리 해제
+};
+
+// React Query를 사용하는 Hook
+export const useExportDocumentList = () => {
+  return useMutation(({ workspaceId, ext, selectedDocs }) => exportDocumentList({ workspaceId, ext, selectedDocs }));
 };
 
 // API 문서 업데이트

@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { useDetailApiDocs } from '../api/queries/useApiDocsQueries';
+import { useDetailApiDocs, useExportDocument, useExportDocumentList } from '../api/queries/useApiDocsQueries';
 import { useNavbarStore } from '../stores/useNavbarStore';
 import { useTabStore } from '../stores/useTabStore';
 import { FaCheck, FaTimes, FaTrashAlt, FaPlus, FaShareAlt, FaDownload } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useWebSocket } from '../contexts/WebSocketProvider';
+import { GoDotFill } from 'react-icons/go';
 
 const ApiOverview = () => {
   const { workspaceId } = useParams();
@@ -13,13 +14,20 @@ const ApiOverview = () => {
   const navigate = useNavigate();
   const { setMenu } = useNavbarStore();
   const { addTab, openTabs } = useTabStore();
-
+  const { mutate: handleExport, isLoading: isExportLoading } = useExportDocumentList();
   const { subscribe, publish, isConnected } = useWebSocket();
   const { data: apiData = [], refetch } = useDetailApiDocs(workspaceId);
-
+  const dropdownRef = useRef(null);
   const [selectedItems, setSelectedItems] = useState({});
   const [isAllSelected, setIsAllSelected] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const handleExportClick = (ext) => {
+    setIsDropdownOpen(false);
+    const selected = Object.keys(selectedItems);
+    handleExport({ workspaceId, ext, selectedDocs: selected });
+  };
 
   useEffect(() => {
     if (isConnected) {
@@ -108,7 +116,7 @@ const ApiOverview = () => {
     <div className='px-8 py-8 overflow-x-auto'>
       <div className='flex justify-between items-baseline mb-8'>
         <h2 className='text-2xl font-bold'>API Overview</h2>
-        <div className='flex space-x-4'>
+        <div className='flex space-x-2'>
           <button
             onClick={handleAddApiDoc}
             className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
@@ -123,10 +131,30 @@ const ApiOverview = () => {
             <FaTrashAlt />
             <span>Delete</span>
           </button>
-          <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
-            <FaDownload />
-            <span>Export</span>
-          </button>
+          <div className='relative inline-block text-left' ref={dropdownRef}>
+            <button
+              className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
+              onClick={() => setIsDropdownOpen((prev) => !prev)}
+            >
+              <FaDownload />
+              <span>Export</span>
+            </button>
+            {isDropdownOpen && (
+              <div className='absolute left-0 mt-2 w-25 bg-white border border-gray-200 rounded-md shadow-lg z-50'>
+                <div className='py-1'>
+                  {['MARKDOWN', 'HTML'].map((ext) => (
+                    <button
+                      key={ext}
+                      onClick={() => handleExportClick(ext)}
+                      className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left'
+                    >
+                      {ext}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
             <FaShareAlt />
             <span>Share</span>
@@ -218,16 +246,20 @@ const ApiOverview = () => {
                   <td className='p-4 text-center'>{api.manager_id || 'N/A'}</td>
                   <td className='p-4 text-center'>
                     {api.localStatus === 'PENDING' ? (
-                      <FaTimes className='text-red-600 mx-auto' />
-                    ) : (
+                      <GoDotFill className='text-gray-500 mx-auto' />
+                    ) : api.localStatus === 'SUCCESS' ? (
                       <FaCheck className='text-green-600 mx-auto' />
+                    ) : (
+                      <FaTimes className='text-red-600 mx-auto' />
                     )}
                   </td>
                   <td className='p-4 text-center'>
                     {api.serverStatus === 'PENDING' ? (
-                      <FaTimes className='text-red-600 mx-auto' />
-                    ) : (
+                      <GoDotFill className='text-gray-500 mx-auto' />
+                    ) : api.localStatus === 'SUCCESS' ? (
                       <FaCheck className='text-green-600 mx-auto' />
+                    ) : (
+                      <FaTimes className='text-red-600 mx-auto' />
                     )}
                   </td>
                 </tr>

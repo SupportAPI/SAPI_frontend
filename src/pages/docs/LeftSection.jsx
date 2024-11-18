@@ -9,6 +9,8 @@ import LeftSectionPath from './LeftSectionPath';
 import LeftSectionDescription from './LeftSectionDescription';
 import { useConfirmWorkspace, useExportDocument } from '../../api/queries/useApiDocsQueries';
 import HistoryDetail from './History/HistoryDetail';
+import { useWebSocket } from '../../contexts/WebSocketProvider';
+import { useNavigate } from 'react-router';
 
 const LeftSection = ({
   apiDocDetail,
@@ -26,6 +28,9 @@ const LeftSection = ({
   const dropdownRef = useRef(null);
   const { mutate: confirmWorkspace, isLoading: isSaving } = useConfirmWorkspace();
   const { mutate: handleExport, isLoading: isExportLoading } = useExportDocument();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { subscribe, publish, isConnected } = useWebSocket();
+  const navigate = useNavigate();
 
   const tabComponents = {
     parameters: Parameters,
@@ -59,6 +64,15 @@ const LeftSection = ({
 
   const ActiveTabComponent = tabComponents[activeLeftTab];
 
+  const handleConfirmDelete = () => {
+    publish(`/ws/pub/workspaces/${workspaceId}/docs`, {
+      type: 'DELETE',
+      message: apiDocDetail.docId,
+    });
+    setShowDeleteModal(false);
+    navigate(`/workspace/${workspaceId}`);
+  };
+
   return (
     <>
       {openHistoryDetail ? (
@@ -68,7 +82,7 @@ const LeftSection = ({
           <div className='mb-4'>
             <div className='flex relative justify-between'>
               <label className='flex items-center text-[16px] font-semibold h-8'>Category & Name</label>
-              <div className='flex space-x-4'>
+              <div className='flex space-x-2'>
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
@@ -77,7 +91,10 @@ const LeftSection = ({
                   <FaSave />
                   <span>Save</span>
                 </button>
-                <button className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'>
+                <button
+                  className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
+                  onClick={() => setShowDeleteModal(true)}
+                >
                   <FaTrashAlt />
                   <span>Delete</span>
                 </button>
@@ -169,6 +186,28 @@ const LeftSection = ({
               />
             )}
           </div>
+          {showDeleteModal && (
+            <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
+              <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
+                <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
+                <p className='mb-6'>선택한 API 문서를 삭제하시겠습니까?</p>
+                <div className='flex justify-end space-x-4'>
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleConfirmDelete}
+                    className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>
