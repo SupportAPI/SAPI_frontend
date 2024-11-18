@@ -5,7 +5,7 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.RequestDto;
 import com.seniorcenter.sapi.domain.specification.domain.TestStatus;
 
 public record ApiTestDetailResponseDto(
-    String doamin,
+    String domain,
 	String docId,
 	String apiId,
 	String name,

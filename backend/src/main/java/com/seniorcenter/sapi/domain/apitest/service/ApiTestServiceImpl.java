@@ -280,9 +280,9 @@ public class ApiTestServiceImpl implements ApiTestService {
             throw new MainException(CustomException.SPECIFICATION_CHANGED);
         }
 
-        String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
+        String testType = headers.containsKey("sapi-local-domain") ? "LOCAL" : "SERVER";
 
-        String domain = testType.equals("Local")
+        String domain = testType.equalsIgnoreCase("LOCAL")
             ? headers.get("sapi-local-domain")
             : workspaceRepository.findById(workspaceId)
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
@@ -389,9 +389,9 @@ public class ApiTestServiceImpl implements ApiTestService {
         Api api = apiRepository.findById(specification.getConfirmedApiId())
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
 
-        String testType = headers.containsKey("sapi-local-domain") ? "Local" : "Server";
+        String testType = headers.containsKey("sapi-local-domain") ? "LOCAL" : "SERVER";
 
-        String domain = testType.equals("Local")
+        String domain = testType.equalsIgnoreCase("LOCAL")
             ? headers.get("sapi-local-domain")
             : workspaceRepository.findById(workspaceId)
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE)).getDomain();
@@ -487,6 +487,7 @@ public class ApiTestServiceImpl implements ApiTestService {
     }
 
     @Override
+    @Transactional
     public TestResponseDto validateRequest(UUID workspaceId, UUID specificationId, ValidateRequestDto validateRequestDto, String testType) {
         User user = userUtils.getUserFromSecurityContext();
 
@@ -509,8 +510,10 @@ public class ApiTestServiceImpl implements ApiTestService {
 
         HttpStatusCode httpStatusCode = HttpStatusCode.valueOf(validateRequestDto.status());
         HttpHeaders headers = new HttpHeaders();
-        for (String key : validateRequestDto.headers().keySet()) {
-            headers.add(key, validateRequestDto.headers().get(key));
+        if (validateRequestDto.headers() != null) {
+            for (String key : validateRequestDto.headers().keySet()) {
+                headers.add(key, validateRequestDto.headers().get(key));
+            }
         }
 
         TestResponseEntityDto testResponseEntityDto = new TestResponseEntityDto(httpStatusCode, headers);
@@ -524,7 +527,6 @@ public class ApiTestServiceImpl implements ApiTestService {
     }
 
     @Override
-    @Transactional
     public TestResponseDto toTestResponseDto(
         UUID specificationId,
         TestResponseEntityDto testResponseEntityDto,
@@ -538,6 +540,8 @@ public class ApiTestServiceImpl implements ApiTestService {
         Specification specification = specificationRepository.findById(specificationId)
             .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
+        String responseBodyStr = bodyString != null ? bodyString : "";
+
         if (!testResponseEntityDto.statusCode().is2xxSuccessful()) {
 
             // 2xx가 아닌 경우 에러 상태와 메시지를 반환
@@ -545,7 +549,7 @@ public class ApiTestServiceImpl implements ApiTestService {
             return new TestResponseDto(
                 TestStatus.FAIL.name(),
                 testResponseEntityDto.statusCode().value(),
-                "",
+                responseBodyStr,
                 mockResponse != null ? mockResponse.getBodyData() : "",
                 testResponseEntityDto.headers().toSingleValueMap(),
                 Map.of(),
@@ -564,7 +568,6 @@ public class ApiTestServiceImpl implements ApiTestService {
             : Map.of();
 
         // 응답 바디와 목 바디를 비교하여 구조 차이 찾기
-        String responseBodyStr = bodyString != null ? bodyString : "";
         Map<String, Object> responseBodyMap = parseJsonToMap(responseBodyStr);
         Map<String, Object> mockBodyMap = parseJsonToMap(mockResponse != null ? mockResponse.getBodyData() : "");
 
