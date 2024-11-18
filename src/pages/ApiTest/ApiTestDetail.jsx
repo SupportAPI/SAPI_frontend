@@ -4,7 +4,7 @@ import { ResizableBox } from 'react-resizable';
 import { FaSave } from 'react-icons/fa';
 import 'react-resizable/css/styles.css';
 import ApiTestParameters from './ApiTestParameters';
-import ApiTestBody from './ApiTestBody';
+import ApiTestBody from './ApiTestRequestBody';
 import ApiTestResponse from './ApiTestResponse';
 import { useNavbarStore } from '../../stores/useNavbarStore';
 import { useSidebarStore } from '../../stores/useSidebarStore';
