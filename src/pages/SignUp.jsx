@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import TextInput from '../components/common/TextInput';
 
 const SignupForm = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ const SignupForm = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [nickname, setNickname] = useState('');
   const [timer, setTimer] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (timer > 0) {
@@ -33,7 +35,7 @@ const SignupForm = () => {
       setTimer(180);
       alert(`인증 코드: ${code}`);
     } else {
-      alert('이미 사용 중인 이메일입니다.');
+      setErrorMessage('틀린 이메일입니다.');
     }
   };
 
@@ -64,85 +66,88 @@ const SignupForm = () => {
     <div className='min-h-screen flex items-center justify-center bg-gradient-to-r from-[#f8fcfc] via-[#f7fafb] to-[#fbfcfd]'>
       <div className='bg-white shadow-lg rounded-lg p-8 w-96'>
         <h2 className='text-2xl font-bold mb-6 text-center text-gray-800'>회원가입</h2>
-        <form onSubmit={handleSignup} className='space-y-4'>
-          <div>
-            <label className='block text-sm font-medium text-gray-700'>이메일</label>
-            <div className='flex space-x-2'>
-              <input
-                type='email'
-                className='flex-1 border rounded-md px-3 py-2 focus:ring-[#f7fafb] focus:border-[#f7fafb]'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isEmailVerified}
-              />
-              {!isEmailVerified && (
-                <button
-                  type='button'
-                  className='px-4 py-2 bg-[#f7fafb] text-gray-800 rounded-md hover:bg-[#dfe4e6]'
-                  onClick={handleEmailCheck}
-                >
-                  확인
-                </button>
-              )}
-            </div>
+        <form onSubmit={handleSignup} className='space-y-8'>
+          <div className='w-[100%] flex justify-between'>
+            <TextInput
+              label='이메일'
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              id='email'
+              disabled={isEmailVerified}
+              clearable={!isEmailVerified}
+              containerClassName='space-y-1'
+              fixedLabel={true}
+              error={errorMessage}
+            />
+            {!isEmailVerified && (
+              <button
+                type='button'
+                className='w-[20%] bg-[#f7fafb] text-gray-800  rounded-md hover:bg-[#dfe4e6]'
+                onClick={handleEmailCheck}
+              >
+                전송
+              </button>
+            )}
           </div>
 
           {showEmailCodeInput && !isEmailVerified && (
-            <div>
-              <label className='block text-sm font-medium text-gray-700'>인증 코드</label>
-              <div className='relative'>
-                <input
-                  type='text'
-                  className='w-full border rounded-md px-3 py-2 pr-20 focus:ring-[#f7fafb] focus:border-[#f7fafb]'
-                  value={emailCode}
-                  onChange={(e) => setEmailCode(e.target.value)}
-                  required
-                />
-                <span className='absolute inset-y-0 right-20 flex items-center text-sm text-red-500 font-medium pointer-events-none'>
-                  {timer > 0 ? formatTime(timer) : '시간 만료'}
-                </span>
-                <button
-                  type='button'
-                  className='absolute inset-y-0 right-0 px-4 bg-[#f7fafb] text-gray-800 rounded-r-md hover:bg-[#dfe4e6]'
-                  onClick={handleEmailVerify}
-                >
-                  확인
-                </button>
+            <div className='flex w-[100%] justify-between'>
+              <div>
+                <div className='relative'>
+                  <TextInput
+                    label='인증 코드'
+                    value={emailCode}
+                    onChange={(e) => setEmailCode(e.target.value)}
+                    id='email-code'
+                    clearable
+                    containerClassName='space-y-1'
+                    fixedLabel={true}
+                  />
+                  <div className='absolute top-2 right-2'>{timer > 0 ? `${formatTime(timer)}` : '시간 만료'}</div>
+                </div>
               </div>
+              <button
+                type='button'
+                className='bg-[#f7fafb] text-gray-800 rounded-md hover:bg-[#dfe4e6] w-[20%]'
+                onClick={handleEmailVerify}
+              >
+                확인
+              </button>
             </div>
           )}
 
-          <div>
-            <label className='block text-sm font-medium text-gray-700'>비밀번호</label>
-            <input
+          <div className='mb-12'>
+            <TextInput
+              label='비밀번호'
               type='password'
-              className='w-full border rounded-md px-3 py-2 focus:ring-[#f7fafb] focus:border-[#f7fafb]'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+              id='password'
+              containerClassName='space-y-1'
+              fixedLabel={true}
             />
           </div>
 
-          <div>
-            <label className='block text-sm font-medium text-gray-700'>비밀번호 확인</label>
-            <input
+          <div className='mb-12'>
+            <TextInput
+              label='비밀번호 확인'
               type='password'
-              className='w-full border rounded-md px-3 py-2 focus:ring-[#f7fafb] focus:border-[#f7fafb]'
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              required
+              id='confirm-password'
+              containerClassName='space-y-1'
+              fixedLabel={true}
             />
           </div>
 
           <div>
-            <label className='block text-sm font-medium text-gray-700'>닉네임</label>
-            <input
-              type='text'
-              className='w-full border rounded-md px-3 py-2 focus:ring-[#f7fafb] focus:border-[#f7fafb]'
+            <TextInput
+              label='닉네임'
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              required
+              id='nickname'
+              containerClassName='space-y-1 mb-4'
+              fixedLabel={true}
             />
           </div>
 
