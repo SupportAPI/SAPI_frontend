@@ -1,8 +1,10 @@
 package com.seniorcenter.sapi.domain.user.presentation;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.seniorcenter.sapi.domain.user.presentation.dto.response.TempUserResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -106,6 +108,11 @@ public class UserController {
 	@GetMapping("/comment-search")
 	public List<UserInfoResponseDto> searchUserInWorkspaceWithNickname(@RequestParam UUID workspaceId, @RequestParam String nicknameValue) {
 		return userService.searchUserInWorkspaceWithNickname(workspaceId, nicknameValue);
+	}
+
+	@GetMapping("/users/1")
+	public TempUserResponseDto getUserInfo() {
+		return new TempUserResponseDto(1L, "박찬호" , "chpark6851@naver.com");
 	}
 
 }

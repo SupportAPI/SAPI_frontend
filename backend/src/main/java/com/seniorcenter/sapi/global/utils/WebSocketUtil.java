@@ -2,6 +2,8 @@ package com.seniorcenter.sapi.global.utils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.user.SimpSession;
+import org.springframework.messaging.simp.user.SimpSubscription;
 import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Component;
@@ -17,13 +19,13 @@ public class WebSocketUtil {
 
     public int countUsersSubscribedToDestination(String destination) {
         int count = 0;
+        log.info("Total connected users: " + simpUserRegistry.getUserCount());
         for (SimpUser user : simpUserRegistry.getUsers()) {
-            for (var session : user.getSessions()) {
-                for (var subscription : session.getSubscriptions()) {
-                    log.info("");
-                    if (destination.equals(subscription.getDestination())) {
-                        count++;
-                    }
+            log.info("User: " + user.getName());
+            for (SimpSession session : user.getSessions()) {
+                log.info("Session: " + session.getId());
+                for (SimpSubscription subscription : session.getSubscriptions()) {
+                    log.info("Subscribed to: " + subscription.getDestination());
                 }
             }
         }
