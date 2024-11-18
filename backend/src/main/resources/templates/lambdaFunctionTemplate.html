@@ -2,7 +2,7 @@ exports.handler = async (event) => {
     // Header Verification
     <th:block th:if="${headers}">
         <th:block th:each="header : ${headers}">
-            <th:block th:if="${headers.isRequired}">
+            <th:block th:if="${header.isRequired}">
                 if (!event.headers || !event.headers['[[${header.headerKey.toLowerCase()}]]']) {
                     return {
                         statusCode: 400,
