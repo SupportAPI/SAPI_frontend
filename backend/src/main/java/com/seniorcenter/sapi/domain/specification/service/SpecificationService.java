@@ -34,6 +34,7 @@ import org.thymeleaf.context.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -239,6 +240,8 @@ public class SpecificationService {
         for (User users : usersInWorkspace) {
             sseUtils.send(users, originApi.getId(), specification.getWorkspace().getId(), NotificationType.API_CONFIRM);
         }
+
+        originApi.confirm(user.getId(), LocalDateTime.now());
 
         return new SpecificationResponseDto(originApi, specification);
     }
