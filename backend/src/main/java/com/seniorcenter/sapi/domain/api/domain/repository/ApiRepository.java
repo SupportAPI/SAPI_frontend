@@ -20,4 +20,7 @@ public interface ApiRepository extends JpaRepository<Api, UUID>, ApiRepositoryCu
 
     @Query("SELECT a FROM Api a JOIN a.specification s WHERE a.id = :apiId AND s.workspace.id = :workspaceId")
     Optional<Api> findByIdAndWorkspaceId(@Param("apiId") UUID apiId, @Param("workspaceId") UUID workspaceId);
+
+    @Query("SELECT a FROM Api a WHERE a.specification.id = :specificationId AND a.confirmTime IS NOT NULL ORDER BY a.confirmTime DESC")
+    List<Api> findBySpecificationIdAndConfirmedOrderByConfirmTimeDesc(@Param("specificationId") UUID specificationId);
 }

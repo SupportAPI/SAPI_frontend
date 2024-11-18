@@ -289,7 +289,7 @@ public class ApiService {
     }
 
     public List<SpecificationHistoryListResponseDto> getApiHistoryListBySpecificationId(UUID specificationId) {
-        List<Api> apis = apiRepository.findBySpecificationIdOrderByCreatedDateDesc(specificationId);
+        List<Api> apis = apiRepository.findBySpecificationIdAndConfirmedOrderByConfirmTimeDesc(specificationId);
         return apis.stream()
                 .map(api -> {
                     User user = userRepository.findById(api.getConfirmUserId())
