@@ -81,4 +81,9 @@ public class Specification extends BaseTimeEntity {
     public void updateApiGatewayId(String apiGatewayId) {
         this.apiGatewayId = apiGatewayId;
     }
+
+    public void updateTestStatus(String testType, TestStatus testStatus) {
+        if(testType.equals("Local"))
+        this.serverStatus = testStatus;
+    }
 }

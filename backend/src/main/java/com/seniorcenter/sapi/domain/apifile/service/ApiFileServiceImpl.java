@@ -1,7 +1,7 @@
 package com.seniorcenter.sapi.domain.apifile.service;
 
-import com.seniorcenter.sapi.domain.apifile.domain.repository.ApiFileRepository;
 import com.seniorcenter.sapi.domain.apifile.domain.ApiFile;
+import com.seniorcenter.sapi.domain.apifile.domain.repository.ApiFileRepository;
 import com.seniorcenter.sapi.domain.apifile.presentation.dto.response.FileInfoResponseDto;
 import com.seniorcenter.sapi.domain.membership.domain.repository.MembershipRepository;
 import com.seniorcenter.sapi.domain.user.domain.User;
@@ -93,6 +93,21 @@ public class ApiFileServiceImpl implements ApiFileService {
         return files.stream()
             .map(file -> new FileInfoResponseDto(file.getId(), file.getFileName()))
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public byte[] getApiFile(UUID workspaceId, Long apiFileId) {
+        User user = userUtils.getUserFromSecurityContext();
+        Workspace workspace = workspaceRepository.findById(workspaceId)
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
+
+        if (membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId).isEmpty()) {
+            throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
+        }
+
+        ApiFile apiFile = apiFileRepository.findById(apiFileId)
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_FILE));
+        return apiFile.getFileData();
     }
 
 }

@@ -10,8 +10,10 @@ import com.seniorcenter.sapi.domain.api.presentation.dto.ParametersDto;
 import com.seniorcenter.sapi.domain.api.presentation.dto.RequestDto;
 import com.seniorcenter.sapi.domain.apifile.domain.ApiFile;
 import com.seniorcenter.sapi.domain.apifile.domain.repository.ApiFileRepository;
+import com.seniorcenter.sapi.domain.apitest.presentation.TestResponseEntityDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.request.TestApiRequestDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.request.UpdateApiDetailRequestDto;
+import com.seniorcenter.sapi.domain.apitest.presentation.dto.request.ValidateRequestDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.ApiTestDetailResponseDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.ApiTestResponseDto;
 import com.seniorcenter.sapi.domain.apitest.presentation.dto.response.TestResponseDto;
@@ -31,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
@@ -38,9 +41,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -310,6 +312,8 @@ public class ApiTestServiceImpl implements ApiTestService {
         Mono<ResponseEntity<byte[]>> responseEntityMono;
         Map<String, Object> requestBody = new HashMap<>();
 
+        long startTime = System.currentTimeMillis();
+
         if (contentType.equals(BodyType.FORM_DATA)) {
             Map<String, Object> formParams = new HashMap<>();
             Map<String, MultipartFile> files = new HashMap<>();
@@ -341,6 +345,8 @@ public class ApiTestServiceImpl implements ApiTestService {
             responseEntityMono = proxyService.jsonRequest(serverRequestInfoDto, requestBody, HttpMethod.valueOf(requestDto.method()));
         }
 
+        long responseTime = System.currentTimeMillis() - startTime;
+
         // 비동기 응답을 동기적으로 가져오기
         ResponseEntity<byte[]> responseEntity = responseEntityMono.block();
 
@@ -353,9 +359,19 @@ public class ApiTestServiceImpl implements ApiTestService {
             : null;
 
 
+        TestResponseEntityDto testResponseEntityDto = new TestResponseEntityDto(responseEntity.getStatusCode(), responseEntity.getHeaders());
+        Map<String, String> requestSize = Map.of(
+            "Headers", httpHeaders.toString().getBytes().length + " B",
+            "Body", requestBody.toString().getBytes().length + " B"
+        );
+
+        Map<String, String> responseSize = Map.of(
+            "Headers", responseEntity.getHeaders().toString().getBytes().length + " B",
+            "Body", responseEntity.getBody() != null ? responseEntity.getBody().length + " B" : "0 B"
+        );
+
         // TestResponseDto 변환 및 반환
-        long startTime = System.currentTimeMillis();
-        return toTestResponseDto(responseEntity, httpHeaders, requestBody, http2xxResponse, startTime, testType);
+        return toTestResponseDto(specification.getId(), testResponseEntityDto, requestSize, responseSize, http2xxResponse, responseTime, testType, new String(responseEntity.getBody(), StandardCharsets.UTF_8));
     }
 
     @Override
@@ -407,6 +423,7 @@ public class ApiTestServiceImpl implements ApiTestService {
         Mono<ResponseEntity<byte[]>> responseEntityMono;
         Map<String, Object> requestBody = new HashMap<>();
 
+        long startTime = System.currentTimeMillis();
         if (contentType.equals(BodyType.FORM_DATA)) {
             Map<String, Object> formParams = new HashMap<>();
             Map<String, MultipartFile> files = new HashMap<>();
@@ -439,6 +456,7 @@ public class ApiTestServiceImpl implements ApiTestService {
         } else {
             responseEntityMono = proxyService.jsonRequest(serverRequestInfoDto, requestBody, HttpMethod.valueOf(api.getMethod().getValue()));
         }
+        long responseTime = System.currentTimeMillis() - startTime;
 
         // 비동기 응답을 동기적으로 가져오기
         ResponseEntity<byte[]> responseEntity = responseEntityMono.block();
@@ -451,61 +469,101 @@ public class ApiTestServiceImpl implements ApiTestService {
             .orElse(null)
             : null;
 
+        TestResponseEntityDto testResponseEntityDto = new TestResponseEntityDto(responseEntity.getStatusCode(), responseEntity.getHeaders());
+
+        Map<String, String> requestSize = Map.of(
+            "Headers", httpHeaders.toString().getBytes().length + " B",
+            "Body", requestBody.toString().getBytes().length + " B"
+        );
+
+        Map<String, String> responseSize = Map.of(
+            "Headers", responseEntity.getHeaders().toString().getBytes().length + " B",
+            "Body", responseEntity.getBody() != null ? responseEntity.getBody().length + " B" : "0 B"
+        );
 
         // TestResponseDto 변환 및 반환
-        long startTime = System.currentTimeMillis();
-        return toTestResponseDto(responseEntity, httpHeaders, requestBody, http2xxResponse, startTime, testType);
+        return toTestResponseDto(specificationId, testResponseEntityDto, requestSize, responseSize, http2xxResponse, responseTime, testType, new String(responseEntity.getBody(), StandardCharsets.UTF_8));
     }
 
-    private boolean pathMatches(String path, String requestedPath) {
-        String regex = path.replaceAll("\\{[^/]+\\}", "[^/]+");
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(requestedPath);
+    @Override
+    public TestResponseDto validateRequest(UUID workspaceId, UUID specificationId, ValidateRequestDto validateRequestDto, String testType) {
+        User user = userUtils.getUserFromSecurityContext();
 
-        return matcher.matches();
+        if (membershipRepository.findByUserIdAndWorkspaceId(user.getId(), workspaceId).isEmpty()) {
+            throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
+        }
+
+        Specification specification = specificationRepository.findById(specificationId)
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
+
+        Api api = apiRepository.findById(specification.getConfirmedApiId())
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_API));
+
+        ApiResponse http2xxResponse = api.getResponses() != null
+            ? api.getResponses().stream()
+            .filter(response -> response.getCode() >= 200 && response.getCode() < 300)
+            .findFirst()
+            .orElse(null)
+            : null;
+
+        HttpStatusCode httpStatusCode = HttpStatusCode.valueOf(validateRequestDto.status());
+        HttpHeaders headers = new HttpHeaders();
+        for (String key : validateRequestDto.headers().keySet()) {
+            headers.add(key, validateRequestDto.headers().get(key));
+        }
+
+        TestResponseEntityDto testResponseEntityDto = new TestResponseEntityDto(httpStatusCode, headers);
+
+        Map<String, String> requestSize = Map.of(
+            "Headers", headers.toString().getBytes().length + " B",
+            "Body", validateRequestDto.data().toString().getBytes().length + " B"
+        );
+
+        return toTestResponseDto(specificationId, testResponseEntityDto, requestSize, requestSize, http2xxResponse, validateRequestDto.responseTime(), testType, validateRequestDto.data().toString());
     }
 
-    private TestResponseDto toTestResponseDto(ResponseEntity<byte[]> responseEntity, HttpHeaders httpHeaders, Map<String, Object> requestBody, ApiResponse mockResponse, long startTime, String testType) {
-        long responseTime = System.currentTimeMillis() - startTime;
+    @Override
+    @Transactional
+    public TestResponseDto toTestResponseDto(
+        UUID specificationId,
+        TestResponseEntityDto testResponseEntityDto,
+        Map<String, String> requestSize,
+        Map<String, String> responseSize,
+        ApiResponse mockResponse,
+        long responseTime,
+        String testType,
+        String bodyString
+    ) {
+        Specification specification = specificationRepository.findById(specificationId)
+            .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
-        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+        if (!testResponseEntityDto.statusCode().is2xxSuccessful()) {
+
             // 2xx가 아닌 경우 에러 상태와 메시지를 반환
-
+            specification.updateTestStatus(testType, TestStatus.FAIL);
             return new TestResponseDto(
                 TestStatus.FAIL.name(),
-                responseEntity.getStatusCodeValue(),
+                testResponseEntityDto.statusCode().value(),
                 "",
                 mockResponse != null ? mockResponse.getBodyData() : "",
-                responseEntity.getHeaders().toSingleValueMap(),
+                testResponseEntityDto.headers().toSingleValueMap(),
                 Map.of(),
-                Map.of(
-                    "Headers", httpHeaders.toString().getBytes().length + " B",
-                    "Body", requestBody.toString().getBytes().length + " B"
-                ),
-                Map.of(
-                    "Headers", responseEntity.getHeaders().toString().getBytes().length + " B",
-                    "Body", responseEntity.getBody() != null ? responseEntity.getBody().length + " B" : "0 B"
-                ),
+                requestSize,
+                responseSize,
                 responseTime,
                 testType,
-                new String(responseEntity.getBody())
+                bodyString
             );
         }
 
-        // 응답 헤더 및 바디 크기 계산
-        long responseHeaderSize = responseEntity.getHeaders().toString().getBytes().length;
-        long responseBodySize = responseEntity.getBody() != null ? responseEntity.getBody().length : 0;
 
         // 요청 헤더 및 바디 크기 계산
-        long requestHeaderSize = httpHeaders.toString().getBytes().length;
-        long requestBodySize = requestBody.toString().getBytes().length;
-
-        Map<String, String> cookies = responseEntity.getHeaders().get("Set-Cookie") != null
-            ? Map.of("Set-Cookie", String.join("; ", responseEntity.getHeaders().get("Set-Cookie")))
+        Map<String, String> cookies = testResponseEntityDto.headers().get("Set-Cookie") != null
+            ? Map.of("Set-Cookie", String.join("; ", testResponseEntityDto.headers().get("Set-Cookie")))
             : Map.of();
 
         // 응답 바디와 목 바디를 비교하여 구조 차이 찾기
-        String responseBodyStr = responseEntity.getBody() != null ? new String(responseEntity.getBody()) : "";
+        String responseBodyStr = bodyString != null ? bodyString : "";
         Map<String, Object> responseBodyMap = parseJsonToMap(responseBodyStr);
         Map<String, Object> mockBodyMap = parseJsonToMap(mockResponse != null ? mockResponse.getBodyData() : "");
 
@@ -516,29 +574,24 @@ public class ApiTestServiceImpl implements ApiTestService {
 
         if (differences.isEmpty()) {
             status = TestStatus.SUCCESS.name();
-            code = responseEntity.getStatusCodeValue();
+            code = testResponseEntityDto.statusCode().value();
             message = null;
+            specification.updateTestStatus(testType, TestStatus.SUCCESS);
         } else {
             status = TestStatus.FAIL.name();
             code = 422; // 422 Unprocessable Entity (구조 불일치 시 사용)
             message = String.join("; ", differences);
+            specification.updateTestStatus(testType, TestStatus.FAIL);
         }
-
         return new TestResponseDto(
             status,
             code,
             responseBodyStr,
             mockResponse != null ? mockResponse.getBodyData() : "",
-            responseEntity.getHeaders().toSingleValueMap(),
+            testResponseEntityDto.headers().toSingleValueMap(),
             cookies,
-            Map.of(
-                "Headers", requestHeaderSize + " B",
-                "Body", requestBodySize + " B"
-            ),
-            Map.of(
-                "Headers", responseHeaderSize + " B",
-                "Body", responseBodySize + " B"
-            ),
+            requestSize,
+            responseSize,
             responseTime,
             testType,
             message

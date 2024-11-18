@@ -3,7 +3,9 @@ package com.seniorcenter.sapi.global.response;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.seniorcenter.sapi.global.annotation.ExcludeFromAdvice;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,9 +14,6 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
-
-import jakarta.servlet.http.HttpServletResponse;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 
 @RestControllerAdvice(basePackages = "com.seniorcenter.sapi")
@@ -41,6 +40,11 @@ public class SuccessResponseAdvice implements ResponseBodyAdvice {
 		if (resolve == null) {
 			return body;
 		}
+
+        // byte[] 타입은 SuccessResponse로 래핑하지 않고 그대로 반환
+        if (body instanceof byte[]) {
+            return body;
+        }
 
 		if (body instanceof String) {
             try {
