@@ -26,17 +26,6 @@ const Workspace = () => {
       {/* 상단: 차트 2개와 버튼 */}
       <h1 className='text-4xl font-extrabold w-full text-gray-800'>HOME</h1>
       <div className='w-[85%] flex items-center justify-between'>
-        <div className='flex gap-32 justify-center py-8'>
-          <div className='w-80 h-80'>
-            <Doughnut data={mockData} />
-            <div className='text-center text-[20px]'>Local API Status</div>
-          </div>
-          <div className='w-80 h-80'>
-            <Doughnut data={mockData} />
-            <div className='text-center text-[20px]'>Server API Status</div>
-          </div>
-        </div>
-
         <div className='flex flex-col flex-wrap justify-center gap-6 py-6'>
           <Link
             to={`/workspace/${workspaceId}/apidocs/all`}
@@ -50,6 +39,16 @@ const Workspace = () => {
           >
             Go to API Test
           </Link>
+        </div>
+        <div className='flex gap-32 justify-center py-8'>
+          <div className='w-80 h-80'>
+            <Doughnut data={mockData} />
+            <div className='text-center text-[20px]'>Local API Status</div>
+          </div>
+          <div className='w-80 h-80'>
+            <Doughnut data={mockData} />
+            <div className='text-center text-[20px]'>Server API Status</div>
+          </div>
         </div>
       </div>
 
