@@ -20,4 +20,9 @@ public class MemberController {
     public TempUserResponseDto getUserInfo2() {
         return new TempUserResponseDto(2L, "조성빈" , "joseongbin12@naver.com");
     }
+
+    @GetMapping()
+    public TempUserResponseDto getUserInfo() {
+        return new TempUserResponseDto(1L, "박찬호" , "chpark6851@naver.com");
+    }
 }
