@@ -54,7 +54,7 @@ public class ProxyServiceImpl implements ProxyService {
 
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         List<UUID> apiIds = specifications.stream()
-            .filter(specification -> !specification.getConfirmedApiId().equals(""))
+            .filter(specification -> specification.getConfirmedApiId() != null)
             .map(Specification::getConfirmedApiId)
             .toList();
 
@@ -129,7 +129,7 @@ public class ProxyServiceImpl implements ProxyService {
 
         List<Specification> specifications = specificationRepository.findSpecificationsByWorkspaceId(workspaceId);
         List<UUID> apiIds = specifications.stream()
-            .filter(specification -> !specification.getConfirmedApiId().equals(""))
+            .filter(specification -> specification.getConfirmedApiId() != null)
             .map(Specification::getConfirmedApiId)
             .toList();
 
