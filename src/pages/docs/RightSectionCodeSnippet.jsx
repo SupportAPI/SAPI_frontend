@@ -16,25 +16,33 @@ const RightSectionCodeSnippet = ({ path, method, parameters, request }) => {
 
   const snippets = {
     axios: `
-    axios.${method.toLowerCase()}(\`${url}${path}\`, 
-      ${request.json.value}, 
-      {
+      axios.${method.toLowerCase()}(\`${url}${path}\`, 
+        ${request.json.value ? request.json.value : ''}
+        ${
+          request.json.value
+            ? `,{
+              headers: {
+                'Content-Type': '${headerValue}',
+              },
+            }`
+            : `{
+              headers: {
+                'Content-Type': '${headerValue}',
+              },
+            }`
+        });
+    `,
+    fetch: `
+      fetch(\`${url}${path}\`, {
+        method: '${method.toLowerCase()}',
         headers: {
           'Content-Type': '${headerValue}',
         },
-      });
-    `,
-    fetch: `
-    fetch(\`${url}${path}\`, {
-      method: '${method.toLowerCase()}',
-      headers: {
-        'Content-Type': '${headerValue}',
-      },
-      body: JSON.stringify(${request.json.value}),
-    })
-      .then(response => response.json())
-      .then(data => console.log(data))
-      .catch(error => console.error(error));
+        ${request.json.value ? `body: JSON.stringify(${request.json.value}),` : ''}
+      })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error(error));
     `,
   };
 

@@ -170,6 +170,7 @@ const ApiDocsDetail = () => {
             break;
           case 'RESPONSE':
             apiHandler.handleResponse(data, apiDocDetail, setApiDocDetail, userId, apiDocDetailRefetch);
+
             break;
           default:
             console.warn(`Unhandled message type: ${data.apiType}`);
