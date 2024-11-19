@@ -26,79 +26,89 @@ import lombok.NoArgsConstructor;
 @Table(name = "memberships")
 public class Membership extends BaseTimeEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
-	private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "workspace_id", nullable = false)
-	private Workspace workspace;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "workspace_id", nullable = false)
+    private Workspace workspace;
 
-	@Column(nullable = false)
-	@Enumerated(EnumType.STRING)
-	private Role role;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
-	@Column(nullable = false)
-	@Enumerated(EnumType.STRING)
-	private InviteStatus inviteStatus;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private InviteStatus inviteStatus;
 
-	@Column(nullable = false)
-	private Boolean readAuthority;
+    @Column(nullable = false)
+    private Boolean readAuthority;
 
-	@Column(nullable = false)
-	private Boolean updateAuthority;
+    @Column(nullable = false)
+    private Boolean updateAuthority;
 
-	@Column(nullable = false)
-	private Boolean saveAuthority;
+    @Column(nullable = false)
+    private Boolean saveAuthority;
 
-	@Column(nullable = false)
-	private Boolean deleteAuthority;
+    @Column(nullable = false)
+    private Boolean deleteAuthority;
 
-	@Builder
-	private Membership(User user, Workspace workspace, Role role, InviteStatus inviteStatus) {
-		this.user = user;
-		this.workspace = workspace;
-		this.role = role;
-		this.inviteStatus = inviteStatus;
-		this.readAuthority = true;
-		this.updateAuthority = false;
-		this.saveAuthority = false;
-		this.deleteAuthority = false;
-	}
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Color color;
 
-	public static Membership createMembership(User user, Workspace workspace, Role role, InviteStatus inviteStatus) {
-		return Membership.builder()
-			.user(user)
-			.workspace(workspace)
-			.role(role)
-			.inviteStatus(inviteStatus)
-			.build();
-	}
+    @Builder
+    private Membership(User user, Workspace workspace, Role role, InviteStatus inviteStatus, Color color) {
+        this.user = user;
+        this.workspace = workspace;
+        this.role = role;
+        this.inviteStatus = inviteStatus;
+        this.readAuthority = true;
+        this.updateAuthority = false;
+        this.saveAuthority = false;
+        this.deleteAuthority = false;
+        this.color = color;
+    }
 
-	public void updateAuthorityForMaintainer() {
-		this.readAuthority = true;
-		this.updateAuthority = true;
-		this.saveAuthority = true;
-		this.deleteAuthority = true;
-	}
+    public static Membership createMembership(User user, Workspace workspace, Role role, InviteStatus inviteStatus, Color color) {
+        return Membership.builder()
+                .user(user)
+                .workspace(workspace)
+                .role(role)
+                .inviteStatus(inviteStatus)
+                .color(color)
+                .build();
+    }
 
-	public void acceptInvite() {
-		this.inviteStatus = InviteStatus.ACCEPTED;
-	}
+    public void updateAuthorityForMaintainer() {
+        this.readAuthority = true;
+        this.updateAuthority = true;
+        this.saveAuthority = true;
+        this.deleteAuthority = true;
+    }
 
-	public void updateRole(Role role) {
-		this.role = role;
-	}
+    public void acceptInvite() {
+        this.inviteStatus = InviteStatus.ACCEPTED;
+    }
 
-	public void updateAuthority(boolean readAuthority, boolean updateAuthority, boolean saveAuthority,
-		boolean deleteAuthority) {
-		this.readAuthority = readAuthority;
-		this.updateAuthority = updateAuthority;
-		this.saveAuthority = saveAuthority;
-		this.deleteAuthority = deleteAuthority;
-	}
+    public void updateRole(Role role) {
+        this.role = role;
+    }
+
+    public void updateAuthority(boolean readAuthority, boolean updateAuthority, boolean saveAuthority,
+                                boolean deleteAuthority) {
+        this.readAuthority = readAuthority;
+        this.updateAuthority = updateAuthority;
+        this.saveAuthority = saveAuthority;
+        this.deleteAuthority = deleteAuthority;
+    }
+
+    public void updateColor(Color color) {
+        this.color = color;
+    }
 }

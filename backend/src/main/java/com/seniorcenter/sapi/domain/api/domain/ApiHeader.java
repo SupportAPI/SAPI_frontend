@@ -24,18 +24,65 @@ public class ApiHeader extends BaseTimeEntity {
     private String headerValue;
     private String description;
 
+    @Column(nullable = false)
+    private Boolean isRequired;
+
+    @Column(nullable = false)
+    private Boolean isChecked;
+
     @Builder
-    public ApiHeader(Api api) {
+    public ApiHeader(Api api, String headerKey, String headerValue, String description, Boolean isRequired, Boolean isChecked) {
         this.api = api;
-        this.headerKey = "";
-        this.headerValue = "";
-        this.description = "";
+        this.headerKey = headerKey;
+        this.headerValue = headerValue;
+        this.description = description;
+        this.isRequired = isRequired;
+        this.isChecked = isChecked;
     }
 
     public static ApiHeader createApiHeader(Api api) {
         return ApiHeader.builder()
                 .api(api)
+                .headerKey("")
+                .headerValue("")
+                .description("")
+                .isRequired(true)
+                .isChecked(true)
                 .build();
+    }
+
+    public static ApiHeader createApiHeader(Api api, String headerKey, String headerValue, boolean isRequired) {
+        return ApiHeader.builder()
+                .api(api)
+                .headerKey(headerKey)
+                .headerValue(headerValue)
+                .description("")
+                .isRequired(isRequired)
+                .isChecked(true)
+                .build();
+    }
+
+    public static ApiHeader copyApiHeader(Api api, ApiHeader originHeader) {
+        return ApiHeader.builder()
+                .api(api)
+                .headerKey(originHeader.getHeaderKey())
+                .headerValue(originHeader.getHeaderValue())
+                .description(originHeader.getDescription())
+                .isRequired(originHeader.getIsRequired())
+                .isChecked(originHeader.getIsChecked())
+                .build();
+    }
+
+    public void updateApiHeaderValue(String headerValue, Boolean isChecked) {
+        this.headerValue = headerValue;
+        this.isChecked = isChecked;
+    }
+
+    public void updateApiHeaderKeyAndValueAndDescriptionAndIsRequired(String headerKey, String headerValue, String description, boolean isRequired) {
+        this.headerKey = headerKey;
+        this.headerValue = headerValue;
+        this.description = description;
+        this.isRequired = isRequired;
     }
 }
 

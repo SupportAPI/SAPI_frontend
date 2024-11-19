@@ -4,9 +4,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record NotificationResponseDto(
-	UUID specificationId,
-	String apiName,
+	Long id,
+	UUID fromId,
+	UUID workspaceId,
+	String fromName,
 	String message,
+	String notificationType,
+	Boolean isRead,
 	LocalDateTime createdDatetime
 ) {
 }

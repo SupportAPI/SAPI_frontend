@@ -2,21 +2,23 @@ exports.handler = async (event) => {
     // Header Verification
     <th:block th:if="${headers}">
         <th:block th:each="header : ${headers}">
-            if (!event.headers || !event.headers['[[${header.headerKey.toLowerCase()}]]']) {
-                return {
-                    statusCode: 400,
-                    body: JSON.stringify({ message: "[[${header.headerKey}]] 헤더가 필요합니다." }),
-                    headers: { "Content-Type": "application/json" }
-                };
-            }
-            <th:block th:if="${header.headerKey.toLowerCase() == 'content-type'}">
-                if (event.headers['[[${header.headerKey.toLowerCase()}]]']?.split(';')[0] != '[[${header.headerValue.split(';')[0]}]]') {
+            <th:block th:if="${header.isRequired}">
+                if (!event.headers || !event.headers['[[${header.headerKey.toLowerCase()}]]']) {
                     return {
-                        statusCode: 415,
-                        body: JSON.stringify({ message: "Unsupported Content-Type" }),
+                        statusCode: 400,
+                        body: JSON.stringify({ message: "[[${header.headerKey}]] 헤더가 필요합니다." }),
                         headers: { "Content-Type": "application/json" }
                     };
                 }
+                <th:block th:if="${header.headerKey.toLowerCase() == 'content-type'}">
+                    if (event.headers['[[${header.headerKey.toLowerCase()}]]']?.split(';')[0] != '[[${header.headerValue.split(';')[0]}]]') {
+                        return {
+                            statusCode: 415,
+                            body: JSON.stringify({ message: "Unsupported Content-Type" }),
+                            headers: { "Content-Type": "application/json" }
+                        };
+                    }
+                </th:block>
             </th:block>
         </th:block>
     </th:block>
@@ -24,27 +26,31 @@ exports.handler = async (event) => {
 
     <th:block th:if="${cookies}">
         <th:block th:each="cookie : ${cookies}">
-            var cookies = event.headers['cookies'].split(",");
-            if (!cookies.includes('[[${cookie.cookieKey.toLowerCase()}]]')) {
-                return {
-                    statusCode: 400,
-                    body: JSON.stringify({ message: "[[${cookie.cookieKey}]] 쿠키가 필요합니다." }),
-                    headers: { "Content-Type": "application/json" }
-                };
-            }
+            <th:block th:if="${cookie.isRequired}">
+                var cookies = event.headers['cookies'].split(",");
+                if (!cookies.includes('[[${cookie.cookieKey.toLowerCase()}]]')) {
+                    return {
+                        statusCode: 400,
+                        body: JSON.stringify({ message: "[[${cookie.cookieKey}]] 쿠키가 필요합니다." }),
+                        headers: { "Content-Type": "application/json; charset=UTF-8" }
+                    };
+                }
+            </th:block>
         </th:block>
     </th:block>
 
     // Query Parameter Verification
     <th:block th:if="${queryParams}">
         <th:block th:each="field : ${queryParams}">
-            if (!event.queryStringParameters || !event.queryStringParameters['[[${field.paramKey}]]']) {
-                return {
-                    statusCode: 400,
-                    body: JSON.stringify({ message: "[[${field.paramKey}]]이(가) 입력되지 않았습니다." }),
-                    headers: { "Content-Type": "application/json" }
-                };
-            }
+            <th:block th:if="${field.isRequired}">
+                if (!event.queryStringParameters || !event.queryStringParameters['[[${field.paramKey}]]']) {
+                    return {
+                        statusCode: 400,
+                        body: JSON.stringify({ message: "[[${field.paramKey}]]이(가) 입력되지 않았습니다." }),
+                        headers: { "Content-Type": "application/json; charset=UTF-8" }
+                    };
+                }
+            </th:block>
         </th:block>
     </th:block>
 
@@ -66,7 +72,7 @@ exports.handler = async (event) => {
                         return {
                             statusCode: 400,
                             body: JSON.stringify({ message: "body 값이 유효하지 않은 JSON 형식입니다." }),
-                            headers: { "Content-Type": "application/json" }
+                            headers: { "Content-Type": "application/json; charset=UTF-8" }
                         };
                     }
                     findStructureDifferences(jsonBody, json);
@@ -119,7 +125,7 @@ exports.handler = async (event) => {
                                 return {
                                     statusCode: 400,
                                     body: JSON.stringify({ message: "[[${field.bodyKey}]] 필드가 필요합니다." }),
-                                    headers: { "Content-Type": "application/json" }
+                                    headers: { "Content-Type": "application/json; charset=UTF-8" }
                                 };
                             }
                         </th:block>

@@ -37,11 +37,13 @@ public class Specification extends BaseTimeEntity {
 
     private String apiGatewayId;
 
+    private Long confirmUserId;
+
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "workspace_id")
     private Workspace workspace;
 
-    @OneToOne
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "manager_id")
     private User manager;
 
@@ -55,27 +57,36 @@ public class Specification extends BaseTimeEntity {
     public Specification(UUID confirmedApiId, Workspace workspace) {
         this.localStatus = TestStatus.PENDING;
         this.serverStatus = TestStatus.PENDING;
-        this.confirmedApiId = confirmedApiId;
+        this.confirmedApiId = null;
         this.apiGatewayId = "";
+
         this.workspace = workspace;
     }
 
-    public static Specification createSpecification(UUID confirmedApiId, Workspace workspace) {
+    public static Specification createSpecification(Workspace workspace) {
         return builder()
-                .confirmedApiId(confirmedApiId)
-                .workspace(workspace)
-                .build();
+            .workspace(workspace)
+            .build();
     }
 
     public void updateManager(User manager) {
         this.manager = manager;
     }
 
-    public void updateConfirmedApiId(UUID confirmedApiId) {
+    public void updateConfirmedApiId(UUID confirmedApiId, Long confirmUserId) {
         this.confirmedApiId = confirmedApiId;
+        this.confirmUserId = confirmUserId;
     }
 
     public void updateApiGatewayId(String apiGatewayId) {
         this.apiGatewayId = apiGatewayId;
+    }
+
+    public void updateTestStatus(String testType, TestStatus testStatus) {
+        if (testType.equalsIgnoreCase("LOCAL"))
+            this.localStatus = testStatus;
+        if (testType.equalsIgnoreCase("SERVER")) {
+            this.serverStatus = testStatus;
+        }
     }
 }

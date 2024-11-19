@@ -25,6 +25,13 @@ public class CommentController {
         return commentService.getComments(docId,targetcommentid,size);
     }
 
+    @GetMapping("/docs/{docId}/initcomments")
+    public List<CommentResponseDto> getInitComments(@PathVariable("docId") UUID docId,
+                                                @RequestParam Long targetcommentid,
+                                                @RequestParam int size ) {
+        return commentService.getInitComments(docId,targetcommentid,size);
+    }
+
     @GetMapping("/docs/{docId}/comments/last-index")
     public Long getLastIndexComments(@PathVariable("docId") UUID docId) {
         return commentService.getCommentId(docId);

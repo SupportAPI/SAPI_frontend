@@ -7,6 +7,9 @@ public record WorkspaceInfoResponseDto(
 	String projectName,
 	String description,
 	String mainImage,
-	String domain
+	String domain,
+	Boolean isCompleted,
+	Integer connectedUserCount,
+	Integer totalMemberCount
 ) {
 }

@@ -58,7 +58,8 @@ public class ApiLambdaService {
         Specification specification = specificationRepository.findById(specificationId)
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
-        Api confirmedApi = apiRepository.findById(specification.getConfirmedApiId());
+        Api confirmedApi = apiRepository.findById(specification.getConfirmedApiId())
+                .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_DOCS));
 
         // 최초 생성 여부 확인
         if(specification.getApiGatewayId().isEmpty()) {
@@ -144,6 +145,7 @@ public class ApiLambdaService {
     private ByteArrayOutputStream createZip(String lambdaFunctionCode) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+            zos.setComment("UTF-8");
             ZipEntry entry = new ZipEntry("index.js");
             zos.putNextEntry(entry);
             zos.write(lambdaFunctionCode.getBytes());

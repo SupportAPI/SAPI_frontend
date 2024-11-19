@@ -3,10 +3,14 @@ package com.seniorcenter.sapi.domain.specification.presentation;
 import com.seniorcenter.sapi.domain.api.presentation.dto.response.ApiResponseDto;
 import com.seniorcenter.sapi.domain.api.service.ApiService;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationCategoryResponseDto;
+import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationHistoryListResponseDto;
 import com.seniorcenter.sapi.domain.specification.presentation.dto.response.SpecificationResponseDto;
 import com.seniorcenter.sapi.domain.specification.service.SpecificationService;
+import com.seniorcenter.sapi.global.annotation.ExcludeFromAdvice;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,4 +55,31 @@ public class SpecificationController {
         return apiService.getApiHistoryBySpecificationId(docUUID);
     }
 
+    @GetMapping("/workspaces/{workspaceId}/docs/{docsID}/history-list")
+    public List<SpecificationHistoryListResponseDto> getHistoryList(@PathVariable("docsID") UUID docUUID){
+        return apiService.getApiHistoryListBySpecificationId(docUUID);
+    }
+
+    @ExcludeFromAdvice
+    @PostMapping("/workspaces/{workspaceId}/docs/{specificationId}/export")
+    public ResponseEntity<byte[]> exportFile(
+        @PathVariable("workspaceId") UUID workspaceId,
+        @PathVariable("specificationId") UUID specificationId,
+        @RequestParam("ext") String ext
+    ) {
+        byte[] fileBytes = specificationService.exportFile(workspaceId, specificationId, ext);
+        return new ResponseEntity<>(fileBytes, HttpStatus.OK);
+    }
+
+
+    @ExcludeFromAdvice
+    @PostMapping("/workspaces/{workspaceId}/export")
+    public ResponseEntity<byte[]> exportPdf(
+        @PathVariable("workspaceId") UUID workspaceId,
+        @RequestParam("specifications") List<UUID> specifications,
+        @RequestParam("ext") String ext
+    ) {
+        byte[] zipBytes = specificationService.exportFiles(workspaceId, specifications, ext);
+        return new ResponseEntity<>(zipBytes, HttpStatus.OK);
+    }
 }

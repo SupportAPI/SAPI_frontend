@@ -32,7 +32,7 @@ public class EmailVerification {
 	@Column(nullable = false)
 	private LocalDateTime requestedAt;
 
-	private static final long EXPIRATION_TIME_MINUTES = 6;
+	private static final long EXPIRATION_TIME_MINUTES = 3;
 
 	@Builder
 	private EmailVerification(String email, String verificationCode, LocalDateTime requestedAt) {

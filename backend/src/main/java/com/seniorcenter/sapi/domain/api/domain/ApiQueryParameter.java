@@ -24,17 +24,52 @@ public class ApiQueryParameter extends BaseTimeEntity {
     private String paramValue;
     private String description;
 
+    @Column(nullable = false)
+    private Boolean isRequired;
+
+    @Column(nullable = false)
+    private Boolean isChecked;
+
     @Builder
-    public ApiQueryParameter(Api api) {
+    public ApiQueryParameter(Api api, String paramKey, String paramValue, String description, Boolean isRequired, Boolean isChecked) {
         this.api = api;
-        this.paramKey = "";
-        this.paramValue = "";
-        this.description = "";
+        this.paramKey = paramKey;
+        this.paramValue = paramValue;
+        this.description = description;
+        this.isRequired = isRequired;
+        this.isChecked = isChecked;
     }
 
     public static ApiQueryParameter createApiQueryParameter(Api api) {
         return ApiQueryParameter.builder()
                 .api(api)
+                .paramKey("")
+                .paramValue("")
+                .description("")
+                .isRequired(true)
+                .isChecked(true)
                 .build();
+    }
+
+    public static ApiQueryParameter copyApiQueryParameter(Api api, ApiQueryParameter originQueryParameter) {
+        return ApiQueryParameter.builder()
+                .api(api)
+                .paramKey(originQueryParameter.getParamKey())
+                .paramValue(originQueryParameter.getParamValue())
+                .description(originQueryParameter.getDescription())
+                .isRequired(originQueryParameter.getIsRequired())
+                .isChecked(originQueryParameter.getIsChecked())
+                .build();
+    }
+
+    public void updateApiQueryParameterValue(String paramValue, Boolean isChecked) {
+        this.paramValue = paramValue;
+        this.isChecked = isChecked;
+    }
+
+    public void updateKeyAndValueAndDescription(String paramKey, String paramValue, String description) {
+        this.paramKey = paramKey;
+        this.paramValue = paramValue;
+        this.description = description;
     }
 }

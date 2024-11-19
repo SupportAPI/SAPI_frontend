@@ -24,14 +24,52 @@ public class ApiCookie extends BaseTimeEntity {
     private String cookieValue;
     private String description;
 
+    @Column(nullable = false)
+    private Boolean isRequired;
+
+    @Column(nullable = false)
+    private Boolean isChecked;
+
     @Builder
-    public ApiCookie(Api api) {
+    public ApiCookie(Api api, String cookieKey, String cookieValue, String description, Boolean isRequired, Boolean isChecked) {
         this.api = api;
+        this.cookieKey = cookieKey;
+        this.cookieValue = cookieValue;
+        this.description= description;
+        this.isRequired = isRequired;
+        this.isChecked = isChecked;
     }
 
     public static ApiCookie createApiCookie(Api api) {
         return ApiCookie.builder()
                 .api(api)
+                .cookieKey("")
+                .cookieValue("")
+                .description("")
+                .isRequired(true)
+                .isChecked(true)
                 .build();
+    }
+
+    public static ApiCookie copyApiCookie(Api api, ApiCookie originCookie) {
+        return ApiCookie.builder()
+                .api(api)
+                .cookieKey(originCookie.getCookieKey())
+                .cookieValue(originCookie.getCookieValue())
+                .description(originCookie.getDescription())
+                .isRequired(originCookie.getIsRequired())
+                .isChecked(originCookie.getIsChecked())
+                .build();
+    }
+
+    public void updateCookieValue(String cookieValue, Boolean isChecked) {
+        this.cookieValue = cookieValue;
+        this.isChecked = isChecked;
+    }
+
+    public void updateCookieKeyAndValueAndDescription(String cookieKey, String cookieValue, String description) {
+        this.cookieKey = cookieKey;
+        this.cookieValue = cookieValue;
+        this.description = description;
     }
 }

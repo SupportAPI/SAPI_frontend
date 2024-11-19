@@ -22,26 +22,54 @@ public class ApiResponse extends BaseTimeEntity {
     private Api api;
 
     private int code;
-    private String description;
+
+    private String name;
 
     @Enumerated(EnumType.STRING)
     private BodyType bodyType;
 
+    @Column(length = 65535)
     private String bodyData;
 
+    private String description;
+
     @Builder
-    public ApiResponse(Api api, int code) {
+    public ApiResponse(Api api, int code, String name, BodyType bodyType, String bodyData, String description) {
         this.api = api;
         this.code = code;
-        this.description = "";
-        this.bodyType = BodyType.JSON;
-        this.bodyData = "";
+        this.name = name;
+        this.bodyType = bodyType;
+        this.bodyData = bodyData;
+        this.description = description;
     }
 
     public static ApiResponse createApiResponse(Api api, int code) {
         return ApiResponse.builder()
-                .api(api)
-                .code(code)
-                .build();
+            .api(api)
+            .code(code)
+            .bodyType(BodyType.NONE)
+            .bodyData("")
+            .description("")
+            .build();
+    }
+
+    public static ApiResponse copyApiResponse(Api api, ApiResponse originResponse) {
+        return ApiResponse.builder()
+            .api(api)
+            .code(originResponse.getCode())
+            .name(originResponse.getName())
+            .bodyType(originResponse.getBodyType())
+            .bodyData(originResponse.getBodyData())
+            .description(originResponse.getDescription())
+            .build();
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateBodyTypeAndBodyData(String bodyType, String bodyData) {
+        this.bodyType = BodyType.valueOf(bodyType);
+        this.bodyData = bodyData;
     }
 }

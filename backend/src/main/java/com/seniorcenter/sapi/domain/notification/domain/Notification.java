@@ -35,11 +35,14 @@ public class Notification extends BaseTimeEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Column(nullable = false)
-	private UUID specificationId;
+	@Column
+	private UUID fromId;
 
-	@Column(nullable = false)
-	private String apiName;
+	@Column
+	private UUID workspaceId;
+
+	@Column
+	private String fromName;
 
 	@Column(nullable = false)
 	private String message;
@@ -48,20 +51,26 @@ public class Notification extends BaseTimeEntity {
 	@Enumerated(EnumType.STRING)
 	private NotificationType type;
 
+	@Column(nullable = false)
+	private Boolean isRead;
+
 	@Builder
-	private Notification(User user, UUID specificationId, String apiName, String message, NotificationType type) {
+	private Notification(User user, UUID fromId, UUID workspaceId, String fromName, String message, NotificationType type) {
 		this.user = user;
-		this.specificationId = specificationId;
-		this.apiName = apiName;
+		this.fromId = fromId;
+		this.workspaceId = workspaceId;
+		this.fromName = fromName;
 		this.message = message;
 		this.type = type;
+		this.isRead = false;
 	}
 
-	public static Notification createNotification(User user, UUID specificationId, String apiName, String message, NotificationType type) {
+	public static Notification createNotification(User user, UUID fromId, UUID workspaceId, String fromName, String message, NotificationType type) {
 		return Notification.builder()
 			.user(user)
-			.specificationId(specificationId)
-			.apiName(apiName)
+			.fromId(fromId)
+			.workspaceId(workspaceId)
+			.fromName(fromName)
 			.message(message)
 			.type(type)
 			.build();
@@ -69,5 +78,9 @@ public class Notification extends BaseTimeEntity {
 
 	public String getType() {
 		return type.getType();
+	}
+
+	public void changeReadStatus() {
+		this.isRead = true;
 	}
 }

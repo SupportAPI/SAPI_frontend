@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.seniorcenter.sapi.domain.category.domain.Category;
+import com.seniorcenter.sapi.domain.environment.domain.EnvironmentCategory;
 import com.seniorcenter.sapi.domain.membership.domain.Membership;
 import com.seniorcenter.sapi.domain.specification.domain.Specification;
+import com.seniorcenter.sapi.domain.statistics.domain.Statistics;
 import com.seniorcenter.sapi.domain.workspace.presentation.dto.request.CreateWorkspaceRequestDto;
 import com.seniorcenter.sapi.domain.workspace.presentation.dto.request.UpdateWorkspaceRequestDto;
 import com.seniorcenter.sapi.global.database.BaseTimeEntity;
@@ -45,11 +48,23 @@ public class Workspace extends BaseTimeEntity {
 	@Column(nullable = false)
 	private String domain;
 
+	@Column(nullable = false)
+	private Boolean isCompleted;
+
 	@OneToMany(mappedBy = "workspace", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Membership> memberships = new ArrayList<>();
 
 	@OneToMany(mappedBy = "workspace", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Specification> specifications = new ArrayList<>();
+
+	@OneToMany(mappedBy = "workspace", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<Category> categories = new ArrayList<>();
+
+	@OneToMany(mappedBy = "workspace", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<Statistics> statistics = new ArrayList<>();
+
+	@OneToMany(mappedBy = "workspace", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<EnvironmentCategory> environmentCategories = new ArrayList<>();
 
 	@Builder
 	private Workspace(String projectName, String description, String mainImage, String domain) {
@@ -57,6 +72,7 @@ public class Workspace extends BaseTimeEntity {
 		this.description = description;
 		this.mainImage = mainImage;
 		this.domain = domain;
+		this.isCompleted = false;
 	}
 
 	public static Workspace createWorkspace(CreateWorkspaceRequestDto requestDto, String mainImageUrl) {
@@ -73,5 +89,6 @@ public class Workspace extends BaseTimeEntity {
 		this.description = requestDto.description();
 		this.domain = requestDto.domain();
 		this.mainImage = mainImage;
+		this.isCompleted = requestDto.isCompleted();
 	}
 }

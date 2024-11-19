@@ -38,9 +38,6 @@ public class User extends BaseTimeEntity {
 	@Column(nullable = false)
 	private Boolean isDeleted;
 
-	@OneToOne(mappedBy = "manager", cascade = CascadeType.ALL, orphanRemoval = true)
-	private Specification specification;
-
 	@Builder
 	private User(String email, String password, String nickname, String profileImage) {
 		this.email = email;

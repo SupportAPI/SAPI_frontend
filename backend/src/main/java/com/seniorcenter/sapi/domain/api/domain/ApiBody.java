@@ -30,20 +30,62 @@ public class ApiBody extends BaseTimeEntity {
     private String bodyValue;
     private String description;
 
+    @Column(nullable = false)
+    private Boolean isRequired;
+
+    @Column(nullable = false)
+    private Boolean isChecked;
+
     @Builder
-    public ApiBody(Api api, ParameterType parameterType) {
+    public ApiBody(Api api, ParameterType parameterType, String bodyKey, String bodyValue, String description, Boolean isRequired, Boolean isChecked) {
         this.api = api;
         this.parameterType = parameterType;
-        this.bodyKey = "";
-        this.bodyValue = "";
-        this.description = "";
+        this.bodyKey = bodyKey;
+        this.bodyValue = bodyValue;
+        this.description = description;
+        this.isRequired = isRequired;
+        this.isChecked = isChecked;
     }
 
     public static ApiBody createApiBody(Api api, ParameterType parameterType) {
         return ApiBody.builder()
                 .api(api)
                 .parameterType(parameterType)
+                .bodyKey("")
+                .bodyValue("")
+                .description("")
+                .isRequired(true)
+                .isChecked(true)
                 .build();
+    }
+
+    public static ApiBody copyBody(Api api, ApiBody originBody) {
+        return ApiBody.builder()
+                .api(api)
+                .parameterType(originBody.getParameterType())
+                .bodyKey(originBody.getBodyKey())
+                .bodyValue(originBody.getBodyValue())
+                .description(originBody.getDescription())
+                .isRequired(originBody.getIsRequired())
+                .isChecked(originBody.getIsChecked())
+                .build();
+    }
+
+    public void updateBodyValue(String bodyValue, Boolean isChecked) {
+        this.bodyValue = bodyValue;
+        this.isChecked = isChecked;
+    }
+
+    public void updateBodyValue(String bodyValue) {
+        this.bodyValue = bodyValue;
+    }
+
+    public void updateFormData(String bodyKey, String bodyValue, ParameterType parameterType, String description, Boolean isRequired) {
+        this.bodyKey = bodyKey;
+        this.bodyValue = bodyValue;
+        this.parameterType = parameterType;
+        this.description = description;
+        this.isRequired = isRequired;
     }
 }
 

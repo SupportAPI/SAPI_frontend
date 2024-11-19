@@ -4,10 +4,18 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.seniorcenter.sapi.domain.api.domain.repository.ApiRepository;
+import com.seniorcenter.sapi.domain.category.domain.Category;
+import com.seniorcenter.sapi.domain.category.domain.repository.CategoryRepository;
+import com.seniorcenter.sapi.domain.membership.service.MembershipServiceImpl;
+import com.seniorcenter.sapi.global.utils.WebSocketUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.seniorcenter.sapi.domain.environment.domain.EnvironmentCategory;
+import com.seniorcenter.sapi.domain.environment.domain.repository.EnvironmentCategoryRepository;
+import com.seniorcenter.sapi.domain.environment.presentation.dto.request.CreateEnvironmentCategoryRequestDto;
 import com.seniorcenter.sapi.domain.membership.domain.InviteStatus;
 import com.seniorcenter.sapi.domain.membership.domain.Membership;
 import com.seniorcenter.sapi.domain.membership.domain.Role;
@@ -38,6 +46,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 	private final MembershipRepository membershipRepository;
 	private final UserUtils userUtils;
 	private final S3UploadUtil s3UploadUtil;
+	private final CategoryRepository categoryRepository;
+	private final EnvironmentCategoryRepository environmentCategoryRepository;
+	private final MembershipServiceImpl membershipServiceImpl;
+	private final WebSocketUtil webSocketUtil;
+	private final ApiRepository apiRepository;
 
 	@Override
 	@Transactional
@@ -51,20 +64,37 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		Workspace workspace = Workspace.createWorkspace(requestDto, mainImageUrl);
 		workSpaceRepository.save(workspace);
 
-		Membership membership = Membership.createMembership(user, workspace, Role.MAINTAINER, InviteStatus.ACCEPTED);
+		Membership membership = Membership.createMembership(user, workspace, Role.MAINTAINER, InviteStatus.ACCEPTED, membershipServiceImpl.getColor(workspace.getId()));
 		membership.updateAuthorityForMaintainer();
 		membershipRepository.save(membership);
 
+		Category category = Category.createCategory("미설정",workspace);
+		categoryRepository.save(category);
+
+		CreateEnvironmentCategoryRequestDto environmentCategoryRequestDto =
+			new CreateEnvironmentCategoryRequestDto(workspace.getId(), "Local");
+		EnvironmentCategory environmentCategory =
+			EnvironmentCategory.createEnvironmentCategory(workspace, environmentCategoryRequestDto);
+		environmentCategoryRepository.save(environmentCategory);
+
 		return new WorkspaceInfoResponseDto(workspace.getId(),
-			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain());
+			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
+			workspace.getIsCompleted(), 0, 1);
 	}
 
 	@Override
 	public WorkspaceInfoResponseDto getWorkspace(UUID workspaceId) {
 		Workspace workspace = workSpaceRepository.findById(workspaceId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
+
+		// 총 멤버 수 가져오기
+		Integer totalMemberCount = membershipRepository.countAcceptedMembersByWorkspaceId(workspace.getId());
+
+        log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestinationByLambda("/ws/sub/workspaces/"+ workspace.getId() +"/docs"));
 		WorkspaceInfoResponseDto workspaceInfoResponseDto = new WorkspaceInfoResponseDto(workspace.getId(),
-			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain());
+			workspace.getProjectName(), workspace.getDescription(), workspace.getMainImage(), workspace.getDomain(),
+			workspace.getIsCompleted(), webSocketUtil.countUsersSubscribedToDestinationByLambda("/ws/sub/workspaces/"+ workspaceId +"/docs"),
+			totalMemberCount);
 		return workspaceInfoResponseDto;
 	}
 
@@ -76,12 +106,20 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 		return memberships.stream()
 			.map(membership -> {
 				Workspace workspace = membership.getWorkspace();
+				log.info("[COUNT CONNECTIONS] " + "/ws/sub/workspaces/"+ workspace.getId() +"/docs : " + webSocketUtil.countUsersSubscribedToDestinationByLambda("/ws/sub/workspaces/"+ workspace.getId() +"/docs"));
+
+				// 총 멤버 수 가져오기
+				Integer totalMemberCount = membershipRepository.countAcceptedMembersByWorkspaceId(workspace.getId());
+
 				return new WorkspaceInfoResponseDto(
 					workspace.getId(),
 					workspace.getProjectName(),
 					workspace.getDescription(),
 					workspace.getMainImage(),
-					workspace.getDomain()
+					workspace.getDomain(),
+					workspace.getIsCompleted(),
+					webSocketUtil.countUsersSubscribedToDestinationByLambda("/ws/sub/workspaces/"+ workspace.getId() +"/docs"),
+					totalMemberCount
 				);
 			})
 			.collect(Collectors.toList());
@@ -100,7 +138,13 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
 		Workspace workspace = workSpaceRepository.findById(workspaceId)
 			.orElseThrow(() -> new MainException(CustomException.NOT_FOUND_WORKSPACE));
-		String mainImageUrl = s3UploadUtil.saveFile(mainImage);
+
+		String mainImageUrl = "";
+		if (mainImage != null && !mainImage.isEmpty()) {
+			mainImageUrl = s3UploadUtil.saveFile(mainImage);
+		} else {
+			mainImageUrl = workspace.getMainImage();
+		}
 
 		workspace.updateWorkspace(requestDto, mainImageUrl);
 	}

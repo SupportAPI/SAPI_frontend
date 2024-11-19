@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +45,10 @@ public class Api extends BaseTimeEntity {
 
     private String category;
 
+    private Long confirmUserId;
+
+    private LocalDateTime confirmTime;
+
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "specification_id")
     private Specification specification;
@@ -58,6 +63,9 @@ public class Api extends BaseTimeEntity {
     private List<ApiQueryParameter> queryParameters;
 
     @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ApiPathVariable> pathVariables;
+
+    @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ApiBody> bodies;
 
     @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -70,7 +78,7 @@ public class Api extends BaseTimeEntity {
         this.method = HttpMethod.GET;
         this.bodyType = BodyType.NONE;
         this.authenticationType = AuthenticationType.NOAUTH;
-        this.category = "Uncategorized";
+        this.category = "미설정";
         this.description = "";
         this.specification = specification;
     }
@@ -93,4 +101,36 @@ public class Api extends BaseTimeEntity {
         this.specification = specification;
     }
 
+    public void updatePath(String path) {
+        this.path = path;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateAuthType(AuthenticationType authenticationType) {
+        this.authenticationType = authenticationType;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateMethod(String method) {
+        this.method = HttpMethod.valueOf(method);
+    }
+
+    public void updateBodyType(BodyType bodyType) {
+        this.bodyType = bodyType;
+    }
+
+    public void updateCategory(String category){
+        this.category = category;
+    }
+
+    public void confirm(Long confirmUserId, LocalDateTime confirmTime) {
+        this.confirmUserId = confirmUserId;
+        this.confirmTime = confirmTime;
+    }
 }

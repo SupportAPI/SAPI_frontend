@@ -4,6 +4,7 @@ import com.seniorcenter.sapi.domain.comment.domain.CommentType;
 
 public record CommentPart(
         CommentType type,
-        String value
+        String value,
+        String nickname
 ) {
 }

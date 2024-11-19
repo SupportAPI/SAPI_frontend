@@ -7,7 +7,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum AuthenticationType {
     NOAUTH("NOAUTH"),
-    BEARER("BEARER");
+    BEARER("BEARER"),
+    BASIC("BASIC");
 
     private final String value;
 }

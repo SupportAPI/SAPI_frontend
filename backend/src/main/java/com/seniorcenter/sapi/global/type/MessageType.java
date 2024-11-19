@@ -12,6 +12,7 @@ public enum MessageType {
     UPDATE("수정"),
     ADD("추가"),
     DELETE("삭제"),
+    SAVE("SAVE"),
     ERROR("에러");
 
     private final String value;

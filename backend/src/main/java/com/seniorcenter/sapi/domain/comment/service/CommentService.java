@@ -23,12 +23,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.messaging.simp.user.SimpUser;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -46,6 +49,7 @@ public class CommentService {
     private final String userSpecifier = "/%^)(/";
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final SimpUserRegistry simpUserRegistry;
 
     @Transactional
     public Comment createComment(CommentMessage message, UUID docId, Principal principal) {
@@ -87,9 +91,20 @@ public class CommentService {
         return commentResponseDtos;
     }
 
+    public List<CommentResponseDto> getInitComments(UUID docId, Long targetCommentId, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+        List<Comment> comments = commentRepository.findFirstPreviousCommentsBySpecificationIdAndTargetId(docId, targetCommentId, pageable);
+        List<CommentResponseDto> commentResponseDtos = new ArrayList<>();
+        for (Comment comment : comments) {
+            CommentResponseDto commentResponseDto = translateToCommentResponseDto(comment);
+            commentResponseDtos.add(commentResponseDto);
+        }
+        return commentResponseDtos;
+    }
+
     public Long getCommentId(UUID docId) {
         Comment comment = commentRepository.findFirstBySpecificationIdOrderByCreatedDateDesc(docId);
-        if(comment == null) return -1L;
+        if (comment == null) return -1L;
         return comment.getId();
     }
 
@@ -114,7 +129,9 @@ public class CommentService {
         String modifiedMessage = makeCommentText(messages);
         comment.updateComment(modifiedMessage);
         CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
-        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", new CommentMessage(MessageType.UPDATE,commentResponseDto));
+        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/message", new CommentMessage(MessageType.UPDATE, commentResponseDto));
+        CommentResponseDto yourMessage = new CommentResponseDto(commentResponseDto.commentId(), commentResponseDto.writerNickname(), commentResponseDto.writerProfileImage(), commentResponseDto.comment(), commentResponseDto.createdDate(), false);
+        sendToAllExceptSender(principal.getName(), docId, new CommentMessage(MessageType.UPDATE, yourMessage));
     }
 
     @Transactional
@@ -127,7 +144,7 @@ public class CommentService {
             throw new MainException(CustomException.ACCESS_DENIED_EXCEPTION);
         }
         commentRepository.delete(comment);
-        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", message);
+        sendToAll(docId, message);
     }
 
     public CommentResponseDto translateToCommentResponseDto(Comment comment) {
@@ -138,7 +155,7 @@ public class CommentService {
         }
         User writer = userRepository.findById(comment.getWriterId())
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
-        CommentResponseDto commentResponseDto = new CommentResponseDto(comment.getId(), writer.getNickname(), new ArrayList<>(), comment.getCreatedDate(), isHost);
+        CommentResponseDto commentResponseDto = new CommentResponseDto(comment.getId(), writer.getNickname(), writer.getProfileImage(), new ArrayList<>(), comment.getCreatedDate(), isHost);
         String text = comment.getComment();
         String[] split = text.split(Pattern.quote(splitText));
         for (String str : split) {
@@ -162,7 +179,7 @@ public class CommentService {
         }
         User writer = userRepository.findById(comment.getWriterId())
                 .orElseThrow(() -> new MainException(CustomException.NOT_FOUND_USER_EXCEPTION));
-        CommentResponseDto commentResponseDto = new CommentResponseDto(comment.getId(), writer.getNickname(), new ArrayList<>(), comment.getCreatedDate(), isHost);
+        CommentResponseDto commentResponseDto = new CommentResponseDto(comment.getId(), writer.getNickname(), writer.getProfileImage(), new ArrayList<>(), comment.getCreatedDate(), isHost);
         String text = comment.getComment();
         String[] split = text.split(Pattern.quote(splitText));
         for (String str : split) {
@@ -182,7 +199,10 @@ public class CommentService {
     public void createAndSendComment(CommentMessage message, UUID docId, Principal principal) {
         Comment comment = createComment(message, docId, principal);
         CommentResponseDto commentResponseDto = translateToCommentResponseDtoByPrincipal(comment, principal);
-        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments", new CommentMessage(MessageType.ADD,commentResponseDto));
+        System.out.println("/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/message");
+        messagingTemplate.convertAndSend("/ws/sub/docs/" + docId + "/comments" + "/user/" + principal.getName() + "/message", new CommentMessage(MessageType.ADD, commentResponseDto));
+        CommentResponseDto yourMessage = new CommentResponseDto(commentResponseDto.commentId(), commentResponseDto.writerNickname(), commentResponseDto.writerProfileImage(), commentResponseDto.comment(), commentResponseDto.createdDate(), false);
+        sendToAllExceptSender(principal.getName(), docId, new CommentMessage(MessageType.ADD, yourMessage));
     }
 
     public String makeCommentText(List<CommentPart> messages) {
@@ -191,9 +211,45 @@ public class CommentService {
             if (part.type().equals(CommentType.TEXT)) {
                 resultText += part.value() + splitText;
             } else if (part.type().equals(CommentType.USER)) {
-                resultText += userSpecifier + part.value() + splitText;
+                Optional<User> user = userRepository.findById(Long.valueOf(part.value()));
+                if (!user.isPresent()) {
+                    resultText += "@" + part.nickname() + "-" + part.value() + splitText;
+                } else if (!part.nickname().equals(user.get().getNickname())) {
+                    resultText += part.value() + splitText;
+                } else {
+                    resultText += userSpecifier + part.value() + splitText;
+                }
             }
         }
         return resultText;
     }
+
+    public void sendToAllExceptSender(String senderUserName, UUID docId, Object messageContent) {
+        for (SimpUser user : simpUserRegistry.getUsers()) {
+            if (!user.getName().equals(senderUserName)) {
+                user.getSessions().forEach(session -> {
+                    session.getSubscriptions().forEach(subscription -> {
+                        String targetDestination = "/ws/sub/docs/" + docId + "/comments" + "/user/" + user.getName() + "/message";
+                        if (targetDestination.equals(subscription.getDestination())) {
+                            messagingTemplate.convertAndSend(targetDestination, messageContent);
+                        }
+                    });
+                });
+            }
+        }
+    }
+
+    public void sendToAll(UUID docId, Object messageContent) {
+        for (SimpUser user : simpUserRegistry.getUsers()) {
+            user.getSessions().forEach(session -> {
+                session.getSubscriptions().forEach(subscription -> {
+                    String targetDestination = "/ws/sub/docs/" + docId + "/comments" + "/user/" + user.getName() + "/message";
+                    if (targetDestination.equals(subscription.getDestination())) {
+                        messagingTemplate.convertAndSend(targetDestination, messageContent);
+                    }
+                });
+            });
+        }
+    }
+
 }
