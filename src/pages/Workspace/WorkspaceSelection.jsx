@@ -344,7 +344,7 @@ const WorkspaceSelection = () => {
                           <th className='p-2 w-[25%]'>
                             <div className='flex justify-center items-center'>
                               <button className='flex justify-center items-center'>
-                                <p className={`mr-2 px-4 py-2 rounded-3xl `}>Active User</p>
+                                <p className={`mr-2 px-4 py-2 rounded-3xl `}>Workspace Id</p>
                               </button>
                             </div>
                           </th>

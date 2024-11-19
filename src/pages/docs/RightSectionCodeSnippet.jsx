@@ -8,28 +8,33 @@ const RightSectionCodeSnippet = ({ path, method, parameters, request }) => {
   const [library, setLibrary] = useState('axios'); // 기본값을 'axios'로 설정
   const { workspaceId } = useParams();
 
+  console.log(request.json.value);
+
   const headerValue = parameters.headers?.[0]?.headerValue || 'application/json';
 
   const url = `https://k11b305.p.ssafy.io/proxy/${workspaceId}/dynamic`;
 
   const snippets = {
     axios: `
-axios.${method.toLowerCase()}(\`${url}${path}\`, {
-  headers: {
-    'Content-Type': '${headerValue}',
-  },
-});
+    axios.${method.toLowerCase()}(\`${url}${path}\`, 
+      ${request.json.value}, 
+      {
+        headers: {
+          'Content-Type': '${headerValue}',
+        },
+      });
     `,
     fetch: `
-fetch(\`\${url}${path}\`, {
-  method: '${method}',
-  headers: {
-    'Content-Type': '${headerValue}',
-  },
-})
-  .then(response => response.json())
-  .then(data => console.log(data))
-  .catch(error => console.error(error));
+    fetch(\`${url}${path}\`, {
+      method: '${method.toLowerCase()}',
+      headers: {
+        'Content-Type': '${headerValue}',
+      },
+      body: JSON.stringify(${request.json.value}),
+    })
+      .then(response => response.json())
+      .then(data => console.log(data))
+      .catch(error => console.error(error));
     `,
   };
 
@@ -70,7 +75,7 @@ fetch(\`\${url}${path}\`, {
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <Editor
-            height='200px'
+            height='300px'
             defaultLanguage='javascript'
             value={snippets[library]}
             options={{

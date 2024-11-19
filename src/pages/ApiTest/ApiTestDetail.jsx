@@ -339,7 +339,7 @@ const ApiTestDetail = () => {
               config: response.config,
               request: response.request,
             },
-            type: 'Local',
+            type: urlType,
           });
 
           setTestResult(responseData.data);

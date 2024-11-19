@@ -187,7 +187,7 @@ const ApiOverview = () => {
       )}
 
       <div className='overflow-x-auto mx-auto border border-gray-300 rounded-sm'>
-        <table className='w-full min-w-[1200px] table-fixed' style={{ borderSpacing: 0 }}>
+        <table className='w-full table-fixed' style={{ borderSpacing: 0 }}>
           <thead>
             <tr className='bg-gray-100 h-12'>
               <th className='p-4 text-center font-medium w-[5%] cursor-default' onClick={() => toggleSelectAll()}>

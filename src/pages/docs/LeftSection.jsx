@@ -29,6 +29,7 @@ const LeftSection = ({
   const { mutate: confirmWorkspace, isLoading: isSaving } = useConfirmWorkspace();
   const { mutate: handleExport, isLoading: isExportLoading } = useExportDocument();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
   const { subscribe, publish, isConnected } = useWebSocket();
   const navigate = useNavigate();
 
@@ -73,6 +74,13 @@ const LeftSection = ({
     navigate(`/workspace/${workspaceId}`);
   };
 
+  const handleConfirmSave = () => {
+    if (workspaceId && apiDocDetail.docId) {
+      confirmWorkspace({ workspaceId, docsId: apiDocDetail.docId });
+    }
+    setShowSaveModal(false);
+  };
+
   return (
     <>
       {openHistoryDetail ? (
@@ -84,7 +92,7 @@ const LeftSection = ({
               <label className='flex items-center text-[16px] font-semibold h-8'>Category & Name</label>
               <div className='flex space-x-2'>
                 <button
-                  onClick={handleSave}
+                  onClick={() => setShowSaveModal(true)}
                   disabled={isSaving}
                   className='flex items-center h-8 text-[14px] space-x-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 px-2 rounded-md'
                 >
@@ -189,7 +197,7 @@ const LeftSection = ({
           {showDeleteModal && (
             <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
               <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
-                <h3 className='text-xl font-bold mb-4'>삭제하시겠습니까?</h3>
+                <h3 className='text-xl font-bold mb-4'>삭제</h3>
                 <p className='mb-6'>선택한 API 문서를 삭제하시겠습니까?</p>
                 <div className='flex justify-end space-x-4'>
                   <button
@@ -203,6 +211,28 @@ const LeftSection = ({
                     className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
                   >
                     삭제
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {showSaveModal && (
+            <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
+              <div className='bg-white p-6 rounded-lg shadow-lg w-80'>
+                <h3 className='text-xl font-bold mb-4'>발행</h3>
+                <p className='mb-6'>선택한 API 문서를 발행하시겠습니까?</p>
+                <div className='flex justify-end space-x-4'>
+                  <button
+                    onClick={() => setShowSaveModal(false)}
+                    className='px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300'
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleConfirmSave}
+                    className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'
+                  >
+                    발행
                   </button>
                 </div>
               </div>

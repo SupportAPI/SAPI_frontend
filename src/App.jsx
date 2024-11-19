@@ -76,7 +76,7 @@ const App = () => {
         closeOnClick
         pauseOnHover
         transition={fadeOut}
-        toastClassName='flex items-center justify-between p-4 shadow-lg rounded-2xl dark:bg-dark-background dark:text-dark-text border'
+        toastClassName='flex items-center justify-between p-4 shadow-lg rounded-sm text-[14px] dark:bg-dark-background dark:text-dark-text border'
       />
     </>
   );
